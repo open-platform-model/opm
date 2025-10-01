@@ -110,7 +110,7 @@ All elements use the `#ElementBase` pattern:
 }
 
 #Container: #ElementBase & {
-    #metadata: #elements: Container: #PrimitiveTrait & {
+    #metadata: #elements: Container: #Primitive & {
         description: "Single container primitive"
         target: ["component"]
         labels: {"core.opm.dev/category": "workload"}

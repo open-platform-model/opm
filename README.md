@@ -62,19 +62,19 @@ graph TB
     MD --> MOD --> MR
 ```
 
-**1. ModuleDefinition (Developer Domain)**
+#### 1. ModuleDefinition (Developer Domain)
 
 - Portable application blueprint
 - Contains components, scopes, and configurable values
 - Platform-agnostic and reusable
 
-**2. Module (Platform Domain)**
+#### 2. Module (Platform Domain)
 
 - Curated version with platform policies
 - Adds PlatformScopes for governance
 - Maintains original developer intent
 
-**3. ModuleRelease (User Domain)**
+#### 3. ModuleRelease (User Domain)
 
 - Deployed instance with user overrides
 - References Module from catalog
@@ -120,6 +120,7 @@ Scopes apply single elements across component groups:
     #metadata: {
         name: "web-app"
         version: "1.0.0"
+        workloadType: "stateless"
     }
 
     components: {
@@ -165,7 +166,6 @@ Scopes apply single elements across component groups:
         replicas: 5
         image: "myapp:v2"
     }
-    targetEnvironment: "production"
 }
 ```
 
@@ -269,7 +269,7 @@ encryptionScope: #PlatformScope & {
 - **Audit Trail**: Every module deployment will include compliance attestation
 - **Framework Support**: Planned support for NIST 800-53, FedRAMP, PCI-DSS, SOC2, HIPAA mappings
 
-## OPM vs Helm Charts
+## OPM Modules vs Helm Charts
 
 | Aspect | Helm Charts | OPM |
 |--------|------------|-----|
@@ -280,72 +280,6 @@ encryptionScope: #PlatformScope & {
 | **Composability** | Limited subcharts | Full element composition |
 | **Platform Independence** | Fork charts for changes | Clean platform additions |
 | **Compliance** | Manual validation | Automated OSCAL integration |
-
-## Architecture
-
-OPM implements a clean, extensible architecture:
-
-```shell
-┌─────────────────────────────────────────────┐
-│             ModuleDefinition                │
-│          (Developer Blueprint)              │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐        │
-│  │Component│ │Component│ │  Scope  │        │
-│  └────┬────┘ └────┬────┘ └────┬────┘        │
-│       └──────────┬┴───────────┘             │
-│                Elements                     │
-│  ┌──────────────────────────────────────┐   │
-│  │ Traits │ Resources │ Policies        │   │
-│  └──────────────────────────────────────┘   │
-└─────────────────────────────────────────────┘
-                      ↓
-┌─────────────────────────────────────────────┐
-│                  Module                     │
-│            (Platform Curated)               │
-│  ┌──────────────────────────────────────┐   │
-│  │    + PlatformScopes (Immutable)      │   │
-│  │    + Platform Components             │   │
-│  └──────────────────────────────────────┘   │
-└─────────────────────────────────────────────┘
-                      ↓
-┌─────────────────────────────────────────────┐
-│              ModuleRelease                  │
-│            (User Instance)                  │
-│  ┌──────────────────────────────────────┐   │
-│  │    + User Value Overrides            │   │
-│  │    + Target Environment              │   │
-│  └──────────────────────────────────────┘   │
-└─────────────────────────────────────────────┘
-```
-
-## Installation
-
-### Prerequisites
-
-- CUE v0.14.0 or later
-- Platform provider (Kubernetes, Docker Compose, etc.)
-
-### Getting Started
-
-WIP
-
-```bash
-```
-
-## Documentation
-
-Comprehensive documentation is available in the `/docs` directory:
-
-- **[Architecture Overview](docs/architecture.md)** - Complete system design and principles
-- **[OPM vs Helm](docs/opm-vs-helm.md)** - Detailed comparison with Helm Charts
-- **Core Concepts:**
-  - [Elements](docs/concepts/elements.md) - Foundation of the element system
-  - [Components](docs/concepts/components.md) - Building blocks of modules
-  - [Scopes](docs/concepts/scopes.md) - Cross-cutting concerns
-- **Module Lifecycle:**
-  - [ModuleDefinition](docs/lifecycle/module-definition.md) - Developer blueprints
-  - [Module](docs/lifecycle/module.md) - Platform curation
-  - [ModuleRelease](docs/lifecycle/module-release.md) - User deployments
 
 ## Use Cases
 
@@ -367,26 +301,6 @@ Comprehensive documentation is available in the `/docs` directory:
 - Maintain consistency while leveraging platform-specific optimizations
 - Avoid vendor lock-in with portable definitions
 
-## Contributing
-
-We welcome contributions! OPM is an open specification designed to evolve with community input.
-
-### How to Contribute
-
-1. Review the [contribution guidelines](CONTRIBUTING.md)
-2. Check existing [issues](https://github.com/open-platform-model/opm/issues)
-3. Submit pull requests for:
-   - New element definitions
-   - Platform provider implementations
-   - Documentation improvements
-   - Bug fixes and enhancements
-
-### Community
-
-- **Discussions**: [GitHub Discussions](https://github.com/open-platform-model/opm/discussions)
-- **Issues**: [GitHub Issues](https://github.com/open-platform-model/opm/issues)
-- **Slack**: Join #open-platform-model on CNCF Slack
-
 ## Roadmap
 
 ### Current Focus
@@ -399,10 +313,12 @@ We welcome contributions! OPM is an open specification designed to evolve with c
 
 ### Future Plans
 
-- [ ] GitOps workflow support built using the operator framework
+- [ ] Workflows: Support some way of describing workflow pipelines in a generalized way
+  - Question: Should it be a standard for existing CI/CD pipeline implementations or should it be its own pipeline system?
+  - Question: Should it be split into a standard schema for existing pipeline tools and another implemenetation for doing simple pipeline tasks in modules themselvses (e.g. application upgrade/downgrade steps, etc)
+- [ ] Cloud provider integrations (AWS, Azure, GCP). MAYBE!
 - [ ] Module marketplace based on CUE central registry
 - [ ] IDE extensions for CUE/OPM
-- [ ] Cloud provider integrations (AWS, Azure, GCP). MAYBE!
 
 ## Inspiration & Acknowledgments
 
