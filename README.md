@@ -100,13 +100,13 @@ Components are element compositions serving two roles:
 
 Scopes apply single elements across component groups:
 
-**PlatformScopes (Immutable)**
+**PlatformScopes (Immutable)**:
 
 - Platform-enforced policies
 - Security, compliance, governance
 - Cannot be overridden by developers
 
-**ModuleScopes (Mutable)**
+**ModuleScopes (Mutable)**:
 
 - Developer-controlled optimizations
 - Traffic management, observability

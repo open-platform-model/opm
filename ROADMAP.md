@@ -73,7 +73,7 @@
 - [ ] Native workload transformers
   - [ ] Deployment (stateless)
   - [ ] StatefulSet (stateful)
-  - [ ] DaemonSet (daemon)
+  - [ ] Daemon (daemon)
   - [ ] Job (task)
   - [ ] CronJob (scheduled-task)
 - [ ] Networking transformers
