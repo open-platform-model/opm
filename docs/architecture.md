@@ -99,22 +99,23 @@ Elements declare where they can be applied:
 - `target: ["scope"]` - Cross-cutting concerns across components
 - `target: ["component", "scope"]` - Can be used at either level
 
-### The ElementBase Pattern
+### The Component Pattern for Elements
 
-All elements use the `#ElementBase` pattern:
+All elements use the `#Component` pattern:
 
 ```cue
-#ElementBase: {
-    #metadata: #elements: [elementName=string]: #Element & {#name!: elementName}
+#Component: {
+    #elements: #ElementMap
     ...  // Critical: enables CUE composition without type conflicts
 }
 
-#Container: #ElementBase & {
-    #metadata: #elements: Container: #Primitive & {
+#Container: #Component & {
+    #elements: Container: #Primitive & {
+        name: "Container"
         description: "Single container primitive"
         target: ["component"]
         labels: {"core.opm.dev/category": "workload"}
-        #schema: #ContainerSpec
+        schema: #ContainerSpec
     }
     container: #ContainerSpec
 }
