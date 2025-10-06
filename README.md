@@ -2,7 +2,9 @@
 
 > **A cloud-native module architecture that transforms Kubernetes application delivery through element composition, type-safe configurations, and clear separation of concerns**
 
-OPM is the next evolution of cloud-native application packaging, moving beyond template-based solutions like Helm Charts to provide a type-safe, policy-driven, and truly modular architecture. Built on the powerful CUE configuration language and inspired by the Open Application Model (OAM), OPM enables portable module definitions while maintaining platform control and providing simple deployment experiences.
+## Our vision
+
+Open Platform Model envisions a digital commons where applications and infrastructure speak the same composable language, making software truly portable across any provider, any scale, any region - forever breaking the chains of vendor lock-in. By transforming how we describe, collaborate on, distribute, and deploy almost everything, OPM aims to enable sovereign digital ecosystems where federated service providers compete on innovation rather than lock-in, starting with Europe's answer to tech giant monopolies.
 
 ## Why OPM?
 
