@@ -55,7 +55,7 @@
 - [ ] CRD element mapping
   - [ ] CustomResourceDefinition → Element schema generation
   - [ ] Determine element classification (primitive vs modifier)
-  - [ ] Support for CRD versioning (v1alpha1, v1beta1, v1)
+  - [ ] Support for CRD versioning (v0alpha1, v1beta1, v1)
 - [ ] Element code generation from CRDs
   - [ ] Schema extraction from OpenAPI v3 specs
   - [ ] Automatic element registry updates
