@@ -113,28 +113,92 @@
 
 **Goal**: Enable automated testing and CI validation of elements, modules, and transformers
 
-- [ ] Element validation framework
-  - [ ] Schema validation tests
-  - [ ] Element compatibility tests
-  - [ ] Label and metadata validation
-- [ ] Module validation tests
-  - [ ] Component composition validation
-  - [ ] Dependency resolution tests
-  - [ ] Platform scope enforcement tests
-- [ ] Transformer testing
-  - [ ] Required/optional element satisfaction tests
-  - [ ] Output resource validation
-  - [ ] Platform-specific rendering tests
-- [ ] CI/CD integration
-  - [ ] GitHub Actions workflows
-  - [ ] Pre-commit hooks for CUE formatting and validation
-  - [ ] Automated regression testing
-- [ ] Test utilities and fixtures
-  - [ ] Sample modules for testing
-  - [ ] Mock providers for unit testing
-  - [ ] Test assertion helpers
+**Status**: CORE TESTING IMPLEMENTED ✅ (~50 test cases, working test runner)
 
-**Exit Criteria**: All elements, modules, and transformers have automated tests running in CI
+- [x] Element validation framework ✅
+  - [x] Schema validation tests (`tests/unit/element.cue`)
+  - [x] Element compatibility tests
+  - [x] Label and metadata validation
+  - [x] Computed value tests (`#fullyQualifiedName`, `#nameCamel`)
+- [x] Module validation tests ✅
+  - [x] Component composition validation (`tests/unit/component.cue`, `tests/unit/module.cue`)
+  - [x] Module layer merging and aggregation (`tests/integration/module_composition.cue`)
+  - [x] Value flow through layers (`tests/integration/module_values_flow.cue`)
+  - [ ] Dependency resolution tests (feature not yet implemented)
+  - [ ] Platform scope enforcement tests
+- [x] Transformer testing ✅
+  - [x] Component → Kubernetes resource rendering (`tests/integration/rendering.cue`)
+  - [x] Real-world application scenarios (`tests/integration/application_scenarios.cue`)
+  - [ ] Required/optional element satisfaction tests (MISSING - noted in tests/README.md)
+  - [x] Output resource validation
+  - [x] Platform-specific rendering tests
+- [ ] CI/CD integration ⚠️
+  - [ ] GitHub Actions workflows (NOT YET CONFIGURED)
+  - [ ] Pre-commit hooks for CUE formatting and validation (NOT YET CONFIGURED)
+  - [ ] Automated regression testing (tests exist, automation pending)
+  - [ ] Test result publishing
+  - [ ] Coverage reporting
+- [x] Test utilities and fixtures ✅
+  - [x] Sample modules for testing (`tests/fixtures/data.cue`)
+  - [x] Test runner (`tests/test_tool.cue` - `cue cmd test`)
+  - [x] Test documentation (`tests/README.md` - comprehensive guide)
+
+**Current Status**: ~50 test cases across ~3,100 lines of test code covering core OPM logic. Test runner working (`cue cmd test`). CI/CD integration pending.
+
+**Critical Gaps** (Immediate Priority):
+
+- **Provider/transformer selection tests** (`unit/provider.cue` - ~2-4 hours effort)
+  - Transformer selection based on component element composition
+  - Provider capability matching
+  - `#SelectTransformer` logic validation
+  - Provider context construction
+- **Comprehensive negative test cases** (~4-8 hours effort)
+  - Invalid component configurations (multiple workload types)
+  - Conflicting element combinations
+  - Required field violations
+  - Invalid value overrides breaking constraints
+- **Edge case coverage** (~4-8 hours effort)
+  - Empty components/modules
+  - Deeply nested value references
+  - Large-scale modules (50+ components)
+  - Unicode in names/labels
+  - Boundary values (max port numbers, etc.)
+
+**Known Limitations** (CUE Test Framework):
+
+- No test isolation (shared namespace)
+- Limited error messages (cryptic CUE unification errors)
+- No test discovery (explicit paths required)
+- No mocking capabilities
+- No assertions library
+- No test output formatting
+- No parallel execution
+- Cannot test I/O operations, time-dependent behavior, or external integrations
+
+**Future Enhancements** (3-Phase Evolution):
+
+**Phase 1: Complete CUE Framework** (~16-20 hours)
+
+- Add provider/transformer tests
+- Expand negative test cases
+- Add edge case coverage
+- Improve test documentation and inline comments
+
+**Phase 2: Enhanced CUE Tooling** (~40-60 hours)
+
+- Test helpers and utilities
+- Better error reporting (parse CUE errors for readability)
+- Test organization (tags/categories, selective execution)
+- Performance metrics tracking
+
+**Phase 3: Go Test Suite** (~80-120 hours)
+
+- CLI testing framework (command execution, flag parsing, exit codes)
+- Integration test harness (K8s test clusters, mock services, end-to-end workflows)
+- Performance testing (benchmarks, load testing, memory profiling)
+- CI/CD integration (GitHub Actions, automated workflows)
+
+**Exit Criteria**: All elements, modules, and transformers have automated tests running in CI, with complementary Go tests for CLI and runtime behavior
 
 **Phase 1 Overall Exit Criteria**: Deploy a complete application to Kubernetes using OPM with native resources, operator-managed resources, type-safe validation, and comprehensive automated testing
 

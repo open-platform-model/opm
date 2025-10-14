@@ -145,7 +145,7 @@ Non-deployable resource providers:
 
 ### Resource Sharing
 
-CUE enables simple resource sharing through references: `volumes: dbData: {size: 1G}, container: volumeMount: data: volumes.dbData & {mountPath: "/var/lib/data"}`
+CUE enables simple resource sharing through references: `volume: dbData: {size: 1G}, container: volumeMount: data: volumes.dbData & {mountPath: "/var/lib/data"}`
 
 ## Scope Architecture
 

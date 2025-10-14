@@ -195,7 +195,7 @@ Platform requirements require chart forking or complex umbrella charts.
 #ModuleDefinition: {
     components: database: {
         container: image: "postgres:14"
-        volumes: data: size: "100Gi"
+        volume: data: size: "100Gi"
     }
 }
 
