@@ -332,6 +332,16 @@ OPM builds upon the shoulders of giants:
 - **[Crossplane](https://crossplane.io)** - Infrastructure composition patterns
 - **[Timoni](https://timoni.sh)** - CUE-based package management
 
+## Versioning
+
+All OPM components follow [Semantic Versioning v2.0.0](https://semver.org):
+
+- **Format**: `MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`
+- **Current Phase**: `v0.x.x` (initial development)
+- **Stability**: Version `v1.0.0` will mark the first stable release
+
+Each OPM subproject (core, elements, CLI) maintains independent Semver v2 versions. See individual project documentation for version compatibility matrices.
+
 ## License
 
 Open Platform Model is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.

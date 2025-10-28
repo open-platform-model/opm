@@ -1,13 +1,17 @@
-module: "opm.dev/opm"
+module: "github.com/open-platform-model/opm@v0"
 language: {
-	version: "v0.14.0"
+	version: "v0.14.2"
 }
 source: {
-	kind: "self"
+	kind: "git"
 }
-// deps: {
-// 	"cue.dev/x/k8s.io@v0": {
-// 		v:       "v0.5.0"
-// 		default: true
-// 	}
-// }
+deps: {
+	"github.com/open-platform-model/core@v0": {
+		v:       "v0.1.0"
+		default: true
+	}
+	"github.com/open-platform-model/elements@v0": {
+		v:       "v0.1.0"
+		default: true
+	}
+}

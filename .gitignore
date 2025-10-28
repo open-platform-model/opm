@@ -1,1 +1,4 @@
-DOCUMENTATION_PLAN.md
+out.cue
+out.yaml
+subdir
+dagger.json
