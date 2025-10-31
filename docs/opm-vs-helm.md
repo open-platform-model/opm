@@ -1,4 +1,4 @@
-# OPM vs Helm Charts: The Future of Kubernetes Package Management
+# OPM Modules vs Helm Charts: The Future of Kubernetes Package Management
 
 ## Executive Summary
 
@@ -56,7 +56,7 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 **OPM Modules:**
 
 - Built-in scope system for policy enforcement
-- PlatformScopes are immutable and always enforced
+- Platform-defined Scopes persist through CUE unification
 - Policies travel with modules
 - Clear policy violation messages at validation time
 - Examples: security policies, resource limits, network policies
@@ -149,8 +149,8 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 **OPM Modules:**
 
-- Compliance baked into modules through PlatformScopes
-- Immutable audit trail of all policies
+- Compliance baked into modules through Scopes
+- Complete audit trail of all policies
 - Automated compliance validation
 - Examples: PCI-DSS, SOC2, HIPAA enforcement
 
@@ -202,7 +202,6 @@ Platform requirements require chart forking or complex umbrella charts.
 // Platform adds governance without touching developer code
 #Module: {
     scopes: "platform-backup": {
-        #metadata: immutable: true
         backup: schedule: "0 2 * * *"
     }
 }

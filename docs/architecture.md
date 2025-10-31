@@ -2,130 +2,203 @@
 
 ## Introduction
 
-Open Platform Model (OPM) is a cloud-native module architecture that enforces clear separation of concerns between module developers, platform teams, and end users through element composition and deployment hierarchy. OPM enables portable module definitions while maintaining platform control and providing simple deployment experiences.
+Open Platform Model (OPM) is a cloud-native module architecture that enforces clear separation of concerns between module developers, platform teams, and end users through component composition and deployment hierarchy. OPM enables portable module definitions while maintaining platform control and providing simple deployment experiences.
 
 **OSCAL Integration**: OPM natively integrates OSCAL (Open Security Controls Assessment Language) to provide machine-readable compliance that transforms manual audit processes into continuous, automated validation. Every module automatically generates OSCAL component definitions with built-in security control mappings.
 
 ## Core Architecture Principles
 
-### Everything is an Element
+### Definition Types as Building Blocks
 
-OPM's foundational principle is that **every capability, behavior, and resource is expressed as an element**. Elements come in two types - traits (behavioral capabilities) and resources (infrastructure primitives) - unified under a common `#Element` base. Like LEGO blocks, primitive elements (Container, Volume, Network) combine into composite elements (Database, WebService), which compose into complete modules. This creates:
+OPM's foundational principle is that **every capability, behavior, pattern, and governance rule is expressed as a typed definition**. Definitions come in seven types:
 
-- **Unified mental model**: Components and scopes are element compositions with different purposes
-- **Type safety**: CUE enforces type safety
-- **Self-documentation**: Every element includes metadata describing its purpose and schema
-- **Extensibility**: New elements can be created by composition without breaking existing functionality
+- **Units**: Concrete runtime entities (Container, Volume, ConfigMap, Secret)
+- **Traits**: Behavior and properties that modify how Components run (Replicas, Expose, HealthCheck, RestartPolicy)
+- **Blueprints**: Reusable patterns bundling Units + Traits (StatelessWorkload, StatefulService)
+- **Components**: Logical application parts composed from Units + Traits or Blueprints
+- **Policies**: Governance rules (security, compliance, residency)
+- **Scopes**: Policy attachment points and relationship boundaries
+- **Lifecycle** (planned): Change management over time
+
+Like LEGO blocks, Units and Traits combine through Blueprints into complete Components. This creates:
+
+- **Unified mental model**: Clear separation between "what exists" (Units), "how it behaves and its properties" (Traits), and "best practices" (Blueprints)
+- **Type safety**: CUE enforces type safety through specific definition types
+- **Self-documentation**: Every definition includes metadata describing its purpose and schema
+- **Extensibility**: New Blueprints can compose existing Units and Traits without breaking functionality
+
+### Definition Structure
+
+All OPM definitions follow a consistent two-level structure that separates OPM core versioning from element-specific versioning:
+
+**Root Level (Fixed):**
+
+- `apiVersion: "opm.dev/v1/core"` - Fixed for all v1 definitions
+- `kind` - Type of definition: "Unit", "Trait", "Blueprint", "Component", "Policy", "Scope", "Module", "ModuleRelease"
+
+**Metadata Level (Context-Specific):**
+
+For **Definition types** (Unit, Trait, Blueprint, Policy, Module, ModuleDefinition):
+
+- `metadata.apiVersion` - Element/module-specific version (e.g., "opm.dev/units/workload@v1")
+- `metadata.name` - Definition name
+- `metadata.fqn` - Computed as `"\(apiVersion)#\(name)"`
+
+For **Instance types** (ComponentDefinition, ScopeDefinition, ModuleRelease):
+
+- `metadata.name` - Instance name only (no apiVersion or fqn)
+
+This two-level structure provides:
+
+- **Kubernetes Compatibility**: Root-level fields match Kubernetes manifest structure
+- **Separation of Concerns**: OPM core versioning separate from element versioning
+- **Clean Exports**: Definitions export as standard Kubernetes-like resources
+- **Flexible Versioning**: Elements version independently from core schema
+
+See [Definition Types](/V1ALPHA1_SPECS/DEFINITION_TYPES.md) for complete structure documentation.
 
 ### Separation of Concerns
 
-OPM enforces clear boundaries between three key stakeholders through its element composition model and deployment hierarchy:
+OPM enforces clear boundaries between three key stakeholders through its component composition model using Units, Traits, and Blueprints and deployment hierarchy:
 
 ```mermaid
 graph TB
-    subgraph "Developer Domain"
-        MD[ModuleDefinition]
+    subgraph "ModuleDefinition"
+        MD[Developer / Platform Intent]
         DC[Components]
-        MS[ModuleScopes]
+        SC[Scopes]
         DV[Configurable Values]
     end
 
-    subgraph "Platform Team Domain"
-        MOD[Module in Catalog]
-        PS[PlatformScopes]
-        PC[Platform Components]
-        PD[Platform Defaults]
+    subgraph "Module"
+        MOD[Compiled/Optimized Form]
+        FB[Flattened Blueprints into Units and Traits]
     end
 
-    subgraph "End User Domain"
-        MR[ModuleRelease]
-        UV[User Value Overrides]
+    subgraph "ModuleRelease"
+        MR[Deployed Instance]
+        UV[Concrete Values]
         NS[Target Environment]
     end
 
-    MD -->|Curate| MOD
-    MOD -->|Deploy| MR
-    
-    style PS fill:#ffcccc
-    style PC fill:#ffcccc
+    MD -->|Flatten| MOD
+    MOD -->|Bind| MR
 ```
 
-#### Module Developer Responsibilities
+#### Module Developers
 
-- **Owns**: Components, ModuleScopes, ModuleDefinition
-- **Defines**: Module logic, workload types, operational elements
-- **Creates**: Portable modules without platform assumptions
-- **Cannot**: Modify platform policies or access platform-specific details
+- **Create**: ModuleDefinitions with Components, Scopes, and configurable values
+- **Define**: Module logic, workload types, operational Units and Traits
+- **Produce**: Portable ModuleDefinitions without platform assumptions
+- **Compile**: ModuleDefinitions into Modules (flattened, optimized form)
 
-#### Platform Team Responsibilities
+#### Platform Teams
 
-- **Owns**: PlatformScopes, platform specific elements, Module catalog
-- **Enforces**: Security, compliance, and resource governance policies
-- **Curates**: Modules from developer definitions
-- **Cannot**: Break module portability or modify core module logic
+- **Inherit**: Upstream ModuleDefinitions via CUE unification
+- **Extend**: Add Scopes, platform-specific components, additional policies
+- **Enforce**: Security, compliance, and resource governance policies through Scopes and Policies
+- **Publish**: Compiled Modules (optionally extended) to catalogs
+- **Cannot**: Break module portability
 
-#### End User Responsibilities
+#### End Users
 
-- **Owns**: ModuleRelease instances
-- **Selects**: Modules from catalog and target environments
-- **Configures**: User-specific values and overrides
+- **Select**: Modules from platform catalog
+- **Deploy**: ModuleReleases with concrete values and environment targets
+- **Configure**: User-specific value overrides within allowed boundaries
 - **Cannot**: Bypass platform policies or modify module structure
 
-## Element System Architecture
+## Definition Types Architecture
 
-### Element Labels and Kinds
+### Units
 
-All elements use labels for classification and have a specific kind.
+**Units** define concrete runtime entities inside a Component. A Component must include at least one Unit.
 
-**Common Labels**: Elements typically use labels like `core.opm.dev/category` with values such as `workload`, `data`, `connectivity`, `security`, `observability`, or `governance` to indicate their purpose.
+Units represent:
 
-**Kinds**:
+- **Workloads**: `#Container` - the application process
+- **Storage**: `#Volume` - persistent data
+- **Configuration**: `#ConfigMap`, `#Secret` - runtime configuration
+- **Other platform primitives**: networking rules, resource requests
 
-- **Primitive**: Single-purpose, fundamental capabilities implemented by the platform
-- **Composite**: Combinations of 2+ primitive elements for common patterns
-- **Modifier**: Elements that modify behavior or output of other elements
-- **Custom**: Platform-specific extensions. A last resort if no other element fits
+**Naming convention**: Units that allow defining multiple items as a map use plural names (`#Volumes`, `#Secrets`). Units for single items use singular (`#Container`).
 
-**Types**:
+### Traits
 
-- **Trait**: Behavioral capabilities (how components behave)
-- **Resource**: Infrastructure primitives (what components need)
+**Traits** describe optional behavior and properties applied to a Component as a whole.
 
-### Element Targeting
+Traits define both how Components behave at runtime AND their runtime properties:
 
-Elements declare where they can be applied:
+**Behavioral Traits:**
 
-- `target: ["component"]` - Component-level configuration
-- `target: ["scope"]` - Cross-cutting concerns across components
-- `target: ["component", "scope"]` - Can be used at either level
+- **Scaling**: `#Replicas` - how many instances run, autoscaling rules
+- **Health monitoring**: `#HealthCheck` - liveness and readiness probe behavior
+- **Restart behavior**: `#RestartPolicy` - what happens when containers fail
 
-### The Component Pattern for Elements
+**Property Traits:**
 
-All elements use the `#Component` pattern:
+- **Networking**: `#Expose` - service exposure properties and ingress configuration
+- **Security**: TLS configuration, security contexts
+- **Resource allocation**: CPU and memory requests/limits
+
+Traits apply to the Component level, though they may specify `parentUnits` to indicate which Units they relate to. A Trait can encompass both behavioral aspects and property configuration.
+
+### Blueprints
+
+**Blueprints** are reusable, higher-level definitions that bundle Units and Traits into patterns developers actually want to deploy.
+
+Blueprints encode organizational best practices:
+
+- **`StatelessWorkload`**: Container + Replicas + HealthCheck + Expose
+- **`StatefulWorkload`**: Container + Volume + RestartPolicy + ordered scaling
+- **`DaemonWorkload`**: Container deployed to every node
+
+Platform teams author Blueprints to provide "golden paths" for application development. Blueprints can compose other Blueprints.
+
+**Flattening**: Blueprints are compilation-time constructs. When a ModuleDefinition is flattened into a Module (IR), Blueprints are expanded into their constituent Units and Traits. This provides 50-80% faster builds since runtime only processes Units and Traits.
+
+### Component Structure
+
+Components in v1 have three separate definition maps:
 
 ```cue
-#Component: {
-    #elements: #ElementMap
-    ...  // Critical: enables CUE composition without type conflicts
-}
-
-#Container: #Component & {
-    #elements: Container: #Primitive & {
-        name: "Container"
-        description: "Single container primitive"
-        target: ["component"]
-        labels: {"core.opm.dev/category": "workload"}
-        schema: #ContainerSpec
+#ComponentDefinition: {
+    // Definition maps (schema layer)
+    #units: {
+        "<FQN>": #UnitDefinition & {...}
     }
-    container: #ContainerSpec
+    #traits: {
+        "<FQN>": #TraitDefinition & {...}
+    }
+    #blueprints: {  // If using Blueprint composition
+        "<FQN>": #BlueprintDefinition & {...}
+    }
+
+    // Data fields (actual configuration)
+    container: {image: "nginx:latest"}
+    replicas: {count: 3}
 }
 ```
 
-This pattern solves CUE's structural compatibility requirements while providing automatic element registration.
+Components can be defined two ways:
+
+1. **Direct**: Define Units + Traits explicitly
+2. **Blueprint-based**: Reference a Blueprint that bundles Units + Traits
+
+### Labels and Categories
+
+All definition types support labels for categorization and organization:
+
+**Common categories**: `workload`, `data`, `connectivity`, `security`, `observability`, `governance`
+
+Labels help with:
+
+- Discovery in registries and catalogs
+- Filtering and searching
+- Organizational taxonomy
 
 ## Component Architecture
 
-Components are element compositions serving two distinct roles:
+Components are composed of Units and Traits (optionally via Blueprints) serving two distinct roles:
 
 ### Workload Components
 
@@ -149,56 +222,91 @@ CUE enables simple resource sharing through references: `volume: dbData: {size: 
 
 ## Scope Architecture
 
-Scopes apply cross-cutting concerns to groups of components through element compositions:
+Scopes apply cross-cutting concerns to groups of components through Policy definitions.
 
-### PlatformScope (Immutable)
+Both platform teams and module developers define Scopes for different purposes:
 
-Platform-controlled policies enforced across applications:
+**Platform teams typically define Scopes for:**
 
 - **Security boundaries**: NetworkPolicy, PodSecurity
 - **Resource governance**: ResourceQuota, Priority
 - **Compliance requirements**: Audit logging, mandatory metrics
 
-### ModuleScope (Mutable)
-
-Developer-controlled operational concerns:
+**Module developers typically define Scopes for:**
 
 - **Traffic management**: HTTPRoute, service mesh policies
 - **Data locality**: Volume placement, caching strategies
 - **Module observability**: Custom metrics, tracing
 
+When platform teams extend a ModuleDefinition via CUE unification, their Scopes are added alongside developer-defined Scopes. CUE's unification semantics ensure that once a Scope is added, it becomes part of the module.
+
+### Policies
+
+**Policies** encode governance rules that are enforced, not optional. Each Policy declares where it can be applied through a `target` field:
+
+**Component-Level Policies** (`target: "component"`):
+
+- **Resource limits**: CPU, memory, storage quotas for individual components
+- **Security contexts**: User, capabilities, filesystem permissions
+- **Backup requirements**: Retention policies, disaster recovery
+- **Data classification**: Sensitive data handling per component
+
+**Scope-Level Policies** (`target: "scope"`):
+
+- **Network policies**: Traffic rules, allowed communication between components
+- **Security baselines**: Pod security standards, mandatory TLS
+- **Resource quotas**: Total resources for all components in scope
+- **Compliance frameworks**: Audit logging, mandatory metrics
+
+Policies are authored by platform, security, and compliance teams. CUE validation ensures policies are only applied where their target allows. When similar governance is needed at both levels (e.g., encryption, monitoring), create two separate policy definitions with the same spec schema.
+
+See [POLICY_DEFINITION.md](../V1ALPHA1_SPECS/POLICY_DEFINITION.md) for complete policy specification.
+
 ## Module Lifecycle Flow
 
 ```mermaid
 graph LR
-    DEV[Developer] -->|Creates & Maintains| MD[ModuleDefinition]
-    MD[ModuleDefinition] -->|Packaged & Distributed| MOD[Module]
-    PLT[Platform Team] -->|Curates| MOD
-    PLT[Platform Team] -->|Adds optional Policies| MOD
-    PLT[Platform Team] -->|Adds optional Components| MOD
-    USR[End User] -->|Selects from Catalog| MOD
-    USR[End User] -->|Deploys with Overrides| MR[ModuleRelease]
-    MOD -->|Referenced by| MR[ModuleRelease]
+    DEV[Developer] -->|Creates| MD1[ModuleDefinition]
+    PLT[Platform Team] -->|Inherits & Extends| MD1
+    PLT -->|Creates Extended| MD2[ModuleDefinition]
+    MD1 -->|Flatten| MOD1[Module]
+    MD2 -->|Flatten| MOD2[Module]
+    MOD1 -->|Published to| CAT[Catalog]
+    MOD2 -->|Published to| CAT
+    USR[End User] -->|Selects from Catalog| CAT
+    CAT -->|Referenced by| MR[ModuleRelease]
+    USR -->|Deploys with Values| MR
     MR -->|Deployed to| ENV[Environment]
 ```
 
-### 1. ModuleDefinition (Developer Domain)
+### 1. ModuleDefinition
+
+Created by developers and/or platform teams:
 
 - Blueprint with components, scopes, and configurable values
 - Portable across platforms
-- Includes sensible defaults for immediate deployment
+- Includes sensible defaults
+- Platform teams can inherit and extend upstream ModuleDefinitions via CUE unification
 
-### 2. Module (Platform Catalog)
+### 2. Module
 
-- Curated version with platform-specific additions
-- PlatformScopes applied for policy enforcement
-- Platform components added (monitoring, security agents)
-- Values may have platform-specific defaults
+Compiled and optimized form:
 
-### 3. ModuleRelease (User Instance)
+- Result of flattening a ModuleDefinition
+- Blueprints expanded into Units and Traits (flattening)
+- Structure optimized for runtime evaluation (50-80% faster builds)
+- May include platform additions (Policies, Scopes, Components) if extended by platform team
+- Ready for binding with concrete values
+- CUE references preserved; only Blueprints removed
+
+**Flattening**: ModuleDefinitions use Blueprints for developer ergonomics. The Module (IR) has Blueprints compiled away into Units + Traits only. This is a one-time compilation step (5-10s) that enables much faster builds (0.5-1s vs 2-5s) and reduced memory usage. Blueprints are "compilation sugar" - transformers only see Units and Traits.
+
+### 3. ModuleRelease
+
+Deployed instance:
 
 - References specific Module from catalog
-- User-provided value overrides
+- User-provided concrete values
 - Targets specific environment/namespace
 - Represents deployable instance
 
@@ -227,37 +335,84 @@ All values must be:
 
 ### Policy Enforcement
 
-- PlatformScopes are immutable by developers
+- Platform-defined Scopes persist through CUE unification
 - Platform policies cannot be bypassed
 - Consistent security and compliance across all modules
 
 ### Developer Experience
 
-- Element composition provides building blocks for any module pattern
+- Unit and Trait composition provides building blocks for any module pattern
+- Blueprints encode organizational best practices and golden paths
 - Self-documenting schemas reduce learning curve
 - Resource sharing through simple CUE references
 
 ### Platform Control
 
-- Platform teams control available elements and policies
+- Platform teams control available Blueprints and enforce Policies via Scopes
 - Modules can be enhanced without breaking developer intent
 - Centralized governance through catalog curation
+
+## Mental Model Cheat Sheet
+
+OPM's Definition Types form a clear conceptual hierarchy:
+
+- **Unit** = "what exists in the component" (Container, Volume, ConfigMap)
+- **Trait** = "how the component behaves and its properties" (replicas, health checks, exposure, restart behavior)
+- **Blueprint** = "the blessed way to run this kind of thing" (StatelessWorkload, StatefulService)
+- **Component** = "this part of my app" (Units + Traits + data OR Blueprint reference + data)
+- **Policy** = "the rules you must follow" (security, compliance, governance)
+- **Scope** = "where those rules apply, and who can talk to who" (policy boundaries)
+- **Lifecycle** (planned) = "how this changes safely over time" (rollout, upgrade, migration)
+
+### Two Ways to Define Components
+
+**Option 1 - Direct (Units + Traits):**
+
+```cue
+api: #ComponentDefinition & {
+    #Container
+    #Replicas
+    #Expose
+
+    container: {image: "api:latest", ports: [{containerPort: 8080}]}
+    replicas: {count: 3}
+    expose: {type: "LoadBalancer"}
+}
+```
+
+**Option 2 - Blueprint-based:**
+
+```cue
+api: #ComponentDefinition & {
+    #StatelessWorkload  // Blueprint bundles Container + Replicas + HealthCheck
+    #Expose
+
+    statelessWorkload: {
+        container: {image: "api:latest", ports: [{containerPort: 8080}]}
+        replicas: {count: 3}
+        expose: {type: "LoadBalancer"}
+    }
+}
+```
+
+Both produce identical flattened output (Units + Traits). Blueprints provide ergonomics and encode best practices.
 
 ## Extension Points
 
 ### Composition
 
-Platform teams and developers can create new abstractions by composing primitive elements
+Platform teams and developers can create new Blueprints by composing Units and Traits
 
-### Custom Elements
+### Custom Units and Traits
 
-When no existing element exists, a platform can provide their own "custom" elements.
+When no existing Unit or Trait fits the need, platforms can provide custom definitions.
 
 Must follow these patterns:
 
-- MUST provide an element of the kind `custom`
-- MUST also provide the transformer to transform this element schema + data to a platform compatible resource
-- MUST declare labels, kind, type, target, and schema
+- MUST provide either a custom Unit or custom Trait (be explicit about which)
+- MUST also provide the transformer to convert this definition to platform-compatible resources
+- MUST declare labels, definition type, target semantics, and schema
+- SHOULD only create custom definitions as a last resort - prefer composing existing Units and Traits into new Blueprints
 
 ### Platform Providers
 
@@ -271,27 +426,27 @@ OPM abstracts over multiple deployment targets:
 
 The Platform Provider system is designed to be fully extensible by anyone - from individual developers to entire ecosystem teams. This extensibility operates at two levels:
 
-**Frontend (Element Creation)**: Extension providers can create new Elements that expose their capabilities to module developers. For example, the Crossplane team could create:
+**Frontend (Unit and Trait Creation)**: Extension providers can create new Units and Traits that expose their capabilities to module developers. For example, the Crossplane team could create:
 
-- `CrossplaneComposition` element for infrastructure provisioning
-- `CrossplaneProvider` element for cloud resource management
-- `CrossplaneClaim` element for requesting composed resources
+- `CrossplaneComposition` Unit for infrastructure provisioning
+- `CrossplaneProvider` Unit for cloud resource management
+- `CrossplaneClaim` Trait for requesting composed resources
 
-These elements follow OPM's standard patterns, making them immediately usable by any module developer without learning provider-specific APIs.
+These definitions follow OPM's standard patterns, making them immediately usable by any module developer without learning provider-specific APIs.
 
-**Backend (Transformer Implementation)**: Extension providers implement Transformers that convert OPM elements into their platform-specific resources. The Crossplane transformers would:
+**Backend (Transformer Implementation)**: Extension providers implement Transformers that convert OPM Units and Traits into their platform-specific resources. The Crossplane transformers would:
 
-- Map OPM elements to Crossplane XRDs and Compositions
+- Map OPM Units and Traits to Crossplane XRDs and Compositions
 - Generate appropriate Claims and ProviderConfigs
 - Handle the translation between OPM's portable model and Crossplane's resource model
 
 **Integration Example**: A platform team could add Crossplane support to their platform by:
 
-1. Installing the Crossplane extension package (containing Elements and Transformers)
+1. Installing the Crossplane extension package (containing Units, Traits, and Transformers)
 2. Registering the transformers with their OPM runtime
-3. Making the new elements available in their module catalog
+3. Making the new Blueprints available in their module catalog
 
-Module developers can then use Crossplane capabilities through standard OPM elements without knowing the underlying implementation details. Similarly, teams behind ArgoCD, FluxCD, CNPG, or any other cloud-native project can create extensions that integrate seamlessly into the OPM ecosystem.
+Module developers can then use Crossplane capabilities through standard OPM Units and Traits without knowing the underlying implementation details. Similarly, teams behind ArgoCD, FluxCD, CNPG, or any other cloud-native project can create extensions that integrate seamlessly into the OPM ecosystem.
 
 This architecture enables OPM to provide a consistent module model across diverse platforms while maintaining the flexibility for platform-specific optimizations and policies.
 
