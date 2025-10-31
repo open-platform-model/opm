@@ -1,74 +1,91 @@
-# Open Platform Model - Master Context for Claude
+# Open Platform Model - OPM Repository Context
 
-This file provides comprehensive guidance for working with the Open Platform Model (OPM) monorepo.
+This file provides comprehensive guidance for working with the OPM documentation and specification repository.
+
+## Repository Overview
+
+This is the **opm** repository (`github.com/open-platform-model/opm`), which contains:
+
+- **Project vision and documentation** - High-level architecture and concepts
+- **V1 API specifications** - Formal definitions of OPM v1alpha1 API
+- **V1 core implementation** - Reference CUE implementation of v1 definitions
+- **Benchmarks and research** - Performance testing and exploration
+
+The OPM project consists of multiple independent repositories:
+
+- **[core](https://github.com/open-platform-model/core)** - V0 CUE-based framework (legacy)
+- **[elements](https://github.com/open-platform-model/elements)** - V0 element catalog (legacy)
+- **[cli](https://github.com/open-platform-model/cli)** - Go-based OPM CLI tool
+- **[opm](https://github.com/open-platform-model/opm)** - This repository (documentation and v1 specs)
 
 ## Repository Structure
 
-OPM is organized as a monorepo containing multiple independent git repositories:
-
 ```text
-open-platform-model/
- core/          # CUE-based type system and framework (separate git repo)
- elements/      # Official element catalog (separate git repo)
- cli/           # Go-based OPM CLI tool (separate git repo)
- opm/           # Documentation and project overview (separate git repo)
- enhancements/  # Design proposals and research (separate git repo)
- Makefile.registry  # Local OCI registry management
+opm/
+├── README.md              # Project vision and high-level overview
+├── ROADMAP.md            # Development roadmap by phases
+├── TODO.md               # Task tracking and research items
+├── CLAUDE.md             # This file - context for AI assistance
+├── docs/                 # Architecture documentation
+│   ├── architecture.md   # Detailed architecture explanation
+│   └── opm-vs-helm.md   # Comparison with Helm
+├── V1ALPHA1_SPECS/       # Formal v1alpha1 API specifications
+│   ├── DEFINITION_TYPES.md      # Core definition types deep dive
+│   ├── DEFINITION_STRUCTURE.md  # Definition structure patterns
+│   ├── UNIT_DEFINITION.md       # Unit specification
+│   ├── TRAIT_DEFINITION.md      # Trait specification
+│   ├── POLICY_DEFINITION.md     # Policy specification
+│   ├── CLI_SPEC.md              # CLI design specification
+│   ├── FQN_SPEC.md              # Fully qualified names
+│   ├── DOCUEMENTATION_PLAN.md   # Documentation strategy
+│   └── module_redesign/         # Module architecture research
+│       ├── VALUE_REFERENCES_DIAGRAM.md
+│       ├── VALUE_REFERENCES_EXPLAINED.md
+│       ├── IMPLEMENTATION_PLAN.md
+│       └── FLATTENING_QUICK_START.md
+├── v1/                   # V1 core implementation
+│   ├── core/            # Core CUE definitions
+│   │   ├── unit.cue              # UnitDefinition schema
+│   │   ├── trait.cue             # TraitDefinition schema
+│   │   ├── blueprint.cue         # BlueprintDefinition schema
+│   │   ├── component.cue         # ComponentDefinition schema
+│   │   ├── module.cue            # Module schemas (ModuleDefinition, Module, ModuleRelease)
+│   │   ├── policy.cue            # PolicyDefinition schema
+│   │   ├── scope.cue             # ScopeDefinition schema
+│   │   ├── common.cue            # Common types and utilities
+│   │   ├── *_testing.cue         # Test definitions
+│   │   └── cue.mod/module.cue    # CUE module definition
+│   ├── units/           # Unit library (future)
+│   ├── traits/          # Trait library (future)
+│   ├── blueprints/      # Blueprint library (future)
+│   ├── policies/        # Policy library (future)
+│   └── modules/         # Module examples (future)
+├── benchmarks/          # Performance testing
+│   └── precompilation_tests/
+│       ├── elements/
+│       └── modules/
+└── cue.mod/            # CUE module definition for repository
 ```
-
-### Subprojects
-
-**core/** - CUE-based framework
-
-- Element type system and base definitions
-- Component and module architecture
-- Provider interface and transformer system
-- Core element implementations
-- See [core/CLAUDE.md](core/CLAUDE.md) for detailed context
-
-**elements/** - Element catalog (separate repository)
-
-- Official OPM element library
-- Organized by category: workload, data, connectivity
-- Published as CUE modules to OCI registry
-- Has its own versioning and releases
-
-**cli/** - OPM CLI tool
-
-- Go-based command-line tool
-- Runtime computation and transformer execution
-- Module building and rendering
-- Element registry caching
-- See [cli/CLAUDE.md](cli/CLAUDE.md) for detailed context
-
-**opm/** - Documentation and overview
-
-- Project vision and architecture
-- User-facing documentation
-- Getting started guides
-- See [opm/README.md](opm/README.md) for project overview
-
-**enhancements/** - Design proposals
-
-- Research and exploration
-- Design proposals and RFCs
-- Experimental features
 
 ## Quick Navigation
 
 ### By Task Type
 
-**Working on elements?** � `core/elements/core/` and see [core/CLAUDE.md](core/CLAUDE.md#adding-new-elements)
+**Understanding OPM vision?** → [README.md](README.md)
 
-**Working on CLI?** � `cli/` and see [cli/CLAUDE.md](cli/CLAUDE.md)
+**Understanding architecture?** → [docs/architecture.md](docs/architecture.md)
 
-**Working on module system?** � `core/module.cue` and see [core/CLAUDE.md](core/CLAUDE.md#module-architecture)
+**Working on v1 specifications?** → [V1ALPHA1_SPECS/](V1ALPHA1_SPECS/)
 
-**Working on providers?** � `core/provider.cue` and see [core/CLAUDE.md](core/CLAUDE.md#provider-interface)
+**Working on v1 core implementation?** → [v1/core/](v1/core/)
 
-**Need architecture context?** � [core/docs/architecture/](core/docs/architecture/)
+**Understanding definition types?** → [V1ALPHA1_SPECS/DEFINITION_TYPES.md](V1ALPHA1_SPECS/DEFINITION_TYPES.md)
 
-**Publishing modules?** � See [Makefile.registry Usage](#makefileregistry-usage) below
+**Understanding module architecture?** → [V1ALPHA1_SPECS/module_redesign/](V1ALPHA1_SPECS/module_redesign/)
+
+**Comparing OPM to Helm?** → [docs/opm-vs-helm.md](docs/opm-vs-helm.md)
+
+**Contributing?** → See [Development Workflow](#development-workflow) below
 
 ## Development Workflow
 
@@ -91,64 +108,68 @@ open-platform-model/
 - `test`: Test additions/changes
 - `chore`: Maintenance tasks
 
-#### Scopes by Project
+#### Scopes for OPM Repository
 
-**Core (`core/`)**:
+**Documentation (`docs/`)**:
 
-- `elements`: Element definitions
-- `schema`: Schema changes
-- `provider`: Provider/transformer work
-- `component`: Component model changes
-- `module`: Module definitions
-- `registry`: Element registry
-
-**CLI (`cli/`)**:
-
-- `loader`: CUE file loading
-- `registry`: Element registry management
-- `transformer`: Transformer execution
-- `renderer`: Renderer execution
-- `cmd`: CLI commands
-- `cache`: Caching system
-
-**Elements (`elements/`)**:
-
-- `workload`: Workload elements
-- `data`: Data elements
-- `connectivity`: Connectivity elements
-- `kubernetes`: Kubernetes native resources
-
-**Documentation**:
-
-- `docs`: Architecture documentation
+- `vision`: README.md and high-level vision
+- `architecture`: Architecture documentation
+- `comparison`: OPM vs other tools (Helm, etc.)
+- `roadmap`: ROADMAP.md updates
 - `claude`: CLAUDE.md updates
-- `examples`: Example modules
+
+**Specifications (`V1ALPHA1_SPECS/`)**:
+
+- `unit`: Unit definition specification
+- `trait`: Trait definition specification
+- `blueprint`: Blueprint definition specification
+- `policy`: Policy definition specification
+- `component`: Component definition specification
+- `module`: Module architecture specification
+- `cli`: CLI specification
+- `fqn`: Fully qualified name specification
+
+**V1 Core (`v1/`)**:
+
+- `unit`: Unit CUE implementation
+- `trait`: Trait CUE implementation
+- `blueprint`: Blueprint CUE implementation
+- `component`: Component CUE implementation
+- `module`: Module CUE implementation
+- `policy`: Policy CUE implementation
+- `scope`: Scope CUE implementation
+- `testing`: Test definitions
+
+**Benchmarks**:
+
+- `bench`: Benchmark additions/changes
+- `perf`: Performance testing
 
 #### Good Examples
 
 ```bash
- feat(elements): add PodSecurity primitive
- fix(cli): resolve cache invalidation on file change
- refactor(provider): simplify transformer matching
- docs(architecture): update module lifecycle diagram
- test(examples): add stateful workload example
- chore(deps): update CUE to v0.14.2
+✓ docs(vision): clarify component vs blueprint relationship
+✓ feat(unit): add UnitDefinition schema to v1/core
+✓ docs(architecture): add module lifecycle diagram
+✓ feat(spec): add policy definition specification
+✓ test(component): add component composition tests
+✓ chore(deps): update CUE to v0.14.2
 ```
 
 #### What to Avoid
 
 ```bash
-L feat(elements): add new PodSecurity primitive element for Kubernetes security contexts
+✗ docs(vision): add comprehensive documentation explaining the relationship between components and blueprints
 
-   This commit adds a new PodSecurity primitive element that enables...
+   This commit adds detailed documentation...
    [long multi-paragraph description]
 
    Generated with Claude Code
    Co-Authored-By: Claude <noreply@anthropic.com>
 
-L Added some fixes and improvements
-L WIP
-L Update files
+✗ Added some fixes and improvements
+✗ WIP
+✗ Update files
 ```
 
 **Key Points**:
@@ -159,517 +180,278 @@ L Update files
 - NO Claude attribution
 - NO multi-paragraph messages
 
-### Makefile.registry Usage
+### Working with V1 Core Definitions
 
-The `Makefile.registry` provides targets for managing a local OCI registry for developing and testing CUE modules. This is essential for testing module dependencies locally before publishing to remote registries.
+The [v1/core/](v1/core/) directory contains the reference CUE implementation of v1alpha1 definitions.
 
-#### Quick Reference
-
-```bash
-# Start the local registry (localhost:5000)
-make -f Makefile.registry start
-
-# Check status and list all modules
-make -f Makefile.registry status
-
-# List all modules with versions
-make -f Makefile.registry list
-
-# Show tags for a specific module
-make -f Makefile.registry tags MODULE=github.com/open-platform-model/core
-
-# View registry logs
-make -f Makefile.registry logs
-
-# Stop the registry (keeps data)
-make -f Makefile.registry stop
-
-# Clean everything (removes container and data)
-make -f Makefile.registry clean
-
-# Show help
-make -f Makefile.registry help
-```
-
-#### Configuration
-
-The registry runs with the following defaults:
-
-- **Container Name**: `opm-registry`
-- **Port**: `5000`
-- **Image**: `registry:2`
-- **Data Directory**: `.registry-data/` (in project root)
-
-#### Integration with Module Publishing
-
-##### Complete Workflow
+#### Testing V1 Definitions
 
 ```bash
-# 1. Start local registry
-make -f Makefile.registry start
+# Navigate to v1/core directory
+cd v1/core
 
-# 2. Publish core module locally
-cd core
-make publish-local VERSION=v0.1.0
-cd ..
+# Format all CUE files
+cue fmt .
 
-# 3. Publish elements module locally
-cd elements
-make publish-local VERSION=v0.1.0
-cd ..
+# Validate definitions
+cue vet .
 
-# 4. Verify modules are published
-make -f Makefile.registry status
+# Run tests
+cue vet *_testing.cue
 
-# 5. Configure CLI to use local registry
-export CUE_REGISTRY=localhost:5000
-
-# 6. Build and test CLI with local modules
-cd cli
-make build
-./bin/opm mod build ../core/examples/example_module.cue --output ./test-output --verbose
+# Export specific definition
+cue export -e '#UnitDefinition' unit.cue
 ```
 
-##### Publishing to Local Registry
+#### Adding New Definitions
 
-Each subproject (core, elements) has a Makefile with publishing targets:
+When adding new definition types to v1:
 
-```bash
-# From core/ directory
-make validate              # Validate CUE files
-make publish-local         # Publish to localhost:5000
-make info                  # Show module information
+1. **Create the specification** in `V1ALPHA1_SPECS/`
+2. **Implement the CUE schema** in `v1/core/`
+3. **Add tests** in `v1/core/*_testing.cue`
+4. **Update documentation** in `docs/` and `README.md`
 
-# From elements/ directory
-make validate              # Validate CUE files
-make publish-local         # Publish to localhost:5000
-make info                  # Show module information and dependencies
-```
+#### V1 Definition Structure
 
-##### Using Local Registry in Development
-
-```bash
-# Set environment variable for local registry
-export CUE_REGISTRY=localhost:5000
-
-# Now CUE commands will use local registry
-cue mod tidy
-cue mod get github.com/open-platform-model/core@v0.1.0
-```
-
-#### Registry API
-
-The registry exposes a standard OCI distribution API:
-
-```bash
-# List all repositories
-curl http://localhost:5000/v2/_catalog
-
-# List tags for a repository
-curl http://localhost:5000/v2/github.com/open-platform-model/core/tags/list
-
-# Get manifest for specific version
-curl http://localhost:5000/v2/github.com/open-platform-model/core/manifests/v0.1.0
-```
-
-#### Common Issues
-
-**Registry not accessible:**
-
-```bash
-# Check if container is running
-docker ps -f name=opm-registry
-
-# Restart if needed
-make -f Makefile.registry stop
-make -f Makefile.registry start
-```
-
-**Module not found after publishing:**
-
-```bash
-# Verify module was published
-make -f Makefile.registry list
-
-# Check specific module tags
-make -f Makefile.registry tags MODULE=github.com/open-platform-model/core
-
-# View registry logs for errors
-make -f Makefile.registry logs
-```
-
-**Cache issues with CLI:**
-
-```bash
-# Clear CLI cache
-cd cli
-./bin/opm elements cache clear
-
-# Or manually remove cache
-rm -rf ~/.opm/cache/
-```
-
-### CUE Module System
-
-OPM uses CUE's native module system for element registry imports. Understanding CUE module paths and package imports is essential for working with OPM configuration.
-
-#### Module vs Package Path
-
-- **Module path**: The canonical name of a CUE module (e.g., `github.com/open-platform-model/elements@v0`)
-- **Package path**: Module path + subdirectory (e.g., `github.com/open-platform-model/elements@v0/core`)
-
-A module is a collection of packages. The `@v0` suffix indicates the major version.
-
-#### Import Syntax
-
-**Correct:**
+All v1 definitions follow a consistent pattern:
 
 ```cue
-import "github.com/open-platform-model/elements@v0/core"
-import opm "github.com/open-platform-model/elements@v0/core"
-```
-
-**Incorrect:**
-
-```cue
-import "github.com/open-platform-model/elements@v0:core"  // Wrong: colon instead of slash
-import "github.com/open-platform-model/elements/core@v0"  // Wrong: version at end
-```
-
-#### Module Structure
-
-Each CUE module requires a `cue.mod/module.cue` file:
-
-```cue
-module: "github.com/open-platform-model/elements@v0"
-language: {
-    version: "v0.14.2"
-}
-source: {
-    kind: "git"
-}
-deps: {
-    "github.com/open-platform-model/core@v0": {
-        v:       "v0.1.0"
-        default: true
+#<Type>Definition: {
+    apiVersion!: "opm.dev/v1/core"
+    kind!:       "<Type>"
+    metadata!: {
+        apiVersion!: string  // Element-specific version
+        name!:       string  // Definition name
+        // ... other metadata
+    }
+    spec!: {
+        // Type-specific specification
     }
 }
 ```
-
-**Key fields:**
-
-- `module`: Module path with major version suffix
-- `language.version`: Minimum CUE version required
-- `source.kind`: Source type (`git`, `self`, etc.)
-- `deps`: Module dependencies with versions
-
-#### OPM Module Organization
-
-```
-elements/                                    # Module root
-├── cue.mod/module.cue                      # Module: github.com/open-platform-model/elements@v0
-├── core/                                   # Package subdirectory
-│   ├── registry.cue                        # Package: core
-│   ├── workload_primitive_container.cue
-│   └── ...
-└── kubernetes/                             # Another package subdirectory
-    └── ...
-```
-
-**Import paths:**
-
-- Core elements: `github.com/open-platform-model/elements@v0/core`
-- Kubernetes: `github.com/open-platform-model/elements@v0/kubernetes`
-
-#### Publishing Modules
-
-See [Makefile.registry Usage](#makefileregistry-usage) above for local registry setup.
-
-```bash
-# Publish to local registry
-cd elements
-make publish-local VERSION=v0.1.0
-
-# Publish to remote registry (requires authentication)
-make publish VERSION=v0.1.0
-```
-
-#### Using Modules in Config
-
-The OPM CLI config uses standard CUE imports:
-
-```cue
-package opmconfig
-
-import (
-    // Package path = module-path/package-subdirectory
-    opm_elements "github.com/open-platform-model/elements@v0/core"
-)
-
-// Extract element registry
-_opmElements: opm_elements.#ElementRegistry.elements
-
-// Make available to OPM
-elements: _opmElements
-```
-
-**Important:**
-
-- Package paths use forward slashes (`/`), not colons
-- Major version suffix (`@v0`) goes with module name, before subdirectory
-- CUE resolves imports using `cue.mod/module.cue` dependency declarations
-
-#### Version Management
-
-OPM maintains a centralized CUE version constant:
-
-- **Current version**: v0.14.2
-- **Location**: `cli/pkg/version/cue.go`
-- **Runtime check**: `version.CheckCUEVersion()` validates installed CUE matches OPM requirements
-
-All `cue.mod/module.cue` files should use the same language version.
 
 ## Architecture Quick Reference
 
-### Core Concepts
+### V1 Core Concepts
 
-**Elements** � **Components** � **Modules** � **Renderers** � **Platform Resources**
+**Units + Traits + Blueprints** → **Components** → **Modules** → **Platform Resources**
 
-#### Element Hierarchy
+For detailed architecture, see [docs/architecture.md](docs/architecture.md)
+
+#### Definition Type Hierarchy
 
 ```
-Elements (building blocks)
- Primitive: Container, Volume, ConfigMap, Secret
- Modifier: Replicas, HealthCheck, Expose, RestartPolicy
- Composite: StatelessWorkload, StatefulWorkload, DaemonWorkload
- Custom: Platform-specific extensions
+Building Blocks (v1/core)
+├── Unit: Container, Volume, ConfigMap, Secret (what exists)
+├── Trait: Replicas, HealthCheck, Expose, RestartPolicy (how it behaves)
+├── Blueprint: StatelessWorkload, StatefulWorkload, DaemonWorkload (blessed patterns)
+├── Component: Units + Traits OR Blueprint reference
+├── Policy: Security, compliance, residency rules
+└── Scope: Where policies apply, component relationships
 ```
 
-#### Module Layers
+See [V1ALPHA1_SPECS/DEFINITION_TYPES.md](V1ALPHA1_SPECS/DEFINITION_TYPES.md) for complete details.
+
+#### Module Architecture (Three Layers)
 
 ```
 1. ModuleDefinition
-    Created by developers and/or platform teams
-    Components + scopes + value schema
-    Platform teams can inherit and extend via CUE unification
+   Created by developers and/or platform teams
+   Components + scopes + value schema
+   Platform teams can extend via CUE unification
 
 2. Module
-    Compiled/optimized form (flattened)
-    Blueprints expanded to Units + Traits
-    Ready for binding with concrete values
+   Compiled/optimized form (flattened)
+   Blueprints expanded to Units + Traits
+   Ready for binding with concrete values
 
 3. ModuleRelease
-    Deployed instance
-    Module reference + concrete values
-    Targets specific environment
+   Deployed instance
+   Module reference + concrete values
+   Targets specific environment
 ```
 
-#### Component Types
+See [V1ALPHA1_SPECS/module_redesign/](V1ALPHA1_SPECS/module_redesign/) for module architecture details.
 
-- **Workload Components**: Deployable services (stateless, stateful, daemon, task, scheduled-task, function)
-- **Resource Components**: Shared resources (volumes, configs, secrets)
-
-### Element Composition
+#### Component Composition Examples
 
 ```cue
-// Using composite (recommended)
-webServer: #Component & {
-    #StatelessWorkload  // Container + Replicas + modifiers
-    #Expose             // Service exposure
+// Using Blueprint (recommended)
+webServer: #ComponentDefinition & {
+    #StatelessWorkload  // Blueprint: Container + Replicas + traits
+    #Expose             // Trait: Service exposure
 
-    statelessWorkload: {
-        container: {image: "nginx:latest", ports: [{containerPort: 80}]}
-        replicas: {count: 3}
+    spec: {
+        statelessWorkload: {
+            container: {image: "nginx:latest", ports: [{containerPort: 80}]}
+            replicas: {count: 3}
+        }
+        expose: {type: "LoadBalancer"}
     }
-    expose: {type: "LoadBalancer"}
 }
 
-// Using primitives + modifiers (advanced)
-custom: #Component & {
-    #Container    // Primitive
-    #Replicas     // Modifier
-    #HealthCheck  // Modifier
+// Using Units + Traits (advanced)
+custom: #ComponentDefinition & {
+    #Container    // Unit
+    #Replicas     // Trait
+    #HealthCheck  // Trait
 
-    container: {image: "myapp:latest"}
-    replicas: {count: 2}
-    healthCheck: {liveness: {httpGet: {path: "/health", port: 8080}}}
+    spec: {
+        container: {image: "myapp:latest"}
+        replicas: {count: 2}
+        healthCheck: {liveness: {httpGet: {path: "/health", port: 8080}}}
+    }
 }
 ```
 
 ## Common Development Commands
 
-### CUE Commands (for core and elements)
+### CUE Commands (v1/core)
 
 ```bash
 # Format all CUE files
-cue fmt ./...
+cue fmt ./v1/core/...
 
-# Validate all definitions
-cue vet ./...
+# Validate v1 core definitions and tests
+cd v1/core
+cue vet .
 
 # Show all errors
-cue vet --all-errors ./...
+cue vet --all-errors .
 
-# Export as JSON
-cue export ./... --out json
-
-# Export specific definition
+# Export specific definition as JSON
+cue export -e '#UnitDefinition' unit.cue --out json
+cue export -e '#ComponentDefinition' component.cue --out json
 cue export -e '#ModuleDefinition' module.cue --out json
 
 # Evaluate specific value
-cue eval . -e '#Component'
-
-# Module management
-cue mod init <module-name>
-cue mod tidy
-cue mod get <module>@<version>
+cue eval -e '#UnitDefinition' unit.cue
 ```
 
-### Go Commands (for CLI)
+### Documentation Commands
 
 ```bash
-# Build CLI
-cd cli
-make build              # Builds to bin/opm
-# or
-go build -o opm ./cmd/opm
+# Validate markdown links (if you have a link checker)
+find . -name "*.md" -exec markdown-link-check {} \;
 
-# Run tests
-make test
-go test ./...
+# Generate table of contents (if using doctoc)
+doctoc README.md
+doctoc docs/architecture.md
 
-# Format and lint
-make fmt
-make vet
-make check             # fmt + vet + test
-
-# Install to $GOPATH/bin
-make install
-
-# Clean build artifacts
-make clean
-
-# Development: build and run
-make run
-./bin/opm --help
-```
-
-### CLI Usage Commands
-
-```bash
-# Set element registry path
-export OPM_ELEMENT_REGISTRY_PATH=/path/to/core/elements/core
-
-# Build a module
-./bin/opm mod build path/to/module.cue --output ./output
-
-# With verbose output
-./bin/opm mod build module.cue --output ./k8s --verbose
-
-# With timing report
-./bin/opm mod build module.cue --output ./k8s --timings
-
-# Element registry commands
-./bin/opm elements list
-./bin/opm elements resolve elements.opm.dev/core/v0.StatelessWorkload
-./bin/opm elements cache clear
+# Spell check documentation (if using aspell)
+aspell check README.md
 ```
 
 ### Git Workflow
 
 ```bash
-# Each subproject is a separate git repository
-cd core && git status
-cd elements && git status
-cd cli && git status
+# Check status
+git status
 
 # Common workflow
 git add .
-git commit -m "feat(elements): add new primitive"
+git commit -m "docs(vision): clarify module architecture"
 git push origin main
 
-# Create version tag (for releases)
-git tag -a v0.1.0 -m "Release v0.1.0"
-git push origin v0.1.0
+# Create version tag (for documentation releases)
+git tag -a v1alpha1 -m "v1alpha1 specification release"
+git push origin v1alpha1
+
+# View commit history
+git log --oneline --graph --all
+
+# Check which remote you're using
+git remote -v
 ```
 
 ## Project-Specific Context
 
-### Core Framework
+### What is This Repository?
 
-The core framework defines OPM's fundamental abstractions:
+The **opm** repository serves as:
 
-- **Elements**: Building blocks (primitive, modifier, composite, custom)
-- **Components**: Element compositions (workload or resource)
-- **Modules**: Complete application definitions
-- **Scopes**: Cross-cutting concerns (platform or module level)
-- **Providers**: Platform-specific transformer system
+1. **Vision and Documentation Hub** - High-level architecture, concepts, and vision for OPM
+2. **V1 API Specification** - Formal specifications for v1alpha1 API
+3. **Reference Implementation** - CUE-based reference implementation of v1 core definitions
+4. **Research and Planning** - Benchmarks, design proposals, and future planning
 
-**Key Files**:
+### Key Documentation Files
 
-- `element.cue` - Element type system
-- `component.cue` - Component composition
-- `module.cue` - Module architecture
-- `provider.cue` - Provider interface
-- `elements/elements.cue` - Element registry
+#### High-Level Vision
 
-**Detailed Documentation**: See [core/CLAUDE.md](core/CLAUDE.md)
+- **[README.md](README.md)** - Project vision, definition types, delivery flow
+- **[ROADMAP.md](ROADMAP.md)** - Development roadmap organized by phases
+- **[TODO.md](TODO.md)** - Task tracking, v0/v1/v1+ items, research topics
+- **[docs/architecture.md](docs/architecture.md)** - Detailed architecture explanation
+- **[docs/opm-vs-helm.md](docs/opm-vs-helm.md)** - Comparison with Helm
 
-### CLI Tool
+#### V1 Specifications
 
-The OPM CLI is a Go-based tool that handles runtime operations:
+Located in [V1ALPHA1_SPECS/](V1ALPHA1_SPECS/):
 
-- Module loading and parsing
-- Element registry management with caching
-- Transformer matching and execution
-- Parallel execution for performance
-- YAML/JSON output rendering
+- **[DEFINITION_TYPES.md](V1ALPHA1_SPECS/DEFINITION_TYPES.md)** - Deep dive on all definition types
+- **[DEFINITION_STRUCTURE.md](V1ALPHA1_SPECS/DEFINITION_STRUCTURE.md)** - Definition structure patterns and API versioning
+- **[UNIT_DEFINITION.md](V1ALPHA1_SPECS/UNIT_DEFINITION.md)** - Unit specification
+- **[TRAIT_DEFINITION.md](V1ALPHA1_SPECS/TRAIT_DEFINITION.md)** - Trait specification
+- **[POLICY_DEFINITION.md](V1ALPHA1_SPECS/POLICY_DEFINITION.md)** - Policy specification
+- **[CLI_SPEC.md](V1ALPHA1_SPECS/CLI_SPEC.md)** - CLI design specification
+- **[FQN_SPEC.md](V1ALPHA1_SPECS/FQN_SPEC.md)** - Fully qualified name specification
+- **[module_redesign/](V1ALPHA1_SPECS/module_redesign/)** - Module architecture research and design
 
-**Key Packages**:
+#### V1 Core Implementation
 
-- `cmd/opm` - CLI commands
-- `pkg/loader` - CUE file loading
-- `pkg/registry` - Element registry with caching
-- `pkg/transformer` - Transformer execution
-- `pkg/renderer` - Output rendering
+Located in [v1/core/](v1/core/):
 
-**Detailed Documentation**: See [cli/CLAUDE.md](cli/CLAUDE.md)
+- **[unit.cue](v1/core/unit.cue)** - UnitDefinition schema
+- **[trait.cue](v1/core/trait.cue)** - TraitDefinition schema
+- **[blueprint.cue](v1/core/blueprint.cue)** - BlueprintDefinition schema
+- **[component.cue](v1/core/component.cue)** - ComponentDefinition schema
+- **[module.cue](v1/core/module.cue)** - Module schemas (ModuleDefinition, Module, ModuleRelease)
+- **[policy.cue](v1/core/policy.cue)** - PolicyDefinition schema
+- **[scope.cue](v1/core/scope.cue)** - ScopeDefinition schema
+- **[common.cue](v1/core/common.cue)** - Common types and utilities
+- **[*_testing.cue](v1/core/)** - Test definitions for each schema
 
-### Elements Catalog
+### V1 vs V0 Terminology
 
-Official element library organized by category:
+**V0 (legacy in core/ and elements/ repositories):**
 
-- **Workload**: Container, StatelessWorkload, StatefulWorkload, DaemonWorkload, TaskWorkload, ScheduledTask
-- **Data**: Volume, ConfigMap, Secret, SimpleDatabase
-- **Connectivity**: NetworkScope, Expose
-- **Kubernetes**: Native K8s resource primitives
+- Uses "Element" terminology (Primitive, Modifier, Composite, Custom)
+- `#Element`, `#Component`, `#Module`
 
-Elements are published as separate CUE modules to OCI registries.
+**V1 (this repository, v1/core/):**
 
-**File Organization**: `{category}_{kind}_{name}.cue`
+- Uses "Definition" terminology (Unit, Trait, Blueprint, Policy)
+- `#UnitDefinition`, `#TraitDefinition`, `#BlueprintDefinition`, `#ComponentDefinition`, `#ModuleDefinition`
+- Clearer separation of concerns and responsibilities
 
-- Example: `workload_primitive_container.cue`, `data_composite_simple_database.cue`
+### Related Repositories
 
-### Documentation Project (opm/)
-
-Project overview, vision, and user-facing documentation:
-
-- Getting started guides
-- Architecture overview
-- Use cases and examples
-- Roadmap and inspiration
+- **[core](https://github.com/open-platform-model/core)** - V0 CUE framework (legacy, being replaced by v1)
+- **[elements](https://github.com/open-platform-model/elements)** - V0 element catalog (legacy)
+- **[cli](https://github.com/open-platform-model/cli)** - Go-based CLI tool (will implement v1 when stable)
 
 ## Important Notes
 
-### Repository Independence
+### Repository Purpose
 
-- Each subproject (core, elements, cli, opm, enhancements) is a **separate git repository**
-- Changes in one subproject don't automatically affect others
-- Use local registry workflow to test cross-project dependencies
+This repository is primarily for:
+
+- **Documentation** - Vision, architecture, and specifications
+- **V1 Specification** - Formal API definitions for v1alpha1
+- **Reference Implementation** - CUE schemas for v1 core definitions
+- **Research** - Design proposals, benchmarks, and exploration
+
+This is NOT:
+
+- The implementation repository (that's [core](https://github.com/open-platform-model/core) for v0)
+- The CLI repository (that's [cli](https://github.com/open-platform-model/cli))
+- The element catalog (that's [elements](https://github.com/open-platform-model/elements) for v0)
 
 ### Versioning
 
-**OPM follows [Semantic Versioning v2.0.0](https://semver.org) for all subprojects.**
+**OPM follows [Semantic Versioning v2.0.0](https://semver.org) for all repositories.**
 
 #### Version Format
 
@@ -704,79 +486,83 @@ MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
 - `v1.0.0+20130313144700` - With timestamp
 - `v1.0.0-alpha+001` - Alpha with build number
 
-#### When to Bump Versions
+#### When to Bump Versions (for this repository)
 
 **MAJOR (x.0.0):**
 
-- Breaking API changes in schemas
-- Incompatible element definition changes
-- Major architectural changes requiring user action
+- Breaking API changes in v1 specifications
+- Incompatible changes to definition structure
+- Major architectural changes requiring updates to implementations
 
 **MINOR (0.x.0):**
 
-- New elements added to catalog
-- New features added (backward compatible)
+- New definition types added to specifications
+- New features added to v1 API (backward compatible)
+- Significant documentation additions
 - Deprecations (but not removals)
 
 **PATCH (0.0.x):**
 
-- Bug fixes in existing elements
-- Documentation improvements
+- Bug fixes in specifications or schemas
+- Documentation improvements and clarifications
 - Internal refactoring with no API impact
+- Typo fixes and formatting improvements
 
 #### Initial Development (v0.x.x)
 
 - Version `v0.x.x` indicates initial development
 - Breaking changes may occur in MINOR versions during v0
-- Once stable, bump to `v1.0.0`
+- Once v1 API is stable, bump to `v1.0.0`
 
 #### Pre-release Identifiers
 
-- `alpha` - Early development, incomplete features
+- `alpha` - Early development, incomplete features (currently v1alpha1)
 - `beta` - Feature complete, testing phase
 - `rc` - Release candidate, production-ready pending validation
 
-#### Versioning by Subproject
+#### Versioning Across OPM Repositories
 
-All OPM subprojects follow Semver v2 independently:
+All OPM repositories follow Semver v2 independently:
 
-- **core**: Element schema and framework versions
-- **elements**: Element catalog versions
+- **core**: V0 framework versions
+- **elements**: V0 element catalog versions
 - **cli**: CLI tool versions
-- **opm**: Documentation versions (if applicable)
-
-Core and elements versions may diverge based on their release cycles. The CLI tracks core/elements versions via dependencies and maintains its own Semver v2 version.
-
-### CUE vs Go Separation
-
-- **CUE**: Schema definitions, type constraints, validation logic
-- **Go**: Runtime computation, algorithms, file I/O, execution orchestration
-- Never reimplement CUE's constraint system in Go
+- **opm**: V1 specification versions (this repository)
 
 ### Development Best Practices
 
-1. **Always format before committing**: `cue fmt ./...` or `go fmt ./...`
-2. **Validate changes**: `cue vet ./...` or `go test ./...`
-3. **Test with local registry** before publishing to remote
+1. **Format CUE files before committing**: `cue fmt ./v1/core/...`
+2. **Validate v1 schemas**: `cd v1/core && cue vet .`
+3. **Run tests**: `cd v1/core && cue vet *_testing.cue`
 4. **Keep commits focused and concise**
-5. **Use appropriate scopes** in commit messages
-6. **Clear CLI cache** when debugging module issues
+5. **Use appropriate scopes** in commit messages (see [Commit Message Guidelines](#commit-message-guidelines))
+6. **Update specifications** when changing v1/core schemas
+7. **Keep documentation in sync** with specifications and implementation
 
 ## Getting Help
 
-- **Core Issues**: [core repository issues](https://github.com/open-platform-model/core/issues)
+- **Specification Issues**: [opm repository issues](https://github.com/open-platform-model/opm/issues)
+- **Implementation Issues**: [core repository issues](https://github.com/open-platform-model/core/issues)
 - **CLI Issues**: [cli repository issues](https://github.com/open-platform-model/cli/issues)
 - **General Discussion**: [OPM Discussions](https://github.com/open-platform-model/opm/discussions)
-- **Documentation**: See subproject CLAUDE.md files and docs/ directories
 
 ## Related Documentation
 
-- [core/CLAUDE.md](core/CLAUDE.md) - Comprehensive core framework context
-- [cli/CLAUDE.md](cli/CLAUDE.md) - CLI architecture and development
-- [core/docs/architecture/](core/docs/architecture/) - Deep architecture documentation
-- [opm/README.md](opm/README.md) - Project vision and overview
-- [core/docs/architecture/element.md](core/docs/architecture/element.md) - Element system architecture
+### Within This Repository
+
+- [README.md](README.md) - Project vision and overview
+- [ROADMAP.md](ROADMAP.md) - Development roadmap
+- [TODO.md](TODO.md) - Task tracking and research items
+- [docs/architecture.md](docs/architecture.md) - Detailed architecture
+- [docs/opm-vs-helm.md](docs/opm-vs-helm.md) - Comparison with Helm
+- [V1ALPHA1_SPECS/](V1ALPHA1_SPECS/) - Complete v1 API specifications
+
+### Other Repositories
+
+- [core](https://github.com/open-platform-model/core) - V0 implementation
+- [elements](https://github.com/open-platform-model/elements) - V0 element catalog
+- [cli](https://github.com/open-platform-model/cli) - CLI tool
 
 ---
 
-**Last Updated**: 2025-10-27
+**Last Updated**: 2025-10-31
