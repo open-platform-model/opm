@@ -1,361 +1,344 @@
 # Open Platform Model (OPM)
 
-> **A cloud-native module architecture that transforms Kubernetes application delivery through element composition, type-safe configurations, and clear separation of concerns**
-
-## Our vision
-
-Open Platform Model envisions a digital commons where applications and infrastructure speak the same composable language, making software truly portable across any provider, any scale, any region - forever breaking the chains of vendor lock-in. By transforming how we describe, collaborate on, distribute, and deploy almost everything, OPM aims to enable sovereign digital ecosystems where federated service providers compete on innovation rather than lock-in, starting with Europe's answer to tech giant monopolies.
-
-## Why OPM?
-
-Modern cloud-native organizations face a fundamental challenge: how to balance developer productivity with platform governance while maintaining application portability. Current solutions force trade-offs:
-
-- **Helm Charts** mix concerns with fragile templating and no built-in policy enforcement
-- **Kubernetes manifests** lack abstraction and require platform-specific knowledge
-- **Platform-specific tools** create vendor lock-in and limit portability
-
-OPM solves these challenges through:
-
-- **🔒 Type Safety**: CUE-based validation catches errors at compile-time, not runtime
-- **🎯 Clear Separation**: Distinct ownership boundaries for developers, platform teams, and users
-- **🔄 True Portability**: Modules work across any OPM-compliant platform without modification
-- **⚡ Policy as Code**: Built-in scope system for automated policy enforcement
-- **🧩 Element Composition**: Everything is an element - compose primitives into powerful abstractions
-- **🛡️ Security by Default**: Native OSCAL integration for automated compliance validation
-
-## Core Concepts
-
-### Everything is an Element
-
-OPM's foundational principle: every capability, behavior, and resource is expressed as an element. Like LEGO blocks, primitive elements (Container, Volume, Network) combine into composite elements (Database, WebService), which compose into complete modules.
-
-```cue
-// Primitive elements are the building blocks
-#Container    // Single-purpose container primitive
-#Volume       // Storage primitive
-#NetworkPolicy // Network security primitive
-
-// Composite elements combine primitives
-#WebService: #Container & #Expose & #Replicas & #HealthCheck
-#Database: #Container & #Volume & #Secret & #ConfigMap
-```
-
-### Three-Layer Architecture
-
-OPM enforces clear separation of concerns through its layered architecture:
-
-```mermaid
-graph TB
-    subgraph "1. ModuleDefinition"
-        MD[Developer creates
-        portable blueprint]
-    end
-
-    subgraph "2. Module"
-        MOD[Platform team curates
-        with policies]
-    end
-
-    subgraph "3. ModuleRelease"
-        MR[User deploys with
-        specific values]
-    end
-
-    MD --> MOD --> MR
-```
-
-#### 1. ModuleDefinition (Developer Domain)
-
-- Portable application blueprint
-- Contains components, scopes, and configurable values
-- Platform-agnostic and reusable
-
-#### 2. Module (Platform Domain)
-
-- Curated version with platform policies
-- Adds PlatformScopes for governance
-- Maintains original developer intent
-
-#### 3. ModuleRelease (User Domain)
-
-- Deployed instance with user overrides
-- References Module from catalog
-- Targets specific environment
-
-### Components: Building Blocks
-
-Components are element compositions serving two roles:
-
-**Workload Components** - Deployable services:
-
-- `Stateless`: Horizontally scalable services
-- `Stateful`: Services with persistent state
-- `Daemon`: Node-level services
-- `Task`: Run-to-completion jobs
-- `ScheduledTask`: Recurring jobs
-
-**Resource Components** - Shared resources:
-
-- ConfigMaps, Secrets, Volumes for other components
-
-### Scopes: Cross-Cutting Concerns
-
-Scopes apply single elements across component groups:
-
-**PlatformScopes (Immutable)**:
-
-- Platform-enforced policies
-- Security, compliance, governance
-- Cannot be overridden by developers
-
-**ModuleScopes (Mutable)**:
-
-- Developer-controlled optimizations
-- Traffic management, observability
-- Work within platform constraints
-
-## Quick Example
-
-```cue
-// ModuleDefinition - Developer creates
-#ModuleDefinition: {
-    #metadata: {
-        name: "web-app"
-        version: "1.0.0"
-        workloadType: "stateless"
-    }
-
-    components: {
-        webServer: {
-            #Container      // Core element
-            #Expose         // Networking element
-            #Replicas       // Scaling element
-
-            container: {
-                image: values.image  // User-configurable
-                ports: [{containerPort: 8080}]
-            }
-            replicas: values.replicas
-        }
-    }
-
-    values: {
-        image?: string | *"nginx:1.21"
-        replicas?: uint & >=1 & <=10 | *3
-    }
-}
-
-// Module - Platform adds governance
-#Module: {
-    #ModuleDefinition  // Inherits all developer content
-
-    scopes: {
-        "security-baseline": {
-            #PodSecurity
-            podSecurity: {
-                runAsNonRoot: true
-                readOnlyRootFilesystem: true
-            }
-            appliesTo: "*"  // All components
-        }
-    }
-}
-
-// ModuleRelease - User deploys
-#ModuleRelease: {
-    module: "web-app:1.0.0"
-    values: {
-        replicas: 5
-        image: "myapp:v2"
-    }
-}
-```
-
-## Key Features
-
-### 🔒 Type Safety with CUE
-
-Unlike template-based solutions, OPM leverages CUE's powerful type system:
-
-```cue
-// Strong typing prevents configuration errors
-replicas: uint & >=1 & <=100  // Must be 1-100
-image: string & =~".+:.+"      // Must include tag
-memory: string & =~"^[0-9]+[KMG]i?$"  // Valid memory units
-```
-
-### 🎯 Policy Enforcement
-
-Platform teams enforce organizational requirements without breaking portability:
-
-```cue
-complianceScope: #PlatformScope & {
-    #CompliancePolicy
-    compliancePolicy: {
-        framework: "PCI-DSS"
-        controls: {
-            encryption: {atRest: true, inTransit: true}
-            auditLogging: {enabled: true, retention: "365d"}
-        }
-    }
-    appliesTo: [paymentService, database]
-}
-```
-
-### 🧩 Composable Elements
-
-Build complex capabilities from simple primitives:
-
-```cue
-// Define once, reuse everywhere
-#SecureWebService: #WebService & #TLSPolicy & #RateLimiting & #Monitoring
-
-// Use in components
-apiGateway: #SecureWebService & {
-    container: {image: "gateway:latest"}
-    rateLimiting: {requestsPerSecond: 1000}
-}
-```
-
-### 🔄 Multi-Platform Support
-
-OPM abstracts over multiple deployment targets:
-
-- **Kubernetes**: Native resource mapping
-- **Docker Compose**: Container orchestration
-- **Cloud Platforms**: AWS, Azure, GCP
-- **Custom Platforms**: Extensible provider system
-
-### 🛡️ Built-in OSCAL Compliance (Work in Progress)
-
-> **Note**: OSCAL integration is currently under development and represents a key future capability of OPM.
-
-OPM will natively integrate NIST's Open Security Controls Assessment Language (OSCAL) for automated compliance validation:
-
-```cue
-// PLANNED: Every module will automatically generate OSCAL component definitions
-#ModuleDefinition: {
-    #metadata: {
-        oscal: {
-            componentType: "software"
-            controlImplementations: [
-                {
-                    controlId: "AC-2"  // Account Management
-                    description: "Module implements RBAC with service accounts"
-                },
-                {
-                    controlId: "SC-8"  // Transmission Confidentiality
-                    description: "All traffic encrypted via TLS 1.3"
-                }
-            ]
-        }
-    }
-}
-
-// PLANNED: Platform scopes will map to OSCAL controls
-encryptionScope: #PlatformScope & {
-    #EncryptionPolicy
-    encryptionPolicy: {
-        atRest: "AES-256"
-        inTransit: "TLS-1.3"
-        oscalControls: ["SC-8", "SC-13", "SC-28"]  // Auto-mapped
-    }
-}
-```
-
-**Planned Benefits of OSCAL Integration:**
-
-- **Continuous Compliance**: Transform manual audits into automated validation
-- **Machine-Readable**: Export compliance artifacts in standard OSCAL formats (JSON/YAML/XML)
-- **Control Mapping**: Automatic mapping between platform policies and NIST controls
-- **Audit Trail**: Every module deployment will include compliance attestation
-- **Framework Support**: Planned support for NIST 800-53, FedRAMP, PCI-DSS, SOC2, HIPAA mappings
-
-## OPM Modules vs Helm Charts
-
-| Aspect | Helm Charts | OPM |
-|--------|------------|-----|
-| **Type Safety** | Runtime errors only | Compile-time validation |
-| **Configuration** | YAML templating | CUE with constraints |
-| **Policy Enforcement** | External tools required | Built-in scope system |
-| **Separation of Concerns** | Monolithic structure | Three-layer architecture |
-| **Composability** | Limited subcharts | Full element composition |
-| **Platform Independence** | Fork charts for changes | Clean platform additions |
-| **Compliance** | Manual validation | Automated OSCAL integration |
-
-## Use Cases
-
-### Enterprise Platform Teams
-
-- Enforce security and compliance policies across all applications
-- Provide golden paths for developers without limiting flexibility
-- Maintain centralized governance with distributed development
-
-### Cloud-Native Applications
-
-- Build portable applications that run anywhere
-- Compose complex architectures from reusable elements
-- Manage configuration complexity with type safety
-
-### Multi-Cloud Deployments
-
-- Deploy the same modules across different cloud providers
-- Maintain consistency while leveraging platform-specific optimizations
-- Avoid vendor lock-in with portable definitions
-
-## Roadmap
-
-### Current Focus
-
-- [ ] Core element library expansion
-- [ ] Kubernetes provider implementation
-- [ ] Integration of the OSCAL framework
-- [ ] A set of opinionated cloud-native applications as a showcase for a base platform
-- [ ] Developer tooling and CLI
-
-### Future Plans
-
-- [ ] Workflows: Support some way of describing workflow pipelines in a generalized way
-  - Question: Should it be a standard for existing CI/CD pipeline implementations or should it be its own pipeline system?
-  - Question: Should it be split into a standard schema for existing pipeline tools and another implemenetation for doing simple pipeline tasks in modules themselvses (e.g. application upgrade/downgrade steps, etc)
-- [ ] Cloud provider integrations (AWS, Azure, GCP). MAYBE!
-- [ ] Module marketplace based on CUE central registry
-- [ ] IDE extensions for CUE/OPM
-
-## Inspiration & Acknowledgments
-
-OPM builds upon the shoulders of giants:
-
-- **[Open Application Model (OAM)](https://oam.dev)** - The foundational specification
-- **[CUE Language](https://cuelang.org)** - Powerful configuration language
-- **[KubeVela](https://kubevela.io)** - OAM reference implementation
-- **[Crossplane](https://crossplane.io)** - Infrastructure composition patterns
-- **[Timoni](https://timoni.sh)** - CUE-based package management
-
-## Versioning
-
-All OPM components follow [Semantic Versioning v2.0.0](https://semver.org):
-
-- **Format**: `MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`
-- **Current Phase**: `v0.x.x` (initial development)
-- **Stability**: Version `v1.0.0` will mark the first stable release
-
-Each OPM subproject (core, elements, CLI) maintains independent Semver v2 versions. See individual project documentation for version compatibility matrices.
-
-## License
-
-Open Platform Model is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
-
-## Security
-
-For security issues, please email <security@opm.dev> instead of using the issue tracker.
+**A cloud-native application model that lets platform teams and developers speak the same language — with type safety, portable definitions, built-in policy boundaries, and zero vendor lock-in.**
 
 ---
 
-<div align="center">
+## Vision
 
-**Transform your cloud-native journey with OPM**
+Open Platform Model defines a portable, composable way to describe applications and the platform capabilities they rely on. The goal is to let teams build and run software across different infrastructures and providers — including future sovereign providers — without rewriting everything each time.
 
-[Get Started](docs/getting-started.md) • [Documentation](docs/) • [Examples](examples/) • [Community](https://github.com/open-platform-model/opm/discussions)
+Instead of:
 
-</div>
+* teaching every developer the full details of the platform,
+* hard-coding vendor specifics into every service,
+* or bolting policy on after the fact,
+
+OPM aims to standardize how applications, behavior, policy, and governance are described.
+
+Long-term, this enables an ecosystem where providers can offer compliant capabilities in a standard format, and customers can assemble portable applications against that format.
+
+---
+
+## Why OPM?
+
+Modern platform teams face the same tension everywhere: Developers want fast delivery. Security and operations need safety, policy, and compliance. Leadership wants portability and control.
+
+Today that usually means:
+
+* Helm charts with string templating and no built-in guardrails
+* Raw Kubernetes YAML that leaks every internal detail
+* Proprietary vendor tooling that locks you in
+
+OPM takes a different approach:
+
+* **Type safety by default**
+  OPM is defined in CUE. Invalid configuration is rejected before deployment, not in production.
+
+* **Clear separation of responsibility**
+  Developers declare intent. The platform applies policy. Consumers get approved releases.
+
+* **Policy built in**
+  Governance isn't an afterthought. It's part of the model through Scopes and Policies.
+
+* **Portability by design**
+  OPM is not bound to Kubernetes alone. The same definitions can target Kubernetes, Docker Compose, other orchestrators, or future providers that implement the model.
+
+---
+
+## Definition Types
+
+In OPM, everything is a **Definition**.
+
+Each Definition type has a clear job. Together they describe what should run, how it should behave, how it's governed, and how it's delivered.
+
+### Unit
+
+A Unit is the fundamental building block inside a Component. It describes "the thing that actually exists."
+
+A Component must include at least one Unit.
+
+A Unit can represent:
+
+* a workload (`#Container`)
+* persistent state / storage (`#Volume`)
+* runtime configuration (`#ConfigMap`, `#Secret`)
+* other platform-relevant primitives (like network rules)
+
+Examples:
+
+* `#Container` – describes a single container that represents the workload for this Component.
+* `#Volume` – describes one or more persistent volumes.
+* `#ConfigMap`, `#Secret` – configuration and sensitive inputs.
+
+You can declare multiple Units in the same Component (for example: one container plus multiple volumes). At least one is required so the Component is about something real.
+
+### Trait
+
+A Trait is an optional behavior and property modifier that applies to a Component.
+
+Traits adjust how a Component runs, scales, exposes itself, and reports health. Traits may relate to specific Units via `parentUnits`, but they modify the Component's overall behavior, not individual Units.
+
+Examples:
+
+* scaling / replicas
+* ingress / exposure rules
+* health / readiness / liveness checks
+* TLS / transport security posture
+
+You can attach multiple Traits to the same Component. Defaults exist so you don't have to specify every Trait every time.
+
+In plain terms: Units are "what exists," Traits are "how the Component behaves."
+
+### Blueprint
+
+A Blueprint is a reusable, higher-level definition that bundles Units and Traits into something humans actually want to deploy.
+
+Blueprints exist so most developers don't have to wire Units and Traits manually.
+
+Examples:
+
+* `WebService` – a typical stateless HTTP service with container, replicas, health checks, and network exposure already defined.
+* `StatefulService` – a stateful workload with container + volume + backup/retention expectations.
+
+Blueprints can be composed from other Blueprints. Platform teams can publish a set of blessed Blueprints as "golden paths" for internal use.
+
+### Component
+
+A Component is what an application developer (or platform engineer acting as an application developer) actually declares in a module.
+
+A Component can be:
+
+* one or more Units plus Traits, or
+* a Blueprint, which already packages Units + Traits.
+
+In other words: the Component is the "piece of the app" you're describing.
+
+### Policy
+
+A Policy captures governance, security posture, compliance requirements, residency rules, and other non-negotiables.
+
+Policies are how platform and security teams encode rules like:
+
+* containers must run as non-root
+* data for this component must remain in a specific region
+* traffic must be TLS-only with approved ciphers
+* audit logging and retention must meet regulatory requirements
+
+Policies are enforced, not optional.
+
+### Scope
+
+A Scope defines where and how Policies apply.
+
+Scopes let you attach Policies across Components. Scopes can:
+
+* apply baseline security to every Component in a module
+* describe which Components are allowed to communicate with which other Components
+* describe shared configuration / shared secrets exposure between Components
+
+Both platform teams and module developers can define Scopes:
+
+* **Platform teams** define Scopes for baseline security, compliance, and resource governance.
+* **Module developers** define Scopes for application-level concerns like connectivity and operational behavior.
+
+When platform teams extend a ModuleDefinition via CUE unification, their Scopes are added alongside developer-defined Scopes. CUE's unification semantics ensure that once a Scope is added, it becomes part of the module.
+
+### Lifecycle (planned)
+
+A Lifecycle Definition describes how something changes over time, not just what it looks like at rest.
+
+This includes:
+
+* deployment / rollout strategy
+* upgrade sequencing
+* backup + restore steps for stateful workloads
+* pre-deploy and post-deploy hooks
+* safe teardown or migration
+
+Lifecycle Definition is intentionally called out but treated as "future." The goal is to eventually express upgrade/rollback behavior and compliance-critical steps ("backup before upgrade") in the model itself, instead of burying that logic in CI/CD glue.
+
+---
+
+## Components
+
+A **Component** belongs to a ModuleDefinition. It represents one logical part of an application.
+
+A Component is made from:
+
+* one or more Units (required),
+* optional Traits that modify the Component's behavior,
+* or a Blueprint (which already bundles Units and Traits).
+
+There are two broad categories of Components:
+
+### Workload Components
+
+* Stateless: horizontally scalable service
+* Stateful: service with persistent data
+* Daemon: node-scoped service
+* Task: run-to-completion job
+* ScheduledTask: recurring / cron-like job
+
+### Resource Components
+
+* Shared or supporting resources like `ConfigMap`, `Secret`, `Volume`, etc., which other Components consume.
+
+This split makes it clear what is "a running thing" vs "infrastructure/config backing that thing."
+
+---
+
+## Scopes and Policy
+
+Scopes and Policy are how you get governance without killing portability.
+
+* A **Policy** encodes the rule: security, residency, compliance, org standard.
+* A **Scope** attaches that Policy to one or more Components, and can also define how those Components are allowed to relate (who can talk to who, who can consume whose secret, etc.).
+
+Platform teams can:
+
+* define Scopes for baseline security and compliance posture,
+* extend ModuleDefinitions via CUE unification to add governance.
+
+Developers can:
+
+* operate inside those Scopes,
+* inherit required Policies automatically,
+* avoid reimplementing org rules in each service.
+
+The result is portable intent + governed runtime.
+
+---
+
+## Delivery Flow
+
+OPM formalizes how something goes from "what I want" to "what actually runs." The flow is expressed in three main objects:
+
+```mermaid
+graph TB
+
+subgraph "1. ModuleDefinition"
+  MD[Developer / platform intent]
+end
+
+subgraph "2. Module"
+  MOD[Compiled/optimized form]
+end
+
+subgraph "3. ModuleRelease"
+  MR[Deployed instance with concrete values]
+end
+
+MD --> MOD --> MR
+```
+
+### ModuleDefinition
+
+The portable intent. Created by developers and/or platform engineers.
+
+A ModuleDefinition for the developer:
+
+* declares Components,
+* wires Units and Traits (or uses Blueprints),
+* defines which values are tunable by the eventual user,
+* may already include Scopes.
+
+A ModuleDefinition for the platform team:
+
+* platform Policy is applied,
+* Scopes are enforced,
+* defaults are locked,
+* everything is made ready for consumption.
+
+**Developers** write ModuleDefinitions to describe application intent.
+
+**Platform teams** can inherit and extend upstream ModuleDefinitions via CUE unification, adding additional Components, Scopes, or Policies without rewriting the original definition.
+
+### Module
+
+The compiled and optimized form.
+
+A Module is the flattened result of a ModuleDefinition:
+
+* Blueprints are expanded into their constituent Units and Traits,
+* the structure is optimized for runtime evaluation,
+* defaults are resolved,
+* everything is ready for binding with concrete values.
+
+A Module may include platform additions (Policies, Scopes, additional Components) if it was created by a platform team extending an upstream ModuleDefinition, but the primary purpose is compilation and optimization.
+
+### ModuleRelease
+
+The concrete deployment instance.
+
+A ModuleRelease:
+
+* references a specific Module,
+* supplies final values (image tag, replica count, etc.),
+* targets a specific runtime environment.
+
+This is what actually lands on a runtime.
+
+---
+
+## Type Safety with CUE
+
+OPM is expressed in CUE. CUE gives you structural typing, constraints, validation, and safe merging.
+
+That means:
+
+* You can express allowed ranges and formats.
+* You can block invalid combinations at definition time.
+* You can guarantee that platform policies aren't silently dropped.
+
+Example:
+
+```cue
+replicas: uint & >=1 & <=100
+image:    string & =~".+:.+"            // must include a tag
+memory:   string & =~"^[0-9]+[KMG]i?$"  // k8s-style resource units
+```
+
+The point: mistakes get caught before rollout, not in production.
+
+---
+
+## How OPM Compares to Helm
+
+| Aspect                 | Helm Charts                         | OPM                                                                 |
+| ---------------------- | ----------------------------------- | ------------------------------------------------------------------- |
+| Type Safety            | Mostly runtime errors               | Compile-time validation with CUE                                    |
+| Configuration          | String templating in YAML           | Structured Definitions with constraints                             |
+| Policy Enforcement     | Out-of-band / manual                | Built-in via Policies + Scopes                                      |
+| Separation of Concerns | Single blob owned by whoever yells  | ModuleDefinition → Module → ModuleRelease                           |
+| Reuse                  | Subcharts, values files             | Blueprints (Units + Traits pre-bundled)                             |
+| Portability            | Usually vendor- or cluster-specific | Same ModuleDefinition, different providers apply different Policies |
+| Compliance             | Manual review / wiki docs           | Scopes can express residency, security posture, audit requirements  |
+
+---
+
+## Roadmap
+
+### Now
+
+* Define and stabilize the Definition types (Unit, Trait, Blueprint, Component, Policy, Scope).
+* Build a growing library of reusable Blueprints for common workloads.
+* Kubernetes provider implementation.
+* CLI and developer workflow around ModuleDefinition → Module → ModuleRelease.
+
+### Planned / next
+
+* Lifecycle Definition: rollout / upgrade / backup / migration semantics expressed in the model.
+* Richer Scopes for communication rules between Components.
+* OSCAL mapping for automated compliance evidence.
+* Provider ecosystem: publishable Modules other orgs can consume.
+
+---
+
+## License
+
+Open Platform Model (OPM) is licensed under Apache License 2.0. See `LICENSE`.
+
+---
+
+**Build sovereign, portable platforms — not just clusters.**

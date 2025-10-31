@@ -125,7 +125,7 @@
   - [x] Module layer merging and aggregation (`tests/integration/module_composition.cue`)
   - [x] Value flow through layers (`tests/integration/module_values_flow.cue`)
   - [ ] Dependency resolution tests (feature not yet implemented)
-  - [ ] Platform scope enforcement tests
+  - [ ] Scope layering and enforcement tests
 - [x] Transformer testing ✅
   - [x] Component → Kubernetes resource rendering (`tests/integration/rendering.cue`)
   - [x] Real-world application scenarios (`tests/integration/application_scenarios.cue`)
@@ -215,7 +215,7 @@
   - [ ] Control mapping (NIST 800-53, FedRAMP, PCI-DSS, SOC2)
   - [ ] Automated compliance reports
   - [ ] Audit trail generation
-- [ ] PlatformScope enforcement
+- [ ] Scope layering and governance improvements
 - [ ] Secret management improvements
   - [ ] Secret generation patterns
   - [ ] External secret store integration

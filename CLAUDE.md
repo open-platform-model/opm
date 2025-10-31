@@ -448,17 +448,20 @@ Elements (building blocks)
 #### Module Layers
 
 ```
-1. ModuleDefinition (Developer Domain)
-    Portable application blueprint
+1. ModuleDefinition
+    Created by developers and/or platform teams
     Components + scopes + value schema
+    Platform teams can inherit and extend via CUE unification
 
-2. Module (Platform Domain)
-    ModuleDefinition + PlatformScopes
-    Curated with policies
+2. Module
+    Compiled/optimized form (flattened)
+    Blueprints expanded to Units + Traits
+    Ready for binding with concrete values
 
-3. ModuleRelease (User Domain)
-    Module reference + concrete values
+3. ModuleRelease
     Deployed instance
+    Module reference + concrete values
+    Targets specific environment
 ```
 
 #### Component Types
