@@ -68,15 +68,18 @@ Every Unit follows this structure:
 Units use OPM's two-level structure:
 
 **Root Level (Fixed):**
+
 - `apiVersion: "opm.dev/core/v1"` - Fixed OPM core version
 - `kind: "Unit"` - Identifies this as a Unit definition
 
 **Metadata Level (Element-Specific):**
+
 - `metadata.apiVersion` - Element-specific version (e.g., `"opm.dev/units/workload@v1"`)
 - `metadata.name` - Unit name (e.g., `"Container"`)
 - `metadata.fqn` - Computed as `"\(apiVersion)#\(name)"`
 
 This structure provides:
+
 - **Kubernetes compatibility**: Root fields match K8s manifest structure
 - **Independent versioning**: Units can version separately from OPM core
 - **Clean exports**: Definitions export as standard K8s-like resources
@@ -120,6 +123,7 @@ kind: "Unit"  // Always this value for units
 The element-specific version path for this unit. This allows the unit to version independently from the OPM core schema.
 
 **Examples:**
+
 ```cue
 apiVersion: "opm.dev/units/workload@v1"
 apiVersion: "opm.dev/units/storage@v1"
@@ -128,6 +132,7 @@ apiVersion: "github.com/myorg/units/custom@v1"
 ```
 
 **Best Practices:**
+
 - Use semantic grouping: `domain/units/category@version`
 - Official OPM units use `opm.dev/units/*`
 - Third-party units use your domain or GitHub path
@@ -142,6 +147,7 @@ apiVersion: "github.com/myorg/units/custom@v1"
 The unit's name, which must be unique within the `metadata.apiVersion` namespace.
 
 **Examples:**
+
 ```cue
 name: "Container"
 name: "Volumes"
@@ -150,6 +156,7 @@ name: "CustomDatabase"
 ```
 
 **Naming Rules:**
+
 - Must start with uppercase letter
 - Use PascalCase (e.g., `ConfigMap`, not `config_map`)
 - Be descriptive, not abbreviated (e.g., `Container`, not `Ctr`)
@@ -172,6 +179,7 @@ metadata: {
 ```
 
 **Key Points:**
+
 - **Never manually set** - always use the interpolation pattern
 - **Globally unique** - serves as the unit's identifier throughout OPM
 - **Used for indexing** - components use FQN as map keys
@@ -189,6 +197,7 @@ description: "Persistent volume definitions for stateful workloads"
 ```
 
 **Best Practices:**
+
 - Keep concise (1-2 sentences)
 - Explain what the unit represents
 - Mention key capabilities or constraints
@@ -201,12 +210,14 @@ description: "Persistent volume definitions for stateful workloads"
 **Purpose:** Categorization and filtering for OPM tooling
 
 Labels are used by the OPM system for:
+
 - **Categorization**: Grouping units by type or purpose
 - **Transformer matching**: Selecting appropriate transformers
 - **Registry filtering**: Finding units in catalogs
 - **Validation**: Enforcing organizational policies
 
 **Examples:**
+
 ```cue
 labels: {
     "core.opm.dev/category": "workload"
@@ -224,6 +235,7 @@ labels: {
 ```
 
 **Recommended Labels:**
+
 - `core.opm.dev/category` - Unit category (workload, storage, config, network)
 - `core.opm.dev/type` - Specific type within category
 - Organization-specific labels with your domain prefix
@@ -237,6 +249,7 @@ labels: {
 Annotations provide hints to providers/transformers but are not used for matching logic.
 
 **Examples:**
+
 ```cue
 annotations: {
     "opm.dev/documentation": "https://opm.dev/docs/units/container"
@@ -250,6 +263,7 @@ annotations: {
 ```
 
 **Typical Uses:**
+
 - Documentation URLs
 - Source information
 - Ownership metadata
@@ -265,6 +279,7 @@ annotations: {
 The `#spec` field defines what configuration users must provide when using this unit in a component.
 
 **Key Characteristics:**
+
 - **Auto-named**: Field name is `strings.ToCamel(metadata.name)`
   - `"Container"` → `container: {...}`
   - `"Volumes"` → `volumes: {...}`
@@ -274,6 +289,7 @@ The `#spec` field defines what configuration users must provide when using this 
 - **Arbitrary structure**: Can be any valid CUE type (struct, map, list, constraint)
 
 **Pattern:**
+
 ```cue
 // For "Container" unit:
 #spec: container: #ContainerSchema
@@ -756,6 +772,7 @@ myComponent: #ComponentDefinition & {
 ### FQN-Based Indexing
 
 Units are indexed by their FQN, which ensures:
+
 - **Uniqueness**: No two units can have the same FQN
 - **Explicit references**: Clear which unit provides which fields
 - **Transformer matching**: Transformers can require specific units by FQN
@@ -804,6 +821,7 @@ spec: {
 ### Validation
 
 CUE validates that:
+
 1. All required unit fields are provided in `spec`
 2. Field values match unit schema constraints
 3. No conflicting field names between units
@@ -816,6 +834,7 @@ CUE validates that:
 ### Definition-Level Validation
 
 1. **Root fields must be exact:**
+
    ```cue
    apiVersion: "opm.dev/core/v1"  // Must be this exact value
    kind:       "Unit"              // Must be "Unit"
@@ -841,6 +860,7 @@ CUE validates that:
 ### Schema-Level Validation
 
 1. **Use close() for strict schemas:**
+
    ```cue
    #Schema: close({
        name!: string
@@ -849,18 +869,21 @@ CUE validates that:
    ```
 
 2. **Mark required fields with !:**
+
    ```cue
    image!: string    // Required
    tags?: [...string]  // Optional
    ```
 
 3. **Provide sensible defaults:**
+
    ```cue
    enabled: bool | *true
    protocol: "TCP" | "UDP" | *"TCP"
    ```
 
 4. **Use appropriate constraints:**
+
    ```cue
    port: int & >0 & <65536
    name: string & =~"^[a-z0-9-]+$"
@@ -888,6 +911,7 @@ CUE validates that:
 ### 1. Design Units for Reusability
 
 **DO:**
+
 ```cue
 // ✅ Generic, reusable
 #ContainerUnit: {
@@ -901,6 +925,7 @@ CUE validates that:
 ```
 
 **DON'T:**
+
 ```cue
 // ❌ Too specific, not reusable
 #NginxContainerUnit: {
@@ -995,11 +1020,13 @@ metadata: {
 ### 8. Version Appropriately
 
 **When to bump major version (@v1 → @v2):**
+
 - Breaking schema changes (removing required fields, changing types)
 - Incompatible behavior changes
 - Major restructuring
 
 **When to bump minor/patch (in full semver):**
+
 - Adding optional fields
 - Bug fixes
 - Documentation improvements
@@ -1042,6 +1069,7 @@ Always create a helper for easy composition:
 ### 1. Forgetting metadata.apiVersion
 
 **Wrong:**
+
 ```cue
 metadata: {
     name: "Container"
@@ -1050,6 +1078,7 @@ metadata: {
 ```
 
 **Correct:**
+
 ```cue
 metadata: {
     apiVersion: "opm.dev/units/workload@v1"  // Don't forget!
@@ -1061,6 +1090,7 @@ metadata: {
 ### 2. Manually Setting FQN
 
 **Wrong:**
+
 ```cue
 metadata: {
     apiVersion: "opm.dev/units/workload@v1"
@@ -1070,6 +1100,7 @@ metadata: {
 ```
 
 **Correct:**
+
 ```cue
 metadata: {
     apiVersion: "opm.dev/units/workload@v1"
@@ -1081,6 +1112,7 @@ metadata: {
 ### 3. Wrong Spec Field Name
 
 **Wrong:**
+
 ```cue
 #ContainerUnit: {
     metadata: name: "Container"
@@ -1089,6 +1121,7 @@ metadata: {
 ```
 
 **Correct:**
+
 ```cue
 #ContainerUnit: {
     metadata: name: "Container"
@@ -1099,6 +1132,7 @@ metadata: {
 ### 4. Adding appliesTo to Units
 
 **Wrong:**
+
 ```cue
 #ContainerUnit: #UnitDefinition & {
     appliesTo: [...]  // Units don't have appliesTo!
@@ -1106,6 +1140,7 @@ metadata: {
 ```
 
 **Correct:**
+
 ```cue
 // Units don't have appliesTo - they're independent
 #ContainerUnit: #UnitDefinition & {
@@ -1116,6 +1151,7 @@ metadata: {
 ### 5. Forgetting close()
 
 **Wrong:**
+
 ```cue
 #ContainerUnit: #UnitDefinition & {  // Missing close()
     metadata: {...}
@@ -1123,6 +1159,7 @@ metadata: {
 ```
 
 **Correct:**
+
 ```cue
 #ContainerUnit: close(#UnitDefinition & {  // Use close()
     metadata: {...}
@@ -1132,6 +1169,7 @@ metadata: {
 ### 6. Incorrect Plural/Singular Usage
 
 **Wrong:**
+
 ```cue
 // Using singular for a map
 #VolumeUnit: {
@@ -1141,6 +1179,7 @@ metadata: {
 ```
 
 **Correct:**
+
 ```cue
 #VolumesUnit: {
     metadata: name: "Volumes"  // Plural for map

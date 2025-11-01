@@ -73,15 +73,18 @@ Every Trait follows this structure:
 Traits use OPM's two-level structure (same as Units):
 
 **Root Level (Fixed):**
+
 - `apiVersion: "opm.dev/core/v1"` - Fixed OPM core version
 - `kind: "Trait"` - Identifies this as a Trait definition
 
 **Metadata Level (Element-Specific):**
+
 - `metadata.apiVersion` - Element-specific version (e.g., `"opm.dev/traits/scaling@v1"`)
 - `metadata.name` - Trait name (e.g., `"Replicas"`)
 - `metadata.fqn` - Computed as `"\(apiVersion)#\(name)"`
 
 This structure provides:
+
 - **Kubernetes compatibility**: Root fields match K8s manifest structure
 - **Independent versioning**: Traits can version separately from OPM core
 - **Clean exports**: Definitions export as standard K8s-like resources
@@ -125,6 +128,7 @@ kind: "Trait"  // Always this value for traits
 The element-specific version path for this trait. This allows the trait to version independently from the OPM core schema.
 
 **Examples:**
+
 ```cue
 apiVersion: "opm.dev/traits/scaling@v1"
 apiVersion: "opm.dev/traits/networking@v1"
@@ -134,6 +138,7 @@ apiVersion: "github.com/myorg/traits/custom@v1"
 ```
 
 **Best Practices:**
+
 - Use semantic grouping: `domain/traits/category@version`
 - Official OPM traits use `opm.dev/traits/*`
 - Third-party traits use your domain or GitHub path
@@ -148,6 +153,7 @@ apiVersion: "github.com/myorg/traits/custom@v1"
 The trait's name, which must be unique within the `metadata.apiVersion` namespace.
 
 **Examples:**
+
 ```cue
 name: "Replicas"
 name: "Expose"
@@ -156,6 +162,7 @@ name: "RestartPolicy"
 ```
 
 **Naming Rules:**
+
 - Must start with uppercase letter
 - Use PascalCase (e.g., `HealthCheck`, not `health_check`)
 - Be descriptive, not abbreviated (e.g., `Replicas`, not `Reps`)
@@ -178,6 +185,7 @@ metadata: {
 ```
 
 **Key Points:**
+
 - **Never manually set** - always use the interpolation pattern
 - **Globally unique** - serves as the trait's identifier throughout OPM
 - **Used for indexing** - components use FQN as map keys
@@ -196,6 +204,7 @@ description: "Configures liveness and readiness probes"
 ```
 
 **Best Practices:**
+
 - Keep concise (1-2 sentences)
 - Explain the behavior being modified
 - Mention key capabilities or constraints
@@ -208,20 +217,22 @@ description: "Configures liveness and readiness probes"
 **Purpose:** Categorization and filtering for OPM tooling
 
 Labels are used by the OPM system for:
+
 - **Categorization**: Grouping traits by type or purpose
 - **Transformer matching**: Selecting appropriate transformers
 - **Registry filtering**: Finding traits in catalogs
 - **Validation**: Enforcing organizational policies
 
 **Examples:**
+
 ```cue
 labels: {
-    "core.opm.dev/trait-type": "scaling"
+    "core.opm.dev/category": "scaling"
 }
 
 labels: {
-    "core.opm.dev/trait-type": "networking"
-    "core.opm.dev/category":   "exposure"
+    "core.opm.dev/category": "networking"
+    "core.opm.dev/type":   "exposure"
 }
 
 labels: {
@@ -231,8 +242,9 @@ labels: {
 ```
 
 **Recommended Labels:**
-- `core.opm.dev/trait-type` - Trait category (scaling, networking, health, security, restart)
-- `core.opm.dev/category` - Specific category within type
+
+- `core.opm.dev/category` - Trait category (scaling, networking, health, security, restart)
+- `core.opm.dev/type` - Specific category within type
 - Organization-specific labels with your domain prefix
 
 ### metadata.annotations (Metadata Level)
@@ -244,6 +256,7 @@ labels: {
 Annotations provide hints to providers/transformers but are not used for matching logic.
 
 **Examples:**
+
 ```cue
 annotations: {
     "opm.dev/documentation": "https://opm.dev/docs/traits/replicas"
@@ -265,6 +278,7 @@ annotations: {
 The `#spec` field defines what configuration users must provide when applying this trait to a component.
 
 **Key Characteristics:**
+
 - **Auto-named**: Field name is `strings.ToCamel(metadata.name)`
   - `"Replicas"` → `replicas: {...}`
   - `"HealthCheck"` → `healthCheck: {...}`
@@ -298,6 +312,7 @@ The `#spec` field defines what configuration users must provide when applying th
 The `appliesTo` field is **unique to Traits** and defines type constraints for trait application.
 
 **Key Characteristics:**
+
 - **Full CUE references**: Uses actual Unit definition references, NOT FQN strings
 - **Type safety**: CUE validates trait compatibility at compile time
 - **Multiple units**: Can specify multiple compatible units
@@ -339,7 +354,8 @@ appliesTo: [...#UnitDefinition]
         fqn:         "opm.dev/traits/scaling@v1#Replicas"
         description: "Controls the number of replicas for a workload"
         labels: {
-            "core.opm.dev/trait-type": "scaling"
+            "core.opm.dev/category": "scaling"
+            "core.opm.dev/type": "replication"
         }
     }
 
@@ -397,8 +413,8 @@ webServer: #ComponentDefinition & {
         fqn:         "opm.dev/traits/networking@v1#Expose"
         description: "Exposes a workload via a service"
         labels: {
-            "core.opm.dev/trait-type": "networking"
-            "core.opm.dev/category":   "exposure"
+            "core.opm.dev/category": "networking"
+            "core.opm.dev/type":   "exposure"
         }
     }
 
@@ -495,7 +511,8 @@ api: #ComponentDefinition & {
         fqn:         "opm.dev/traits/health@v1#HealthCheck"
         description: "Configures liveness, readiness, and startup probes"
         labels: {
-            "core.opm.dev/trait-type": "health"
+            "core.opm.dev/category": "workload"
+            "core.opm.dev/type":     "health"
         }
     }
 
@@ -560,7 +577,8 @@ api: #ComponentDefinition & {
         fqn:         "opm.dev/traits/restart@v1#RestartPolicy"
         description: "Controls how workloads restart on failure"
         labels: {
-            "core.opm.dev/trait-type": "restart"
+            "core.opm.dev/category": "workload"
+            "core.opm.dev/type":     "restart"
         }
     }
 
@@ -610,6 +628,7 @@ appliesTo: [...#UnitDefinition]
 ```
 
 **Must contain:**
+
 - At least one Unit definition reference
 - Full CUE references (NOT FQN strings)
 
@@ -638,16 +657,19 @@ Some traits can apply to multiple unit types:
 ### Why Full References?
 
 **DO:** Use full CUE references
+
 ```cue
 appliesTo: [#ContainerUnit]  // ✅ Full reference
 ```
 
 **DON'T:** Use FQN strings
+
 ```cue
 appliesTo: ["opm.dev/units/workload@v1#Container"]  // ❌ Wrong!
 ```
 
 **Reasons:**
+
 1. **Type safety**: CUE validates the reference exists
 2. **IDE support**: Autocomplete and go-to-definition work
 3. **Refactoring**: Changes propagate automatically
@@ -706,18 +728,21 @@ Trait schemas follow the same patterns as Unit schemas. See [Unit Definition - S
 ### Common Trait Schema Patterns
 
 **Simple constraints:**
+
 ```cue
 #spec: replicas: int & >=1 & <=100 | *1
 #spec: priority: int & >=0 & <=1000
 ```
 
 **Enums with defaults:**
+
 ```cue
 #spec: restartPolicy: "Always" | "OnFailure" | "Never" | *"Always"
 #spec: pullPolicy: "Always" | "IfNotPresent" | "Never" | *"IfNotPresent"
 ```
 
 **Optional nested structures:**
+
 ```cue
 #spec: autoscaling: {
     enabled?:     bool | *false
@@ -728,6 +753,7 @@ Trait schemas follow the same patterns as Unit schemas. See [Unit Definition - S
 ```
 
 **Maps:**
+
 ```cue
 #spec: annotations: [key=string]: string
 #spec: tolerations: [name=string]: {
@@ -879,6 +905,7 @@ If `appliesTo` is not satisfied, CUE will error during evaluation.
 ### Definition-Level Validation
 
 1. **Root fields must be exact:**
+
    ```cue
    apiVersion: "opm.dev/core/v1"  // Must be this exact value
    kind:       "Trait"             // Must be "Trait"
@@ -890,6 +917,7 @@ If `appliesTo` is not satisfied, CUE will error during evaluation.
    - `metadata.fqn` must be computed, not manually set
 
 3. **appliesTo must be present and non-empty:**
+
    ```cue
    appliesTo!: [...#UnitDefinition]  // At least one unit required
    ```
@@ -937,6 +965,7 @@ Control workload replica counts and autoscaling:
 - **VerticalScaling**: Vertical pod autoscaling (future)
 
 **Examples:**
+
 ```cue
 "opm.dev/traits/scaling@v1#Replicas"
 "opm.dev/traits/scaling@v1#HPA"
@@ -952,6 +981,7 @@ Control service exposure and traffic routing:
 - **NetworkPolicy**: Network isolation rules
 
 **Examples:**
+
 ```cue
 "opm.dev/traits/networking@v1#Expose"
 "opm.dev/traits/networking@v1#Ingress"
@@ -966,6 +996,7 @@ Configure health checking and monitoring:
 - **Alerting**: Alert rules and notification
 
 **Examples:**
+
 ```cue
 "opm.dev/traits/health@v1#HealthCheck"
 "opm.dev/traits/health@v1#Monitoring"
@@ -981,6 +1012,7 @@ Enforce security policies and configurations:
 - **Encryption**: Encryption at rest/transit
 
 **Examples:**
+
 ```cue
 "opm.dev/traits/security@v1#TLS"
 "opm.dev/traits/security@v1#PodSecurity"
@@ -995,6 +1027,7 @@ Control workload restart behavior:
 - **GracePeriod**: Graceful shutdown configuration
 
 **Examples:**
+
 ```cue
 "opm.dev/traits/restart@v1#RestartPolicy"
 "opm.dev/traits/restart@v1#GracePeriod"
@@ -1009,6 +1042,7 @@ Manage resource allocation:
 - **PriorityClass**: Workload priority
 
 **Examples:**
+
 ```cue
 "opm.dev/traits/resources@v1#ResourceLimits"
 "opm.dev/traits/resources@v1#PriorityClass"
@@ -1021,6 +1055,7 @@ Manage resource allocation:
 ### 1. Design Traits for Specific Behaviors
 
 **DO:**
+
 ```cue
 // ✅ Specific behavior
 #ReplicasTrait: {
@@ -1037,6 +1072,7 @@ Manage resource allocation:
 ```
 
 **DON'T:**
+
 ```cue
 // ❌ Too broad, mixing concerns
 #NetworkingTrait: {
@@ -1075,12 +1111,14 @@ name: "Policy"
 ### 4. Be Specific with appliesTo
 
 **DO:**
+
 ```cue
 // ✅ Specific - only applies to Containers
 appliesTo: [#ContainerUnit]
 ```
 
 **DON'T:**
+
 ```cue
 // ❌ Too broad - could apply to any unit
 appliesTo: [...#UnitDefinition]
@@ -1136,6 +1174,7 @@ api: #Component & {
 ### 9. Version Appropriately
 
 **When to bump major version (@v1 → @v2):**
+
 - Breaking schema changes (removing required fields, changing types)
 - Incompatible behavior changes
 - Major restructuring
@@ -1161,11 +1200,13 @@ Always create a helper for easy composition:
 ### 1. Using FQN Strings in appliesTo
 
 **Wrong:**
+
 ```cue
 appliesTo: ["opm.dev/units/workload@v1#Container"]  // String! Wrong!
 ```
 
 **Correct:**
+
 ```cue
 appliesTo: [#ContainerUnit]  // Full CUE reference
 ```
@@ -1173,6 +1214,7 @@ appliesTo: [#ContainerUnit]  // Full CUE reference
 ### 2. Forgetting appliesTo
 
 **Wrong:**
+
 ```cue
 #MyTrait: #TraitDefinition & {
     // Missing appliesTo!
@@ -1180,6 +1222,7 @@ appliesTo: [#ContainerUnit]  // Full CUE reference
 ```
 
 **Correct:**
+
 ```cue
 #MyTrait: #TraitDefinition & {
     appliesTo: [#ContainerUnit]  // Always include!
@@ -1189,11 +1232,13 @@ appliesTo: [#ContainerUnit]  // Full CUE reference
 ### 3. Empty appliesTo
 
 **Wrong:**
+
 ```cue
 appliesTo: []  // Empty! Must have at least one unit
 ```
 
 **Correct:**
+
 ```cue
 appliesTo: [#ContainerUnit]  // At least one unit
 ```
@@ -1201,6 +1246,7 @@ appliesTo: [#ContainerUnit]  // At least one unit
 ### 4. Mixing Units and Traits
 
 **Wrong:**
+
 ```cue
 #MyUnit: #UnitDefinition & {
     appliesTo: [...]  // Units don't have appliesTo!
@@ -1208,6 +1254,7 @@ appliesTo: [#ContainerUnit]  // At least one unit
 ```
 
 **Correct:**
+
 ```cue
 // Units don't have appliesTo - that's only for Traits
 #MyUnit: #UnitDefinition & {
@@ -1218,11 +1265,13 @@ appliesTo: [#ContainerUnit]  // At least one unit
 ### 5. Too Broad appliesTo
 
 **Discouraged:**
+
 ```cue
 appliesTo: [...#UnitDefinition]  // Any unit - too broad!
 ```
 
 **Preferred:**
+
 ```cue
 appliesTo: [#ContainerUnit]  // Specific unit type
 ```
@@ -1230,6 +1279,7 @@ appliesTo: [#ContainerUnit]  // Specific unit type
 ### 6. Conflicting Field Names
 
 **Wrong:**
+
 ```cue
 // Two traits defining same field
 #Trait1: {#spec: ports: {...}}
@@ -1242,6 +1292,7 @@ api: {
 ```
 
 **Correct:**
+
 ```cue
 // Use distinct field names
 #Trait1: {#spec: containerPorts: {...}}
