@@ -1,0 +1,15 @@
+package schemas
+
+/////////////////////////////////////////////////////////////////
+//// Config Schemas
+/////////////////////////////////////////////////////////////////
+
+#SecretSchema: {
+	type?: string | *"Opaque"
+	data: [string]: string // Base64-encoded values
+}
+
+// ConfigMap specification
+#ConfigMapSchema: {
+	data: [string]: string
+}
