@@ -6,3 +6,4 @@ dagger.json
 # Taskfile
 .registry-data/
 .env
+watch-fmt
