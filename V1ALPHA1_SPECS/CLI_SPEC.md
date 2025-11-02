@@ -10,7 +10,7 @@ This document specifies the command-line interface (CLI) for the Open Platform M
 
 ## Root Command
 
-```
+```text
 opm - Open Platform Model CLI
 ```
 

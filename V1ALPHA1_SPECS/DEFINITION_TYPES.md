@@ -310,6 +310,15 @@ Examples:
 * Data for this Component must stay within a specific jurisdiction.
 * This Component must emit audit logs with retention >= 365 days.
 
+### Validation vs Enforcement
+
+Policies distinguish between **validation** (ensuring correctness) and **enforcement** (governing runtime behavior):
+
+* **CUE Validation**: The structure and schema of all policies are automatically validated by CUE. This is no different from how CUE validates any definition structure.
+* **Platform Enforcement**: Each policy specifies when enforcement happens (`deployment`, `runtime`, or `both`) and what happens on violation (`block`, `warn`, or `audit`). This integrates with platform-native enforcement mechanisms like Kyverno, OPA/Gatekeeper, or admission controllers.
+
+The key distinction from regular schema constraints: policies are **governance rules** that can be added/removed independently by platform teams without changing the underlying schemas. Schema constraints define "what's structurally possible," while policies define "what's required by governance."
+
 ### Policy Target Field
 
 Every Policy declares where it can be applied through a `target` field:

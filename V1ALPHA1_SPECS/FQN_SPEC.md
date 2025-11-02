@@ -22,7 +22,7 @@ All OPM definitions have fixed root-level fields for OPM core API versioning:
 
 ```cue
 apiVersion: "opm.dev/v1/core"  // Fixed for all v1 definitions
-kind:       string              // "Unit", "Trait", "Blueprint", "Policy", "Module", etc.
+kind:       string             // "Unit", "Trait", "Blueprint", "Policy", "Module", etc.
 ```
 
 These fields identify that an object is an OPM v1 definition and what type of definition it is.
@@ -251,23 +251,23 @@ container: units.#Container
 
 ```text
 FQN:     opm.dev/units/workload@v1#Container
-         └────────┬────────────┘└┬┘└───┬────┘
-             repo path           @v   #Name
+         └────────┬───────────┘└┬┘└───┬────┘
+             repo path          @v  #Name
 
 CUE Module:
 module: "opm.dev/units/workload@v1"
         └────────┬────────────┘└┬┘
-            repo path           @v
+             repo path          @v
 
 CUE Import:
 import units "opm.dev/units/workload@v1"
-              └──────────┬───────────────┘
+              └──────────┬────────────┘
                     module path
 
 CUE Usage:
 container: units.#Container
-           └┬─┘└───┬────┘
-          alias  definition
+           └─┬─┘ └───┬────┘
+           alias  definition
 ```
 
 ---
