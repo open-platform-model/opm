@@ -1,0 +1,448 @@
+version: '3'
+
+# Module Publishing Tasks for opm.dev@v1
+
+# Inherits silent mode from parent Taskfile
+# Override with: task --verbose <taskname> or task -v <taskname>
+
+includes:
+  registry-docker:
+    taskfile: ./registry-docker.yml
+    dir: .
+
+vars:
+  MODULE_PATH: opm.dev@v1
+  MODULE_DIR: v1
+  LOCAL_REGISTRY: localhost:5000
+
+  # Extract current version from VERSION file
+  CURRENT_VERSION:
+    sh: |
+      if [ -f "{{.MODULE_DIR}}/VERSION" ]; then
+        cat "{{.MODULE_DIR}}/VERSION" | tr -d '\n'
+      else
+        echo "v1.0.0"
+      fi
+
+tasks:
+  # ============================================================================
+  # Version Management
+  # ============================================================================
+
+  version:show:
+    desc: Show current module version
+    summary: |
+      Display the current version from VERSION file.
+    cmds:
+      - |
+        if [ -f "{{.MODULE_DIR}}/VERSION" ]; then
+          VERSION=$(cat "{{.MODULE_DIR}}/VERSION" | tr -d '\n')
+          echo "Current version: $VERSION"
+        else
+          echo "No VERSION file found. Default: v1.0.0"
+        fi
+
+  version:set:
+    desc: Set module version
+    summary: |
+      Update the version in VERSION file.
+
+      Usage:
+        task publish:version:set VERSION=v1.0.0
+
+      Note: This is typically handled by your release workflow.
+      For local development, you can set any version.
+    vars:
+      VERSION: '{{.VERSION | default ""}}'
+    preconditions:
+      - sh: '[ -n "{{.VERSION}}" ]'
+        msg: "VERSION variable is required. Usage: task version:set VERSION=v1.0.0"
+      - sh: echo "{{.VERSION}}" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'
+        msg: "VERSION must follow semver format: v1.2.3 or v1.2.3-alpha"
+      - sh: echo "{{.VERSION}}" | grep -qE '^v1\.'
+        msg: "VERSION must match module major version v1 (e.g., v1.0.0, v1.2.3)"
+    dir: '{{.MODULE_DIR}}'
+    cmds:
+      - |
+        echo "Setting version to {{.VERSION}}"
+        echo "{{.VERSION}}" > VERSION
+        echo "✓ Version set to {{.VERSION}} in VERSION file"
+
+  # ============================================================================
+  # Module Information
+  # ============================================================================
+
+  info:
+    desc: Show module information
+    summary: |
+      Display comprehensive information about the module:
+      - Module path and version
+      - Dependencies
+      - Package structure
+    dir: '{{.MODULE_DIR}}'
+    cmds:
+      - |
+        echo "Module Information:"
+        echo "=================="
+        echo ""
+
+        if [ -f "cue.mod/module.cue" ]; then
+          echo "Module Configuration:"
+          cat cue.mod/module.cue
+          echo ""
+        else
+          echo "Error: cue.mod/module.cue not found"
+          exit 1
+        fi
+
+        echo "Package Structure:"
+        find . -maxdepth 2 -type d ! -path "*/\.*" ! -path "." ! -path "./cue.mod*" | sort
+        echo ""
+
+        echo "Dependency Graph:"
+        cue mod graph 2>/dev/null || echo "No dependencies or graph unavailable"
+
+  info:deps:
+    desc: Show module dependencies
+    summary: |
+      Display detailed information about module dependencies.
+    dir: '{{.MODULE_DIR}}'
+    cmds:
+      - |
+        echo "Module Dependencies:"
+        echo ""
+
+        if [ -f "cue.mod/module.cue" ]; then
+          # Extract deps section
+          awk '/^deps:/,/^[a-z]/' cue.mod/module.cue | grep -v '^[a-z]' | grep -v '^$' || echo "No dependencies"
+          echo ""
+
+          echo "Dependency Graph:"
+          cue mod graph 2>/dev/null || echo "Graph unavailable"
+        else
+          echo "Error: cue.mod/module.cue not found"
+        fi
+
+  # ============================================================================
+  # Pre-publish Validation
+  # ============================================================================
+
+  validate:
+    desc: Validate module before publishing
+    summary: |
+      Run comprehensive validation checks before publishing:
+      - Format check
+      - Schema validation
+      - Dependency check
+      - Version validation
+    dir: '{{.MODULE_DIR}}'
+    cmds:
+      - echo "Validating module for publishing..."
+      - echo ""
+
+      - echo "1. Checking module.cue..."
+      - |
+        if [ ! -f "cue.mod/module.cue" ]; then
+          echo "✗ cue.mod/module.cue not found"
+          exit 1
+        fi
+        echo "✓ Module file exists"
+
+      - echo ""
+      - echo "2. Checking formatting..."
+      - |
+        UNFORMATTED=$(cue fmt --check ./... 2>&1 || true)
+        if [ -n "$UNFORMATTED" ]; then
+          echo "✗ Files need formatting:"
+          echo "$UNFORMATTED"
+          echo ""
+          echo "Run: task fmt"
+          exit 1
+        fi
+        echo "✓ All files properly formatted"
+
+      - echo ""
+      - echo "3. Validating CUE files..."
+      - cue vet ./...
+      - echo "✓ Validation passed"
+
+      - echo ""
+      - echo "4. Checking dependencies..."
+      - cue mod tidy
+      - echo "✓ Dependencies resolved"
+
+      - echo ""
+      - echo "✓ All validation checks passed"
+
+  check:
+    desc: Quick validation check
+    summary: |
+      Run quick validation without modifying anything.
+      Alias for validate but without mod tidy.
+    dir: '{{.MODULE_DIR}}'
+    cmds:
+      - echo "Running validation checks..."
+      - cue fmt --check ./...
+      - cue vet ./...
+      - echo "✓ Validation passed"
+
+  # ============================================================================
+  # Publishing
+  # ============================================================================
+
+  local:
+    desc: Publish module to local registry
+    summary: |
+      Publish the module to the local OCI registry at {{.LOCAL_REGISTRY}}.
+
+      This workflow:
+      1. Ensures local registry is running
+      2. Validates the module
+      3. Publishes to localhost:5000
+
+      Usage:
+        task publish:local VERSION=v1.0.0
+
+      If VERSION is not specified, uses current version from module.cue.
+    vars:
+      VERSION: '{{.VERSION | default .CURRENT_VERSION}}'
+    preconditions:
+      - sh: '[ -n "{{.VERSION}}" ]'
+        msg: "VERSION not found. Specify with VERSION=v1.0.0 or set in cue.mod/module.cue"
+    dir: '{{.MODULE_DIR}}'
+    cmds:
+      - echo "Publishing {{.MODULE_PATH}} version {{.VERSION}} to {{.LOCAL_REGISTRY}}..."
+      - echo ""
+
+      - echo "Ensuring local registry is running..."
+      - task: registry-docker:start
+
+      - echo "Validating module..."
+      - task: validate
+
+      - echo "Publishing module..."
+      - CUE_REGISTRY={{.LOCAL_REGISTRY}} cue mod publish {{.VERSION}}
+
+      - |
+        echo ""
+        echo "✓ Successfully published {{.MODULE_PATH}}@{{.VERSION}}"
+        echo "  Registry: {{.LOCAL_REGISTRY}}"
+        echo ""
+        echo "Verify with:"
+        echo "  task registry-docker:tags MODULE={{.MODULE_PATH}}"
+
+  local:force:
+    desc: Force publish to local registry (skip validation)
+    summary: |
+      Publish to local registry without validation checks.
+      Use with caution - mainly for development/testing.
+
+      Usage:
+        task publish:local:force VERSION=v1.0.0-dev
+    vars:
+      VERSION: '{{.VERSION | default .CURRENT_VERSION}}'
+    preconditions:
+      - sh: '[ -n "{{.VERSION}}" ]'
+        msg: "VERSION required"
+    deps:
+      - registry-docker:start
+    dir: '{{.MODULE_DIR}}'
+    cmds:
+      - echo "Force publishing {{.MODULE_PATH}}@{{.VERSION}} (skipping validation)..."
+      - CUE_REGISTRY={{.LOCAL_REGISTRY}} cue mod publish {{.VERSION}}
+      - echo "✓ Published"
+
+  # ============================================================================
+  # Dry-run and Testing
+  # ============================================================================
+
+  dry-run:
+    desc: Dry-run publish (validation only)
+    summary: |
+      Simulate publishing without actually doing it.
+      Runs all validation checks that would run before publish.
+    cmds:
+      - task: validate
+      - |
+        echo ""
+        echo "Dry-run complete ✓"
+        echo ""
+        echo "Would publish: {{.MODULE_PATH}}@{{.VERSION | default .CURRENT_VERSION}}"
+        echo "To actually publish, run:"
+        echo "  task publish:local VERSION={{.VERSION | default .CURRENT_VERSION}}"
+
+  test:local:
+    desc: Test module from local registry
+    summary: |
+      Test that the published module can be fetched from local registry.
+
+      Usage:
+        task publish:test:local VERSION=v1.0.0
+
+      This creates a temporary test directory and tries to fetch the module.
+    vars:
+      VERSION: '{{.VERSION | default .CURRENT_VERSION}}'
+    preconditions:
+      - sh: '[ -n "{{.VERSION}}" ]'
+        msg: "VERSION required"
+    cmds:
+      - |
+        echo "Testing module {{.MODULE_PATH}}@{{.VERSION}} from local registry..."
+        echo ""
+
+        # Create temp directory
+        TEST_DIR=$(mktemp -d)
+        echo "Test directory: $TEST_DIR"
+
+        cd "$TEST_DIR"
+
+        # Initialize test module
+        cue mod init test.local/moduletest@v0
+
+        # Try to get the published module
+        echo "Fetching module from {{.LOCAL_REGISTRY}}..."
+        CUE_REGISTRY={{.LOCAL_REGISTRY}} cue mod get {{.MODULE_PATH}}@{{.VERSION}}
+
+        if [ $? -eq 0 ]; then
+          echo ""
+          echo "✓ Module successfully fetched from local registry"
+          echo ""
+          echo "Dependencies:"
+          cat cue.mod/module.cue
+        else
+          echo ""
+          echo "✗ Failed to fetch module"
+          exit 1
+        fi
+
+        # Cleanup
+        cd - > /dev/null
+        rm -rf "$TEST_DIR"
+        echo ""
+        echo "✓ Test complete"
+
+  # ============================================================================
+  # Helper Tasks
+  # ============================================================================
+
+  bump:patch:
+    desc: Bump patch version (v1.2.3 -> v1.2.4)
+    summary: |
+      Automatically increment the patch version and update module.cue.
+
+      Example: v1.2.3 -> v1.2.4
+    cmds:
+      - |
+        CURRENT="{{.CURRENT_VERSION}}"
+        if [ "$CURRENT" = "v0.0.0" ] || [ -z "$CURRENT" ]; then
+          echo "Error: No current version found"
+          exit 1
+        fi
+
+        # Parse version
+        MAJOR=$(echo $CURRENT | sed 's/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1/')
+        MINOR=$(echo $CURRENT | sed 's/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\2/')
+        PATCH=$(echo $CURRENT | sed 's/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\3/')
+
+        NEW_PATCH=$((PATCH + 1))
+        NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+
+        echo "Bumping version: $CURRENT -> $NEW_VERSION"
+        task publish:version:set VERSION=$NEW_VERSION
+
+  bump:minor:
+    desc: Bump minor version (v1.2.3 -> v1.3.0)
+    summary: |
+      Automatically increment the minor version and reset patch to 0.
+
+      Example: v1.2.3 -> v1.3.0
+    cmds:
+      - |
+        CURRENT="{{.CURRENT_VERSION}}"
+        if [ "$CURRENT" = "v0.0.0" ] || [ -z "$CURRENT" ]; then
+          echo "Error: No current version found"
+          exit 1
+        fi
+
+        MAJOR=$(echo $CURRENT | sed 's/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1/')
+        MINOR=$(echo $CURRENT | sed 's/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\2/')
+
+        NEW_MINOR=$((MINOR + 1))
+        NEW_VERSION="v${MAJOR}.${NEW_MINOR}.0"
+
+        echo "Bumping version: $CURRENT -> $NEW_VERSION"
+        task publish:version:set VERSION=$NEW_VERSION
+
+  bump:major:
+    desc: Bump major version (v1.2.3 -> v2.0.0)
+    summary: |
+      Automatically increment the major version and reset minor/patch to 0.
+
+      Example: v1.2.3 -> v2.0.0
+    cmds:
+      - |
+        CURRENT="{{.CURRENT_VERSION}}"
+        if [ "$CURRENT" = "v0.0.0" ] || [ -z "$CURRENT" ]; then
+          echo "Error: No current version found"
+          exit 1
+        fi
+
+        MAJOR=$(echo $CURRENT | sed 's/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*/\1/')
+
+        NEW_MAJOR=$((MAJOR + 1))
+        NEW_VERSION="v${NEW_MAJOR}.0.0"
+
+        echo "Bumping version: $CURRENT -> $NEW_VERSION"
+        task publish:version:set VERSION=$NEW_VERSION
+
+  # ============================================================================
+  # Workflow Shortcuts
+  # ============================================================================
+
+  release:local:
+    desc: Complete local release workflow
+    summary: |
+      Complete workflow for local development release:
+      1. Validate and format
+      2. Bump version (or use provided VERSION)
+      3. Publish to local registry
+      4. Test the published module
+
+      Usage:
+        task publish:release:local            # Auto-bump patch
+        task publish:release:local VERSION=v1.2.3
+        task publish:release:local BUMP=minor # Auto-bump minor
+    vars:
+      VERSION: '{{.VERSION | default ""}}'
+      BUMP: '{{.BUMP | default "patch"}}'
+    cmds:
+      - echo "Starting local release workflow..."
+      - echo ""
+
+      - task: cue:fmt
+
+      - |
+        if [ -z "{{.VERSION}}" ]; then
+          echo "Auto-bumping {{.BUMP}} version..."
+          task publish:bump:{{.BUMP}}
+          NEW_VERSION=$(cat "{{.MODULE_DIR}}/VERSION" | tr -d '\n')
+        else
+          NEW_VERSION="{{.VERSION}}"
+          task publish:version:set VERSION=$NEW_VERSION
+        fi
+
+        echo "Release version: $NEW_VERSION"
+        echo ""
+
+      - task: validate
+
+      - task: local
+        vars:
+          VERSION: '{{.VERSION}}'
+
+      - task: test:local
+        vars:
+          VERSION: '{{.VERSION}}'
+
+      - echo ""
+      - echo "✓ Local release complete!"
