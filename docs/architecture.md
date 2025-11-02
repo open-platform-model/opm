@@ -15,8 +15,8 @@ OPM's foundational principle is that **every capability, behavior, pattern, and 
 - **Units**: Concrete runtime entities (Container, Volume, ConfigMap, Secret)
 - **Traits**: Behavior and properties that modify how Components run (Replicas, Expose, HealthCheck, RestartPolicy)
 - **Blueprints**: Reusable patterns bundling Units + Traits (StatelessWorkload, StatefulService)
-- **Components**: Logical application parts composed from Units + Traits or Blueprints
 - **Policies**: Governance rules (security, compliance, residency)
+- **Components**: Logical application parts composed from Units + Traits, Policies or Blueprints
 - **Scopes**: Policy attachment points and relationship boundaries
 - **Lifecycle** (planned): Change management over time
 
@@ -258,6 +258,16 @@ When platform teams extend a ModuleDefinition via CUE unification, their Scopes 
 - **Resource quotas**: Total resources for all components in scope
 - **Compliance frameworks**: Audit logging, mandatory metrics
 
+#### Policy Enforcement
+
+Policies distinguish between **validation** and **enforcement**:
+
+- **CUE Validation**: All policy structures are automatically validated by CUE for correctness
+- **Platform Enforcement**: Each policy specifies when (`deployment`, `runtime`, or `both`) and how (`block`, `warn`, or `audit`) the platform enforces the governance rule
+- **Flexible Integration**: Policies can integrate with platform-native enforcement mechanisms (Kyverno, OPA/Gatekeeper, admission controllers)
+
+This separation allows schema constraints to define "what's possible" while policies define "what's required by governance" - enabling platform teams to add/remove policies independently without changing schemas.
+
 Policies are authored by platform, security, and compliance teams. CUE validation ensures policies are only applied where their target allows. When similar governance is needed at both levels (e.g., encryption, monitoring), create two separate policy definitions with the same spec schema.
 
 See [POLICY_DEFINITION.md](../V1ALPHA1_SPECS/POLICY_DEFINITION.md) for complete policy specification.
@@ -267,8 +277,9 @@ See [POLICY_DEFINITION.md](../V1ALPHA1_SPECS/POLICY_DEFINITION.md) for complete 
 ```mermaid
 graph LR
     DEV[Developer] -->|Creates| MD1[ModuleDefinition]
-    PLT[Platform Team] -->|Inherits & Extends| MD1
-    PLT -->|Creates Extended| MD2[ModuleDefinition]
+    MD1 -->|Inherits & Extends| MD2
+    PLT[Platform Team] 
+    PLT -->|Creates| MD2[ModuleDefinition]
     MD1 -->|Flatten| MOD1[Module]
     MD2 -->|Flatten| MOD2[Module]
     MOD1 -->|Published to| CAT[Catalog]
