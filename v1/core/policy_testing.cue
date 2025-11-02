@@ -1,4 +1,4 @@
-package v1
+package core
 
 // Test Policy Definitions with different targets
 
@@ -10,7 +10,10 @@ package v1
 		description: "Enforces resource limits for component workloads"
 		target:      #PolicyTarget.component // Component-only
 	}
-	enforcement: "strict"
+	enforcement: {
+		mode:        "deployment"
+		onViolation: "block"
+	}
 	#spec: resourceLimit: {
 		cpu?: {
 			request!: string & =~"^[0-9]+m$"
@@ -54,7 +57,10 @@ package v1
 		description: "Defines network traffic rules"
 		target:      #PolicyTarget.scope // Scope-only
 	}
-	enforcement: "strict"
+	enforcement: {
+		mode:        "deployment"
+		onViolation: "block"
+	}
 	#spec: networkRules: [ruleName=string]: #NetworkRuleSchema
 })
 
@@ -69,7 +75,10 @@ package v1
 		name:        "Encryption"
 		description: "Enforces encryption requirements"
 	}
-	enforcement: "strict"
+	enforcement: {
+		mode:        "deployment"
+		onViolation: "block"
+	}
 	#spec: encryption: {
 		atRest!:    bool | *true
 		inTransit!: bool | *true
