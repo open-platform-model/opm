@@ -4,7 +4,7 @@
 
 The Open Platform Model (OPM) represents a fundamental evolution beyond Helm Charts for Kubernetes application packaging and deployment. While Helm pioneered template-based configuration management, OPM introduces a type-safe, constraint-based approach using CUE that eliminates entire categories of errors, provides true modularity, and enables platform teams to enforce organizational policies without breaking application portability.
 
-OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) creates clear separation of concerns between developers, platform teams, and end users - something Helm's monolithic chart structure cannot achieve. With built-in policy enforcement through scopes, trait-based composition for maximum reusability, and CUE's powerful type system preventing configuration drift, OPM delivers the reliability, governance, and developer experience that modern cloud-native organizations require.
+OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) creates clear separation of concerns: developers and/or platform teams create ModuleDefinitions, the CLI compiles them into Modules (optimized IR), and users deploy ModuleReleases with concrete values - something Helm's monolithic chart structure cannot achieve. With built-in policy enforcement through scopes, composition using Units, Traits, and Blueprints for maximum reusability, and CUE's powerful type system preventing configuration drift, OPM delivers the reliability, governance, and developer experience that modern cloud-native organizations require.
 
 ## Why OPM is Superior to Helm Charts
 
@@ -21,6 +21,8 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 **OPM Modules:**
 
 - CUE-based with compile-time type checking
+- Built from Units (what exists), Traits (how it behaves), Policies (governance rules), and Blueprints (blessed patterns)
+- Components can contain Units, Traits, AND Policies - Helm has no equivalent concept
 - Errors caught before deployment
 - Strong typing prevents invalid configurations
 - Built-in schema validation and constraints
@@ -38,11 +40,12 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 **OPM Modules:**
 
 - Three distinct layers with clear ownership:
-  - **ModuleDefinition**: Developer-owned application logic
-  - **Module**: Platform-curated with policies and governance
-  - **ModuleRelease**: User deployment with environment-specific values
-- Platform teams can add policies without modifying developer code
-- Developers maintain full control over application behavior
+  - **ModuleDefinition**: Developer-owned application logic OR platform team's extension via CUE unification
+  - **Module**: Compiled/optimized form (IR) after flattening Blueprints into Units, Traits, and Policies
+  - **ModuleRelease**: User deployment with concrete values targeting specific environments
+- Platform teams can add Scopes and Policies via CUE unification without modifying developer code
+- Developers define application logic and value constraints (NO defaults)
+- Platform teams can add defaults, Policies, and Scopes without modifying developer code
 
 ### 3. Policy as Code
 
@@ -55,9 +58,10 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 **OPM Modules:**
 
-- Built-in scope system for policy enforcement
-- Platform-defined Scopes persist through CUE unification
-- Policies travel with modules
+- Built-in Scope system for policy enforcement at component and scope levels
+- Scopes (defined by developers or platform teams) persist through CUE unification
+- Policies are applied via Scopes at the ModuleDefinition layer
+- Policies travel with ModuleDefinitions through the compilation pipeline
 - Clear policy violation messages at validation time
 - Examples: security policies, resource limits, network policies
 
@@ -72,11 +76,14 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 **OPM Modules:**
 
-- Trait-based composition enables maximum reuse
+- Unit, Trait, and Policy-based composition enables maximum reuse
+- **Components can contain all three**: Units (what exists), Traits (how it behaves), AND Policies (governance rules) - Helm has nothing comparable
+- Blueprints bundle Units and Traits into reusable patterns
 - Components are first-class citizens
-- Traits can be mixed and matched freely
+- Units, Traits, and Policies can be mixed and matched freely
 - Resource sharing between components is natural
 - True modularity through CUE's composition model
+- **Blueprint Flattening**: Blueprints are compilation-time constructs. When a ModuleDefinition is compiled into a Module (IR - Intermediate Representation), Blueprints are expanded into their constituent Units, Traits, and Policies. This optimization provides 50-80% faster runtime builds since the Module only contains Units, Traits, and Policies, with structure optimized for runtime evaluation.
 
 ### 5. Configuration Management
 
@@ -89,9 +96,10 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 **OPM Modules:**
 
-- Strongly typed values with constraints
-- Platform can modify defaults while preserving schema
-- CUE unification provides clear override semantics
+- ModuleDefinition defines value constraints (NO defaults)
+- Platform teams can add defaults and refine constraints via CUE unification
+- Value references preserved through flattening, resolved at ModuleRelease
+- CUE unification provides clear override semantics with type safety
 - Values can be validated against complex business rules
 
 ### 6. Developer Experience
@@ -120,9 +128,9 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 **OPM Modules:**
 
-- Platform teams curate without forking
-- Original ModuleDefinition remains untouched
-- Platform components added cleanly
+- Platform teams inherit and extend via CUE unification without forking
+- Original upstream ModuleDefinition remains untouched
+- Platform Scopes, Policies, and Components added cleanly through CUE merging
 - Updates from developers integrate smoothly
 
 ### 8. Multi-Environment Support
@@ -135,9 +143,9 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 **OPM Modules:**
 
-- ModuleRelease handles environment-specific deployment
-- Environment constraints enforced by scopes
-- Clear progression from dev → staging → production
+- ModuleRelease references a compiled Module with concrete values
+- Environment constraints enforced by Scopes (from ModuleDefinition)
+- Clear progression from dev → staging → production using same Module with different values
 
 ### 9. Compliance and Governance
 
@@ -149,7 +157,7 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 **OPM Modules:**
 
-- Compliance baked into modules through Scopes
+- Compliance baked into ModuleDefinitions through Policies applied via Scopes
 - Complete audit trail of all policies
 - Automated compliance validation
 - Examples: PCI-DSS, SOC2, HIPAA enforcement
@@ -164,8 +172,9 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 **OPM Modules:**
 
-- CUE's unification enables gradual evolution
-- Platform policies evolve independently
+- CUE's unification enables gradual evolution of ModuleDefinitions
+- Platform Policies (applied via Scopes) can be added or updated without modifying developer code
+- Developer ModuleDefinitions and platform Scopes merge cleanly through CUE
 - Clear migration paths through type system
 
 ## Real-World Scenario Comparison
@@ -191,24 +200,107 @@ Platform requirements require chart forking or complex umbrella charts.
 **With OPM:**
 
 ```cue
-// Developer defines application
+// Developer defines application in ModuleDefinition
 #ModuleDefinition: {
-    components: database: {
-        container: image: "postgres:14"
-        volume: data: size: "100Gi"
+    metadata: {
+        apiVersion: "myorg.dev/modules@v1"
+        name:       "DatabaseApp"
+        version:    "1.0.0"
+    }
+    #components: {
+        database: {
+            // Using Blueprint (recommended V1 approach)
+            #blueprints: {
+                "opm.dev/blueprints/core@v1#StatefulWorkload": {}
+            }
+            // Components can also have Policies directly attached
+            #policies: {
+                "opm.dev/policies/workload@v1#ResourceLimit": {}
+            }
+            spec: {
+                statefulWorkload: {
+                    container: {image: values.db.image}
+                    volume: {capacity: values.db.storageSize}
+                }
+                resourceLimit: {
+                    cpu: {request: "500m", limit: "1000m"}
+                    memory: {request: "512Mi", limit: "1Gi"}
+                }
+            }
+        }
+    }
+    // Value schema - constraints only, NO defaults
+    #values: {
+        db: {
+            image!:       string
+            storageSize!: string
+        }
     }
 }
 
-// Platform adds governance without touching developer code
+// Platform team extends via CUE unification (adds Scope with Policy)
+#ModuleDefinition: {
+    #scopes: {
+        "platform-backup": {
+            #policies: {
+                "myorg.dev/policies/backup@v1#BackupPolicy": {}
+            }
+            spec: {
+                backup: {schedule: "0 2 * * *"}
+            }
+            appliesTo: {all: true}
+        }
+    }
+}
+
+// CLI compiles ModuleDefinition → Module (IR)
+// Blueprints are flattened into Units + Traits, Policies preserved
 #Module: {
-    scopes: "platform-backup": {
-        backup: schedule: "0 2 * * *"
+    metadata: {
+        apiVersion: "myorg.dev/modules@v1"
+        name:       "DatabaseApp"
+        version:    "1.0.0"
     }
+    components: {
+        database: {
+            // Blueprint expanded into Units and Traits
+            #units: {
+                "opm.dev/units/workload@v1#Container": {}
+                "opm.dev/units/storage@v1#Volume": {}
+            }
+            #traits: {
+                "opm.dev/traits/scaling@v1#Replicas": {}
+            }
+            // Component Policies preserved from ModuleDefinition
+            #policies: {
+                "opm.dev/policies/workload@v1#ResourceLimit": {}
+            }
+            spec: {
+                container: {image: values.db.image}
+                volume: {capacity: values.db.storageSize}
+                resourceLimit: {/* ... */}
+            }
+        }
+    }
+    scopes: {
+        "platform-backup": {/* ... */}
+    }
+    #values: {/* schema from ModuleDefinition */}
 }
 
-// User deploys with simple overrides
+// User deploys with concrete values
 #ModuleRelease: {
-    values: replicas: 3
+    metadata: {
+        name:      "db-prod"
+        namespace: "production"
+    }
+    #module: <Module reference>
+    values: {
+        db: {
+            image:       "postgres:14"
+            storageSize: "100Gi"
+        }
+    }
 }
 ```
 

@@ -6,11 +6,106 @@ Policies in OPM are enforced governance rules that express security, compliance,
 
 ### Core Principles
 
-- **Enforceable**: Policies are constraints validated by CUE, not runtime suggestions
+- **Enforceable**: Policies are governance rules enforced by the platform, not suggestions
 - **Targeted**: Each policy declares where it can be applied (Component or Scope)
 - **Composable**: Policies can be defined by platform teams and module developers
 - **Declarative**: Policies specify "what" must be true, not "how" to enforce it
 - **Reusable**: Similar policies can be created for both contexts when needed
+
+## Policy Validation vs Enforcement
+
+Understanding the distinction between **validation** and **enforcement** is critical to understanding OPM policies.
+
+### CUE Validation (Automatic)
+
+CUE **always validates** the structure and schema of all definitions, including policies. This happens automatically when you:
+
+- Define a ModuleDefinition
+- Create a ModuleRelease with concrete values
+- Run `cue vet` on your configuration
+
+CUE validation ensures:
+
+- Required fields are present
+- Field types match the schema
+- Basic constraints are satisfied (e.g., `int & >=1 & <=1000`)
+
+**Example - Schema Constraint:**
+
+```cue
+#StatelessWorkload: {
+    replicas: {
+        count: int & >=1 & <=1000 | *1  // CUE validates this automatically
+    }
+}
+```
+
+This is a **schema constraint** - it defines what's structurally valid.
+
+### Policy Enforcement (Platform-Specific)
+
+**PolicyDefinitions** are different from schema constraints. They are **governance rules** that specify:
+
+1. **What** must be enforced (the policy spec)
+2. **When** enforcement happens (deployment, runtime, or both)
+3. **What happens** on violation (block, warn, or audit)
+4. **How** it's enforced (platform-specific mechanisms)
+
+**Example - Policy Governance:**
+
+```cue
+#MinimumReplicasPolicy: #PolicyDefinition & {
+    metadata: {
+        target: "component"
+        // ...
+    }
+
+    enforcement: {
+        mode: "deployment"         // Enforce at deployment time
+        onViolation: "block"       // Reject deployments that violate
+    }
+
+    #spec: minimumReplicas: {
+        min!: int & >=3            // Production requires >=3 replicas
+    }
+}
+```
+
+This is a **governance rule** - it's enforced by the platform at a specific time.
+
+### Key Differences
+
+| Aspect | Schema Constraints | Policy Enforcement |
+|--------|-------------------|-------------------|
+| **What** | Define valid structure | Define required governance |
+| **Where** | Part of the schema definition | Separate PolicyDefinition |
+| **When** | Always (CUE evaluation) | Specified by enforcement.mode |
+| **Who** | Schema authors | Platform/security teams |
+| **How** | CUE type system | Platform mechanisms (Kyverno, OPA, etc.) |
+| **Flexibility** | Fixed with schema | Added/removed independently |
+
+### Why This Matters
+
+**Separation of Concerns:**
+
+- Schema constraints define "what's possible"
+- Policies define "what's required by governance"
+
+**Independent Governance:**
+
+- Platform teams can add/remove policies without changing schemas
+- Same schema can have different policies in different environments (dev vs prod)
+
+**Flexible Enforcement:**
+
+- Some policies need deployment-time checks (image signatures)
+- Some need runtime monitoring (resource quotas, connectivity)
+- Some need both (compliance auditing)
+
+**Platform Integration:**
+
+- Policies integrate with platform-native enforcement (admission controllers, policy engines)
+- Enforcement is visible and auditable
 
 ## Policy Definition Structure
 
@@ -39,6 +134,18 @@ Every Policy follows this structure:
         annotations?: #LabelsAnnotationsType
     }
 
+    // Policy enforcement configuration
+    enforcement!: {
+        // When enforcement happens
+        mode!: "deployment" | "runtime" | "both"
+
+        // What happens on violation
+        onViolation!: "block" | "warn" | "audit"
+
+        // Platform-specific enforcement configuration (optional)
+        platform?: _
+    }
+
     // Policy-specific constraints
     #spec: _
 }
@@ -65,6 +172,68 @@ The `target` field declares where a policy can be applied:
 #PolicyTarget: {
     component: "component"
     scope:     "scope"
+}
+```
+
+### Enforcement Field
+
+The `enforcement` field controls when and how the platform enforces the policy.
+
+#### Enforcement Mode
+
+| Mode | When | Description | Use Cases |
+|------|------|-------------|-----------|
+| `"deployment"` | At deployment time | Validated when resources are deployed to platform | Image signatures, admission control, pre-flight checks |
+| `"runtime"` | Continuously while running | Validated during operation | Resource usage monitoring, connectivity checks, audit logging |
+| `"both"` | Deployment + runtime | Validated at both times | Compliance requirements, resource quotas, security baselines |
+
+#### On Violation Behavior
+
+| Behavior | Effect | Description | Use Cases |
+|----------|--------|-------------|-----------|
+| `"block"` | Reject | Prevents deployment or operation | Production security policies, hard limits |
+| `"warn"` | Log warning | Allows operation but logs violation | Soft limits, deprecation warnings |
+| `"audit"` | Record only | Silently records for compliance review | Compliance tracking, post-deployment analysis |
+
+#### Platform Configuration
+
+The optional `platform` field allows platform-specific enforcement configuration. The structure is intentionally flexible to support different enforcement mechanisms:
+
+**Examples:**
+
+```cue
+// Kyverno enforcement
+enforcement: {
+    mode: "deployment"
+    onViolation: "block"
+    platform: {
+        engine: "kyverno"
+        policyType: "ClusterPolicy"
+    }
+}
+
+// OPA/Gatekeeper enforcement
+enforcement: {
+    mode: "both"
+    onViolation: "warn"
+    platform: {
+        engine: "gatekeeper"
+        constraintTemplate: "k8srequiredlabels"
+    }
+}
+
+// Custom monitoring
+enforcement: {
+    mode: "runtime"
+    onViolation: "audit"
+    platform: {
+        engine: "custom"
+        checkInterval: "5m"
+        alerting: {
+            enabled: true
+            channel: "#security-alerts"
+        }
+    }
 }
 ```
 
@@ -104,7 +273,11 @@ Component-level policies apply to individual components and define resource limi
         target:      "component"  // Component-only
     }
 
-    enforcement: "strict"
+    enforcement: {
+        mode:        "deployment"  // Enforce at deployment time
+        onViolation: "block"       // Reject deployments without limits
+    }
+
     #spec: resourceLimit: {
         cpu?: {
             request!: string & =~"^[0-9]+m$"
@@ -176,7 +349,11 @@ Scope-level policies apply to groups of components and define cross-cutting secu
         target:      "scope"  // Scope-only
     }
 
-    enforcement: "strict"
+    enforcement: {
+        mode:        "deployment"  // Enforce when creating network policies
+        onViolation: "block"       // Reject invalid network configurations
+    }
+
     #spec: networkRules: {
         ingress?: [...{
             from!: [...#ComponentDefinition]
@@ -249,7 +426,11 @@ If you need similar governance at both component and scope levels (e.g., encrypt
         target:      "component"
     }
 
-    enforcement: "strict"
+    enforcement: {
+        mode:        "both"     // Validate at deployment, audit at runtime
+        onViolation: "block"    // Block deployments without encryption
+    }
+
     #spec: encryption: {
         atRest?: {
             enabled!:  bool
@@ -279,7 +460,11 @@ If you need similar governance at both component and scope levels (e.g., encrypt
         target:      "scope"
     }
 
-    enforcement: "strict"
+    enforcement: {
+        mode:        "both"     // Validate at deployment, audit at runtime
+        onViolation: "block"    // Block deployments without encryption
+    }
+
     #spec: encryption: {
         atRest?: {
             enabled!:  bool
@@ -442,7 +627,11 @@ backendScope.#policies."opm.dev/policies/workload@v1#ResourceLimit".metadata.tar
         }
     }
 
-    enforcement: "strict"
+    enforcement: {
+        mode:        "deployment"
+        onViolation: "block"
+    }
+
     #spec: resourceLimit: {
         cpu?: {
             request!: string & =~"^[0-9]+m$"
@@ -478,7 +667,11 @@ backendScope.#policies."opm.dev/policies/workload@v1#ResourceLimit".metadata.tar
         }
     }
 
-    enforcement: "strict"
+    enforcement: {
+        mode:        "deployment"
+        onViolation: "block"
+    }
+
     #spec: securityContext: {
         runAsNonRoot!: bool
         runAsUser?:    int & >=1000
@@ -510,7 +703,12 @@ backendScope.#policies."opm.dev/policies/workload@v1#ResourceLimit".metadata.tar
             severity: "high"
         }
     }
-    enforcement: "strict"
+
+    enforcement: {
+        mode:        "deployment"
+        onViolation: "block"
+    }
+
     #spec: networkRules: {
         ingress?: [...{
             from!: [...#ComponentDefinition]
@@ -551,7 +749,11 @@ backendScope.#policies."opm.dev/policies/workload@v1#ResourceLimit".metadata.tar
         }
     }
 
-    enforcement: "strict"
+    enforcement: {
+        mode:        "deployment"
+        onViolation: "block"
+    }
+
     #spec: podSecurity: {
         level!:       "privileged" | "baseline" | "restricted"
         enforcement!: "enforce" | "audit" | "warn"
@@ -579,7 +781,11 @@ backendScope.#policies."opm.dev/policies/workload@v1#ResourceLimit".metadata.tar
         }
     }
 
-    enforcement: "strict"
+    enforcement: {
+        mode:        "both"    // Validate config at deployment, monitor execution at runtime
+        onViolation: "warn"    // Warn on missing backups (don't block deployment)
+    }
+
     #spec: backupRetention: {
         enabled!: bool
         schedule!: string  // Cron format
@@ -971,7 +1177,12 @@ import opm "github.com/open-platform-model/core@v1"
             organization: "myorg"
         }
     }
-    enforcement: "strict"
+
+    enforcement: {
+        mode:        "both"    // Validate at deployment, audit at runtime
+        onViolation: "audit"   // Record violations for compliance review
+    }
+
     #spec: {
         // Custom policy constraints
         ...

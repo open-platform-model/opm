@@ -22,7 +22,7 @@ All OPM definitions have fixed root-level fields for OPM core API versioning:
 
 ```cue
 apiVersion: "opm.dev/v1/core"  // Fixed for all v1 definitions
-kind:       string              // "Unit", "Trait", "Blueprint", "Policy", "Module", etc.
+kind:       string             // "Unit", "Trait", "Blueprint", "Policy", "Module", etc.
 ```
 
 These fields identify that an object is an OPM v1 definition and what type of definition it is.
@@ -251,23 +251,23 @@ container: units.#Container
 
 ```text
 FQN:     opm.dev/units/workload@v1#Container
-         └────────┬────────────┘└┬┘└───┬────┘
-             repo path           @v   #Name
+         └────────┬───────────┘└┬┘└───┬────┘
+             repo path          @v  #Name
 
 CUE Module:
 module: "opm.dev/units/workload@v1"
         └────────┬────────────┘└┬┘
-            repo path           @v
+             repo path          @v
 
 CUE Import:
 import units "opm.dev/units/workload@v1"
-              └──────────┬───────────────┘
+              └──────────┬────────────┘
                     module path
 
 CUE Usage:
 container: units.#Container
-           └┬─┘└───┬────┘
-          alias  definition
+           └─┬─┘ └───┬────┘
+           alias  definition
 ```
 
 ---
@@ -430,7 +430,7 @@ opm.dev/blueprints/workload@v1#Workload    ← Different version, breaking chang
 
 Simple algorithm to resolve an FQN to a CUE definition:
 
-**Step 1: Parse FQN**
+### Step 1: Parse FQN
 
 ```text
 Input: "opm.dev/units/workload@v1#Container"
@@ -441,14 +441,14 @@ Split on @ and #:
   - Name: "Container"
 ```
 
-**Step 2: Construct CUE Module Path**
+### Step 2: Construct CUE Module Path
 
 ```text
 Module path = repo-path + "@" + version
             = "opm.dev/units/workload@v1"
 ```
 
-**Step 3: Locate Module**
+### Step 3: Locate Module
 
 ```text
 Check locations:
@@ -457,7 +457,7 @@ Check locations:
   - CUE modules:  $CUE_MODCACHE/opm.dev/units/workload@v1
 ```
 
-**Step 4: Import & Reference**
+### Step 4: Import & Reference
 
 ```cue
 import units "opm.dev/units/workload@v1"
@@ -677,12 +677,6 @@ For third-party objects:
 
 ## Summary
 
-### FQN Format
-
-```
-<repo-path>@v<major>#<Name>
-```
-
 ### Component Breakdown
 
 - **Repo Path** - Domain + repository path
@@ -700,11 +694,11 @@ For third-party objects:
 ```text
 FQN:     opm.dev/units/workload@v1#Container
          └────────┬────────────┘└┬┘└───┬────┘
-             repo path           @v   #Name
+              repo path          @v  #Name
 
 CUE:     import units "opm.dev/units/workload@v1"
                        └──────────┬───────────────┘
-                            module path
+                             module path
 
          container: units.#Container
                     └┬─┘└───┬────┘

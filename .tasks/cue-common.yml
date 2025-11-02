@@ -1,0 +1,418 @@
+version: '3'
+
+# Common CUE Operations
+
+# Inherits silent mode from parent Taskfile
+# Override with: task --verbose <taskname> or task -v <taskname>
+
+vars:
+  CUE_DIR: v1
+
+tasks:
+  # ============================================================================
+  # Formatting
+  # ============================================================================
+
+  fmt:
+    desc: Format all CUE files
+    summary: |
+      Format all CUE files in the v1/ directory.
+      This modifies files in place to match CUE's standard formatting.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - echo "Formatting CUE files..."
+      - cue fmt ./...
+      - echo "✓ All files formatted"
+
+  fmt:check:
+    desc: Check CUE formatting without modifying files
+    summary: |
+      Check if all CUE files are properly formatted.
+      Returns non-zero exit code if any files need formatting.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - |
+        echo "Checking CUE formatting..."
+        UNFORMATTED=$(cue fmt --check ./... 2>&1 || true)
+        if [ -n "$UNFORMATTED" ]; then
+          echo "Files need formatting:"
+          echo "$UNFORMATTED"
+          exit 1
+        else
+          echo "✓ All files are properly formatted"
+        fi
+
+  fmt:diff:
+    desc: Show formatting differences without modifying files
+    summary: |
+      Display what changes would be made by cue fmt.
+      Useful for reviewing before committing.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - |
+        echo "Checking formatting differences..."
+        for file in $(find . -name "*.cue" -type f); do
+          DIFF=$(cue fmt "$file" | diff -u "$file" - || true)
+          if [ -n "$DIFF" ]; then
+            echo "--- $file"
+            echo "$DIFF"
+            echo ""
+          fi
+        done
+
+  # ============================================================================
+  # Validation
+  # ============================================================================
+
+  vet:
+    desc: Validate all CUE files
+    summary: |
+      Run CUE validation on all files and packages.
+      This checks for schema violations and type errors.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - echo "Validating CUE files..."
+      - cue vet ./...
+      - echo "✓ Validation passed"
+
+  vet:strict:
+    desc: Validate with all errors shown
+    summary: |
+      Run validation showing all errors, not just the first one.
+      Useful for comprehensive error checking.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - echo "Validating CUE files (strict mode)..."
+      - cue vet --all-errors ./...
+      - echo "✓ Strict validation passed"
+
+  vet:concrete:
+    desc: Validate that all values are concrete
+    summary: |
+      Ensure all values are fully concrete (no unresolved references).
+      This is useful for checking if configuration is complete.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - echo "Checking for concrete values..."
+      - cue vet --concrete ./...
+      - echo "✓ All values are concrete"
+
+  vet:verbose:
+    desc: Validate with verbose output
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue vet -v ./...
+
+  # ============================================================================
+  # Evaluation and Export
+  # ============================================================================
+
+  eval:
+    desc: Evaluate all CUE configurations
+    summary: |
+      Evaluate and display the merged CUE configuration.
+      Shows the result of unifying all packages.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue eval ./...
+
+  eval:expr:
+    desc: Evaluate a specific expression
+    summary: |
+      Evaluate a specific CUE expression or path.
+
+      Usage:
+        task cue:eval:expr EXPR='#UnitDefinition'
+        task cue:eval:expr EXPR='units.workload' FILE=units/workload/container.cue
+    vars:
+      EXPR: '{{.EXPR | default ""}}'
+      FILE: '{{.FILE | default "./..."}}'
+    preconditions:
+      - sh: '[ -n "{{.EXPR}}" ]'
+        msg: "EXPR variable is required. Usage: task eval:expr EXPR='#UnitDefinition'"
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue eval -e '{{.EXPR}}' {{.FILE}}
+
+  export:json:
+    desc: Export configuration as JSON
+    summary: |
+      Export the entire CUE configuration as JSON.
+      Useful for inspection and integration with other tools.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue export ./... --out json
+
+  export:yaml:
+    desc: Export configuration as YAML
+    summary: |
+      Export the entire CUE configuration as YAML.
+      More human-readable than JSON.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue export ./... --out yaml
+
+  export:expr:
+    desc: Export a specific expression
+    summary: |
+      Export a specific CUE expression as JSON or YAML.
+
+      Usage:
+        task cue:export:expr EXPR='#UnitDefinition' FORMAT=json
+        task cue:export:expr EXPR='units' FORMAT=yaml
+    vars:
+      EXPR: '{{.EXPR | default ""}}'
+      FORMAT: '{{.FORMAT | default "json"}}'
+      FILE: '{{.FILE | default "./..."}}'
+    preconditions:
+      - sh: '[ -n "{{.EXPR}}" ]'
+        msg: "EXPR variable is required"
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue export -e '{{.EXPR}}' {{.FILE}} --out {{.FORMAT}}
+
+  export:file:
+    desc: Export to a file
+    summary: |
+      Export CUE configuration to a specific file.
+
+      Usage:
+        task cue:export:file OUTPUT=output.json FORMAT=json
+        task cue:export:file OUTPUT=output.yaml FORMAT=yaml EXPR='units'
+    vars:
+      OUTPUT: '{{.OUTPUT | default ""}}'
+      FORMAT: '{{.FORMAT | default "json"}}'
+      EXPR: '{{.EXPR | default ""}}'
+    preconditions:
+      - sh: '[ -n "{{.OUTPUT}}" ]'
+        msg: "OUTPUT variable is required"
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - |
+        if [ -n "{{.EXPR}}" ]; then
+          cue export -e '{{.EXPR}}' ./... --out {{.FORMAT}} > {{.OUTPUT}}
+        else
+          cue export ./... --out {{.FORMAT}} > {{.OUTPUT}}
+        fi
+        echo "✓ Exported to {{.OUTPUT}}"
+
+  # ============================================================================
+  # Inspection
+  # ============================================================================
+
+  def:
+    desc: List all definitions
+    summary: |
+      List all CUE definitions in the package.
+      Shows definition names and their types.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue def ./...
+
+  def:verbose:
+    desc: List definitions with documentation
+    summary: |
+      Show definitions along with their documentation comments.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue def --docs ./...
+
+  def:expr:
+    desc: Show a specific definition
+    summary: |
+      Display details about a specific definition.
+
+      Usage:
+        task cue:def:expr EXPR='#UnitDefinition'
+    vars:
+      EXPR: '{{.EXPR | default ""}}'
+    preconditions:
+      - sh: '[ -n "{{.EXPR}}" ]'
+        msg: "EXPR variable is required"
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue def -e '{{.EXPR}}' ./...
+
+  # ============================================================================
+  # Module Management
+  # ============================================================================
+
+  mod:tidy:
+    desc: Tidy module dependencies
+    summary: |
+      Update cue.mod/module.cue and fetch any missing dependencies.
+      Similar to 'go mod tidy'.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - echo "Tidying module dependencies..."
+      - cue mod tidy
+      - echo "✓ Module dependencies updated"
+
+  mod:get:
+    desc: Get a specific module dependency
+    summary: |
+      Download and add a specific module as a dependency.
+
+      Usage:
+        task cue:mod:get MODULE=github.com/foo/bar@v1
+    vars:
+      MODULE: '{{.MODULE | default ""}}'
+      VERSION: '{{.VERSION | default ""}}'
+    preconditions:
+      - sh: '[ -n "{{.MODULE}}" ]'
+        msg: "MODULE variable is required. Usage: task mod:get MODULE=github.com/foo/bar@v1"
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - |
+        if [ -n "{{.VERSION}}" ]; then
+          cue mod get {{.MODULE}}@{{.VERSION}}
+        else
+          cue mod get {{.MODULE}}
+        fi
+        echo "✓ Module {{.MODULE}} added"
+
+  mod:graph:
+    desc: Show module dependency graph
+    summary: |
+      Display the module dependency graph in text format.
+      Shows all transitive dependencies.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue mod graph
+
+  mod:info:
+    desc: Show module information
+    summary: |
+      Display the current module configuration.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - |
+        echo "Module Information:"
+        echo ""
+        cat cue.mod/module.cue
+        echo ""
+        echo "Dependencies:"
+        cue mod graph 2>/dev/null || echo "No dependencies or cue mod graph not available"
+
+  # ============================================================================
+  # Utilities
+  # ============================================================================
+
+  trim:
+    desc: Remove redundant fields
+    summary: |
+      Remove fields that are implied by constraints.
+      Simplifies CUE configurations.
+
+      WARNING: This modifies files in place.
+    dir: '{{.CUE_DIR}}'
+    prompt: This will modify CUE files in place. Continue?
+    cmds:
+      - echo "Trimming redundant fields..."
+      - cue trim ./...
+      - echo "✓ Files trimmed"
+
+  fix:
+    desc: Rewrite deprecated CUE syntax
+    summary: |
+      Update CUE files to use current syntax.
+      Useful when upgrading CUE versions.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - echo "Fixing deprecated syntax..."
+      - cue fix ./...
+      - echo "✓ Syntax updated"
+
+  # ============================================================================
+  # Cleanup
+  # ============================================================================
+
+  clean:
+    desc: Clean generated files
+    summary: |
+      Remove generated files and build artifacts.
+      Does not touch source files.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - |
+        echo "Cleaning generated files..."
+        # Add any specific cleanup needed
+        echo "✓ Cleanup complete"
+
+  clean:all:
+    desc: Clean all artifacts including cache
+    summary: |
+      Remove all generated files, build artifacts, and local cache.
+    cmds:
+      - task: clean
+      - task: registry-cue:pkg:clear
+      - echo "✓ Full cleanup complete"
+
+  # ============================================================================
+  # Testing
+  # ============================================================================
+
+  test:
+    desc: Run CUE tests
+    summary: |
+      Run CUE test files (_test.cue).
+      Currently, CUE testing is limited, so this mainly validates test files.
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - |
+        echo "Running CUE tests..."
+        TEST_FILES=$(find . -name "*_test.cue" -type f)
+        if [ -z "$TEST_FILES" ]; then
+          echo "No test files found"
+        else
+          echo "Found test files:"
+          echo "$TEST_FILES"
+          echo ""
+          cue vet $(find . -name "*_test.cue")
+          echo "✓ Tests passed"
+        fi
+
+  # ============================================================================
+  # Advanced Operations
+  # ============================================================================
+
+  import:
+    desc: Import data into CUE
+    summary: |
+      Import JSON/YAML data and convert to CUE format.
+
+      Usage:
+        task cue:import FILE=data.json
+        task cue:import FILE=data.yaml OUTPUT=data.cue
+    vars:
+      FILE: '{{.FILE | default ""}}'
+      OUTPUT: '{{.OUTPUT | default ""}}'
+    preconditions:
+      - sh: '[ -n "{{.FILE}}" ]'
+        msg: "FILE variable is required"
+      - sh: '[ -f "{{.FILE}}" ]'
+        msg: "File {{.FILE}} not found"
+    cmds:
+      - |
+        if [ -n "{{.OUTPUT}}" ]; then
+          cue import {{.FILE}} -o {{.OUTPUT}}
+          echo "✓ Imported to {{.OUTPUT}}"
+        else
+          cue import {{.FILE}}
+        fi
+
+  merge:
+    desc: Merge multiple CUE files
+    summary: |
+      Merge multiple CUE files and show the result.
+
+      Usage:
+        task cue:merge FILES="file1.cue file2.cue"
+    vars:
+      FILES: '{{.FILES | default ""}}'
+    preconditions:
+      - sh: '[ -n "{{.FILES}}" ]'
+        msg: "FILES variable is required"
+    dir: '{{.CUE_DIR}}'
+    cmds:
+      - cue eval {{.FILES}}

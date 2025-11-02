@@ -2,3 +2,8 @@ out.cue
 out.yaml
 subdir
 dagger.json
+
+# Taskfile
+.registry-data/
+.env
+watch-fmt

@@ -1,4 +1,4 @@
-package v1
+package core
 
 /////////////////////////////////////////////////////////////////
 //// Example Module Flow: ModuleDefinition → Module → ModuleRelease

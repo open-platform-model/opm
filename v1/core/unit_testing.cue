@@ -1,4 +1,4 @@
-package v1
+package core
 
 /////////////////////////////////////////////////////////////////
 //// Example Schemas
@@ -81,7 +81,8 @@ package v1
 		name:        "Volumes"
 		description: "A volume definition for workloads"
 		labels: {
-			"core.opm.dev/category": "storage"
+			"core.opm.dev/category":    "storage"
+			"core.opm.dev/persistence": "true"
 		}
 	}
 
