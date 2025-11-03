@@ -58,8 +58,8 @@ package core
 
 	metadata: {
 		apiVersion!: #NameType                          // Example: "opm.dev/modules/core@v1"
-		name!:       #NameType                          // Example: "Blog"
-		fqn:         #FQNType & "\(apiVersion)#\(name)" // Example: "opm.dev/modules/core@v1#Blog"
+		name!:       #NameType                          // Example: "ExampleModule"
+		fqn:         #FQNType & "\(apiVersion)#\(name)" // Example: "opm.dev/modules/core@v1#ExampleModule"
 
 		version!: #VersionType // Semantic version of this module definition
 
@@ -71,17 +71,18 @@ package core
 
 	// Components (flattened by Go CLI)
 	// Blueprints expanded into Units + Traits
-	components: [string]: #ComponentDefinition
+	#components: [string]: #ComponentDefinition
 
 	// Scopes (from ModuleDefinition, may include platform-added scopes)
-	scopes?: [Id=string]: #ScopeDefinition
+	#scopes?: [Id=string]: #ScopeDefinition
 
 	// Value schema (preserved from ModuleDefinition)
 	#values: _
 
 	#status?: {
-		componentCount: len(components)
-		scopeCount?: {if scopes != _|_ {len(scopes)}}
+		componentCount: len(#components)
+		scopeCount?: {if #scopes != _|_ {len(#scopes)}}
+		...
 	}
 })
 
@@ -102,13 +103,14 @@ package core
 	}
 
 	// Reference to the Module to deploy
-	#module!: #Module
+	module!: #Module
 
 	// Concrete values (everything closed/concrete)
 	// Must satisfy the value schema from module.values
-	values!: close(#module.#values & {...})
+	values!: close(module.#values)
 
-	status?: {
+	if module.#status != _|_ {status: module.#status}
+	status?: close({
 		// Deployment lifecycle phase
 		phase: "pending" | "deployed" | "failed" | "unknown" | *"pending"
 
@@ -132,7 +134,7 @@ package core
 			count?: int
 			kinds?: [...string]
 		}
-	}
+	})
 })
 
 #ModuleReleaseMap: [string]: #ModuleRelease
