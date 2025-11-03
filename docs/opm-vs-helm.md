@@ -217,6 +217,10 @@ Platform requirements require chart forking or complex umbrella charts.
             #policies: {
                 "opm.dev/policies/workload@v1#ResourceLimit": {}
             }
+
+            #StatefulWorkload
+            #ResourceLimit
+
             spec: {
                 statefulWorkload: {
                     container: {image: values.db.image}
@@ -243,10 +247,13 @@ Platform requirements require chart forking or complex umbrella charts.
     #scopes: {
         "platform-backup": {
             #policies: {
-                "myorg.dev/policies/backup@v1#BackupPolicy": {}
+                "myorg.dev/policies/backup@v1#BackupSchedulePolicy": {}
             }
+
+            #BackupSchedule
+
             spec: {
-                backup: {schedule: "0 2 * * *"}
+                backupSchedule: {schedule: "0 2 * * *"}
             }
             appliesTo: {all: true}
         }
@@ -275,6 +282,12 @@ Platform requirements require chart forking or complex umbrella charts.
             #policies: {
                 "opm.dev/policies/workload@v1#ResourceLimit": {}
             }
+
+            #Container
+            #Volume
+            #Replicas
+            #ResourceLimit
+
             spec: {
                 container: {image: values.db.image}
                 volume: {capacity: values.db.storageSize}
@@ -294,7 +307,7 @@ Platform requirements require chart forking or complex umbrella charts.
         name:      "db-prod"
         namespace: "production"
     }
-    #module: <Module reference>
+    module: <Module reference>
     values: {
         db: {
             image:       "postgres:14"

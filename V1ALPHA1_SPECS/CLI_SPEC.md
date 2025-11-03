@@ -2,11 +2,24 @@
 
 **Version:** 1.0.0
 **Status:** Draft
-**Last Updated:** 2025-10-28
+**Last Updated:** 2025-11-03
 
 ## Overview
 
 This document specifies the command-line interface (CLI) for the Open Platform Model (OPM) v1. The CLI is the primary tool for developers and platform engineers to work with OPM modules, Definitions (Units, Traits, Blueprints), and platform resources.
+
+---
+
+## Related Documentation
+
+This specification is organized across multiple focused documents:
+
+- **[Module Structure Guide](cli/MODULE_STRUCTURE_GUIDE.md)** - Directory structure, templates, and file organization patterns
+- **[CLI Configuration](cli/CLI_CONFIGURATION.md)** - Configuration management, environment variables, and credentials
+- **[CLI Workflows](cli/CLI_WORKFLOWS.md)** - Common usage patterns and examples
+- **[CLI Implementation](cli/CLI_IMPLEMENTATION.md)** - Technical decisions, design principles, and developer notes
+
+---
 
 ## Root Command
 
@@ -34,51 +47,160 @@ Initialize a new OPM module.
 
 **Flags:**
 
-- `--blueprint <oci-ref>` - Use a blueprint module as template
+- `--template <name|oci-ref>` - Use a template for initialization (simple|standard|advanced or OCI reference)
 - `--version <version>` - Initial version (default: v0.1.0)
 - `--description <text>` - Module description
 
 **Examples:**
 
 ```bash
-# Initialize a new module
+# Initialize a new module (uses standard template by default)
 opm mod init my-app
 
-# Initialize from a blueprint
-opm mod init my-app --blueprint oci://registry.opm.dev/blueprints/webapp
+# Initialize from built-in template
+opm mod init my-app --template simple
+opm mod init my-app --template standard
+opm mod init my-app --template advanced
+
+# Initialize from OCI registry template
+opm mod init my-app --template oci://registry.opm.dev/templates/webapp
 
 # Initialize with version
 opm mod init my-app --version v1.0.0 --description "My application"
 ```
 
+**See also:** [Module Structure Guide](cli/MODULE_STRUCTURE_GUIDE.md) for details on available templates and directory organization patterns.
+
 #### `opm mod build <module-file> [flags]`
 
-Build a module and generate platform resources.
+Flatten ModuleDefinition to optimized Module (pure CUE output only).
+
+**Purpose:**
+
+Compiles and flattens a ModuleDefinition into an optimized Module intermediate representation (IR). This step:
+
+- Loads and unifies all CUE files in the package
+- Flattens Blueprints into Units + Traits
+- Outputs a single, optimized `.module.cue` file (pure CUE)
+- **Does not** generate platform-specific resources (use `opm mod render` for that)
 
 **Arguments:**
 
-- `<module-file>` - Path to module file (default: ./module.cue)
+- `<module-file>` - Path to module file or directory (default: ./module.cue or current directory)
 
 **Flags:**
 
-- `--output <dir>` - Output directory (required)
-- `--format <yaml|json>` - Output format (default: yaml)
+- `--output <file>` - Output file path (required) - must end in `.module.cue`
 - `--verbose`, `-v` - Verbose output
-- `--timings` - Show timing information
-- `--platform <name>` - Target platform (if multiple providers available)
+- `--timings` - Show timing information and performance metrics
+
+**File Discovery:**
+
+The CLI automatically discovers `module.cue` in the following order:
+
+1. Explicit file path: `./path/to/module.cue`
+2. Current directory: `.` searches for `./module.cue`
+3. Subdirectory: `./my-app` searches for `./my-app/module.cue`
+
+All `.cue` files in the same package are automatically unified by CUE.
 
 **Examples:**
 
 ```bash
-# Build module
-opm mod build ./module.cue --output ./k8s
+# Build module (explicit file)
+opm mod build ./module.cue --output ./dist/my-app.module.cue
 
-# Build with JSON output
-opm mod build ./module.cue --output ./manifests --format json
+# Build module (auto-detect in current directory)
+opm mod build . --output ./dist/my-app.module.cue
+
+# Build module (auto-detect in subdirectory)
+opm mod build ./my-app --output ./dist/my-app.module.cue
 
 # Verbose build with timings
-opm mod build ./module.cue --output ./k8s --verbose --timings
+opm mod build ./module.cue --output ./dist/my-app.module.cue --verbose --timings
 ```
+
+**Performance Benefits:**
+
+Pre-building (flattening) a ModuleDefinition provides significant performance improvements:
+
+| Operation | ModuleDefinition | Module (Flattened) | Improvement |
+|-----------|------------------|-------------------|-------------|
+| First build | 5-10s | - | - |
+| Rendering | 2-3s | 0.5-1s | 50-80% faster |
+| Memory usage | 100% | 40-60% | 40-60% reduction |
+
+**See also:**
+
+- [Module Structure Guide](cli/MODULE_STRUCTURE_GUIDE.md) for file organization
+- `opm mod render` to generate platform-specific resources
+
+#### `opm mod render <module-file> [flags]`
+
+Render ModuleDefinition or Module to platform-specific resources.
+
+**Purpose:**
+
+Generates platform-specific resources (Kubernetes YAML, Docker Compose, etc.) from a ModuleDefinition or pre-built Module. This command:
+
+- Accepts either ModuleDefinition or Module as input
+- If given ModuleDefinition, flattens it on-the-fly (no intermediate file saved)
+- Matches components to platform transformers
+- Executes transformers to generate platform resources
+- Outputs YAML or JSON files
+
+**Arguments:**
+
+- `<module-file>` - Path to ModuleDefinition or Module file (default: ./module.cue or current directory)
+
+**Flags:**
+
+- `--output <dir>` - Output directory for platform resources (required)
+- `--platform <name>` - Target platform (kubernetes, docker-compose) - required
+- `--format <yaml|json>` - Output format (default: yaml)
+- `--verbose`, `-v` - Verbose output
+- `--timings` - Show timing information
+
+**Supported Platforms:**
+
+- `kubernetes` - Kubernetes manifests (Deployments, Services, ConfigMaps, etc.)
+- `docker-compose` - Docker Compose files (coming soon)
+
+**Examples:**
+
+```bash
+# Render from ModuleDefinition (flattens on-the-fly)
+opm mod render ./module.cue --platform kubernetes --output ./k8s
+
+# Render from pre-built Module (faster)
+opm mod render ./dist/my-app.module.cue --platform kubernetes --output ./k8s
+
+# Render to JSON
+opm mod render ./module.cue --platform kubernetes --output ./manifests --format json
+
+# Render with verbose output
+opm mod render ./module.cue --platform kubernetes --output ./k8s --verbose
+
+# Render to Docker Compose
+opm mod render ./module.cue --platform docker-compose --output ./compose
+```
+
+**Typical Workflow:**
+
+```bash
+# Option 1: Direct rendering (convenient for development)
+opm mod render ./my-app --platform kubernetes --output ./k8s
+
+# Option 2: Pre-build then render (faster for repeated renders)
+opm mod build ./my-app --output ./dist/my-app.module.cue
+opm mod render ./dist/my-app.module.cue --platform kubernetes --output ./k8s
+opm mod render ./dist/my-app.module.cue --platform docker-compose --output ./compose
+```
+
+**See also:**
+
+- `opm mod build` to pre-flatten ModuleDefinition for better performance
+- `opm provider transformers` to list available transformers per platform
 
 #### `opm mod vet <module-file> [flags]`
 
@@ -107,26 +229,45 @@ opm mod vet ./module.cue --strict --all-errors
 
 Apply module to target platform.
 
+**Purpose:**
+
+Renders and applies platform-specific resources to the target platform. This command:
+
+- Renders resources (like `opm mod render`) if not already rendered
+- Applies resources to the target platform (e.g., kubectl apply for Kubernetes)
+
 **Arguments:**
 
-- `<module-file>` - Path to module file (default: ./module.cue)
+- `<module-file>` - Path to ModuleDefinition or Module file (default: ./module.cue)
 
 **Flags:**
 
+- `--platform <name>` - Target platform (kubernetes, docker-compose) - required
 - `--dry-run` - Show what would be applied without applying
-- `--platform <name>` - Target platform
 - `--wait` - Wait for resources to be ready
 - `--timeout <duration>` - Timeout for wait (default: 5m)
+- `--verbose`, `-v` - Verbose output
 
 **Examples:**
 
 ```bash
-# Dry run
-opm mod apply ./module.cue --dry-run
+# Apply to Kubernetes (renders on-the-fly)
+opm mod apply ./module.cue --platform kubernetes
 
-# Apply and wait
-opm mod apply ./module.cue --wait --timeout 10m
+# Dry run to see what would be applied
+opm mod apply ./module.cue --platform kubernetes --dry-run
+
+# Apply and wait for resources to be ready
+opm mod apply ./module.cue --platform kubernetes --wait --timeout 10m
+
+# Apply from pre-built Module
+opm mod apply ./dist/my-app.module.cue --platform kubernetes
 ```
+
+**See also:**
+
+- `opm mod render` to generate resources without applying
+- `opm mod build` to pre-flatten ModuleDefinition
 
 #### `opm mod show <module-file> [flags]`
 
@@ -156,44 +297,358 @@ opm mod show ./module.cue --components
 opm mod show ./module.cue --values --output json
 ```
 
-#### `opm mod export <module-file> [flags]`
+#### `opm mod tidy`
 
-Export module definition in different formats.
+Tidy module dependencies using CUE's module management.
 
-**Arguments:**
+**Description:**
 
-- `<module-file>` - Path to module file (default: ./module.cue)
-
-**Flags:**
-
-- `--format <cue|json|yaml>` - Export format (default: cue)
-- `--output <file>` - Output file (default: stdout)
-
-**Use Cases:**
-
-- Share module definition with others
-- Generate documentation
-- Integration with other tools that don't understand CUE
-- Create a "compiled" single-file version of multi-file modules
+Ensures that the `cue.mod/module.cue` file matches the dependencies actually used in the module. Removes unused dependencies and adds missing ones.
 
 **Examples:**
 
 ```bash
-# Export as normalized CUE
-opm mod export ./module.cue --format cue > normalized.cue
+# Tidy module dependencies
+opm mod tidy
 
-# Export as JSON schema
-opm mod export ./module.cue --format json > module.json
-
-# Export as YAML
-opm mod export ./module.cue --format yaml > module.yaml
+# Equivalent to running
+cue mod tidy
 ```
 
-**Note:** This exports the **module definition itself**, not the platform resources. Use `opm mod build` to generate platform resources.
+**Use Cases:**
+
+- Clean up unused dependencies
+- Add missing dependencies automatically
+- Maintain clean module definition
+
+#### `opm mod fix`
+
+Fix deprecated CUE syntax and migrate to newer versions.
+
+**Description:**
+
+Updates CUE code to use current syntax and idioms. Useful when upgrading CUE versions or migrating older module definitions.
+
+**Examples:**
+
+```bash
+# Fix CUE syntax in current module
+opm mod fix
+
+# Equivalent to running
+cue fix ./...
+```
+
+**Use Cases:**
+
+- Migrate modules to newer CUE versions
+- Update deprecated syntax
+- Modernize module definitions
 
 ---
 
-### 2. Registry Operations (Primary)
+### 2. Bundle Operations (`bundle` / `bun`)
+
+**Overview:** Bundles are collections of modules with values. They enable grouping related modules for easier distribution and management. Platform teams can inherit and modify bundles, and end-users deploy them as BundleReleases.
+
+**Architecture Note:** Since both Modules and Bundles are CUE modules under the hood, `opm bundle` commands reuse the same implementation logic as `opm mod` commands, just operating on Bundle definitions instead of Module definitions.
+
+**Bundle Hierarchy:**
+
+- **BundleDefinition**: Collection of ModuleDefinitions with value schema (developer/platform team creates)
+- **Bundle**: Compiled/optimized form with flattened modules
+- **BundleRelease**: Deployed instance with concrete values (end-user creates)
+
+#### `opm bundle init <name> [flags]`
+
+Alias: `opm bun init`
+
+Initialize a new OPM bundle.
+
+**Arguments:**
+
+- `<name>` - Bundle name (required)
+
+**Flags:**
+
+- `--template <name|oci-ref>` - Use a bundle template (platform-bundle or OCI reference)
+- `--version <version>` - Initial version (default: v0.1.0)
+- `--description <text>` - Bundle description
+
+**Examples:**
+
+```bash
+# Initialize a new bundle (uses platform-bundle template by default)
+opm bundle init my-platform
+
+# Initialize from built-in template
+opm bundle init my-platform --template platform-bundle
+
+# Initialize from OCI registry template
+opm bun init my-platform --template oci://registry.opm.dev/templates/k8s-platform
+
+# Initialize with version
+opm bundle init my-platform --version v1.0.0 --description "My platform bundle"
+```
+
+**See also:** [Module Structure Guide](cli/MODULE_STRUCTURE_GUIDE.md) for details on bundle templates and organization patterns.
+
+#### `opm bundle build <bundle-file> [flags]`
+
+Alias: `opm bun build`
+
+Flatten BundleDefinition to optimized Bundle (pure CUE output only).
+
+**Purpose:**
+
+Compiles and flattens a BundleDefinition into an optimized Bundle intermediate representation (IR). This step:
+
+- Loads and unifies all CUE files in the package
+- Flattens all included ModuleDefinitions to Modules
+- Flattens Blueprints into Units + Traits for each module
+- Outputs a single, optimized `.bundle.cue` file (pure CUE)
+- **Does not** generate platform-specific resources (use `opm bundle render` for that)
+
+**Arguments:**
+
+- `<bundle-file>` - Path to bundle file or directory (default: ./bundle.cue or current directory)
+
+**Flags:**
+
+- `--output <file>` - Output file path (required) - must end in `.bundle.cue`
+- `--verbose`, `-v` - Verbose output
+- `--timings` - Show timing information and performance metrics
+
+**File Discovery:**
+
+The CLI automatically discovers `bundle.cue` in the following order:
+
+1. Explicit file path: `./path/to/bundle.cue`
+2. Current directory: `.` searches for `./bundle.cue`
+3. Subdirectory: `./platform` searches for `./platform/bundle.cue`
+
+All `.cue` files in the same package are automatically unified by CUE.
+
+**Examples:**
+
+```bash
+# Build bundle (explicit file)
+opm bundle build ./bundle.cue --output ./dist/platform.bundle.cue
+
+# Build bundle (auto-detect in current directory)
+opm bundle build . --output ./dist/platform.bundle.cue
+
+# Build bundle (auto-detect in subdirectory)
+opm bundle build ./my-platform --output ./dist/platform.bundle.cue
+
+# Verbose build with timings
+opm bundle build ./bundle.cue --output ./dist/platform.bundle.cue --verbose --timings
+```
+
+**Performance Benefits:**
+
+Pre-building a BundleDefinition flattens all included modules, providing the same performance benefits as `opm mod build` for each module.
+
+**See also:**
+
+- [Module Structure Guide](cli/MODULE_STRUCTURE_GUIDE.md) for bundle organization
+- `opm bundle render` to generate platform-specific resources
+
+#### `opm bundle render <bundle-file> [flags]`
+
+Alias: `opm bun render`
+
+Render BundleDefinition or Bundle to platform-specific resources for all included modules.
+
+**Purpose:**
+
+Generates platform-specific resources (Kubernetes YAML, Docker Compose, etc.) from a BundleDefinition or pre-built Bundle. This command:
+
+- Accepts either BundleDefinition or Bundle as input
+- If given BundleDefinition, flattens it on-the-fly (no intermediate file saved)
+- Renders resources for all modules in the bundle
+- Matches components to platform transformers
+- Executes transformers to generate platform resources
+- Outputs YAML or JSON files
+
+**Arguments:**
+
+- `<bundle-file>` - Path to BundleDefinition or Bundle file (default: ./bundle.cue or current directory)
+
+**Flags:**
+
+- `--output <dir>` - Output directory for platform resources (required)
+- `--platform <name>` - Target platform (kubernetes, docker-compose) - required
+- `--format <yaml|json>` - Output format (default: yaml)
+- `--verbose`, `-v` - Verbose output
+- `--timings` - Show timing information
+
+**Supported Platforms:**
+
+- `kubernetes` - Kubernetes manifests (Deployments, Services, ConfigMaps, etc.)
+- `docker-compose` - Docker Compose files (coming soon)
+
+**Examples:**
+
+```bash
+# Render from BundleDefinition (flattens on-the-fly)
+opm bundle render ./bundle.cue --platform kubernetes --output ./k8s
+
+# Render from pre-built Bundle (faster)
+opm bundle render ./dist/platform.bundle.cue --platform kubernetes --output ./k8s
+
+# Render to JSON
+opm bun render ./bundle.cue --platform kubernetes --output ./manifests --format json
+
+# Render with verbose output
+opm bundle render ./bundle.cue --platform kubernetes --output ./k8s --verbose
+```
+
+**Typical Workflow:**
+
+```bash
+# Option 1: Direct rendering (convenient for development)
+opm bundle render ./my-platform --platform kubernetes --output ./k8s
+
+# Option 2: Pre-build then render (faster for repeated renders)
+opm bundle build ./my-platform --output ./dist/platform.bundle.cue
+opm bundle render ./dist/platform.bundle.cue --platform kubernetes --output ./k8s
+```
+
+**See also:**
+
+- `opm bundle build` to pre-flatten BundleDefinition for better performance
+- `opm provider transformers` to list available transformers per platform
+
+#### `opm bundle vet <bundle-file> [flags]`
+
+Alias: `opm bun vet`
+
+Validate bundle definition against schema and constraints.
+
+**Arguments:**
+
+- `<bundle-file>` - Path to bundle file (default: ./bundle.cue)
+
+**Flags:**
+
+- `--strict` - Enable strict validation
+- `--all-errors` - Show all errors (not just first)
+
+**Examples:**
+
+```bash
+# Validate bundle
+opm bundle vet ./bundle.cue
+
+# Strict validation
+opm bun vet ./bundle.cue --strict --all-errors
+```
+
+#### `opm bundle apply <bundle-file> [flags]`
+
+Alias: `opm bun apply`
+
+Apply bundle to target platform.
+
+**Purpose:**
+
+Renders and applies platform-specific resources for all modules in the bundle to the target platform. This command:
+
+- Renders resources for all modules (like `opm bundle render`) if not already rendered
+- Applies resources to the target platform (e.g., kubectl apply for Kubernetes)
+
+**Arguments:**
+
+- `<bundle-file>` - Path to BundleDefinition or Bundle file (default: ./bundle.cue)
+
+**Flags:**
+
+- `--platform <name>` - Target platform (kubernetes, docker-compose) - required
+- `--dry-run` - Show what would be applied without applying
+- `--wait` - Wait for resources to be ready
+- `--timeout <duration>` - Timeout for wait (default: 5m)
+- `--verbose`, `-v` - Verbose output
+
+**Examples:**
+
+```bash
+# Apply to Kubernetes (renders on-the-fly)
+opm bundle apply ./bundle.cue --platform kubernetes
+
+# Dry run to see what would be applied
+opm bundle apply ./bundle.cue --platform kubernetes --dry-run
+
+# Apply and wait for resources to be ready
+opm bun apply ./bundle.cue --platform kubernetes --wait --timeout 10m
+
+# Apply from pre-built Bundle
+opm bundle apply ./dist/platform.bundle.cue --platform kubernetes
+```
+
+**See also:**
+
+- `opm bundle render` to generate resources without applying
+- `opm bundle build` to pre-flatten BundleDefinition
+
+#### `opm bundle show <bundle-file> [flags]`
+
+Alias: `opm bun show`
+
+Display bundle information.
+
+**Arguments:**
+
+- `<bundle-file>` - Path to bundle file (default: ./bundle.cue)
+
+**Flags:**
+
+- `--modules` - List included modules
+- `--values` - Show value schema
+- `--output <format>` - Output format (text|json|yaml)
+
+**Examples:**
+
+```bash
+# Show all bundle information
+opm bundle show ./bundle.cue
+
+# Show only modules
+opm bun show ./bundle.cue --modules
+
+# Show value schema as JSON
+opm bundle show ./bundle.cue --values --output json
+```
+
+#### `opm bundle tidy`
+
+Alias: `opm bun tidy`
+
+Tidy bundle dependencies using CUE's module management.
+
+**Examples:**
+
+```bash
+# Tidy bundle dependencies
+opm bundle tidy
+```
+
+#### `opm bundle fix`
+
+Alias: `opm bun fix`
+
+Fix deprecated CUE syntax in bundle definition.
+
+**Examples:**
+
+```bash
+# Fix CUE syntax in current bundle
+opm bundle fix
+```
+
+---
+
+### 3. Registry Operations (Primary)
 
 Manage and interact with the Definition registry (Units, Traits, Blueprints, Policies, Scopes).
 
@@ -767,7 +1222,11 @@ opm dev graph ./module.cue --format mermaid > module.md
 
 #### `opm dev watch <module-file> [flags]`
 
-Watch module files and rebuild on changes.
+Watch module files and re-render on changes.
+
+**Purpose:**
+
+Watches ModuleDefinition files for changes and automatically re-renders platform resources. Useful for development workflows with live reloading.
 
 **Arguments:**
 
@@ -776,17 +1235,22 @@ Watch module files and rebuild on changes.
 **Flags:**
 
 - `--output <dir>` - Output directory (required)
+- `--platform <name>` - Target platform (kubernetes, docker-compose) - required
 - `--format <yaml|json>` - Output format (default: yaml)
 
 **Examples:**
 
 ```bash
-# Watch and rebuild
-opm dev watch ./module.cue --output ./k8s
+# Watch and re-render on changes
+opm dev watch ./module.cue --platform kubernetes --output ./k8s
 
 # Watch with JSON output
-opm dev watch ./module.cue --output ./manifests --format json
+opm dev watch ./module.cue --platform kubernetes --output ./manifests --format json
 ```
+
+**See also:**
+
+- `opm mod render` for one-time rendering
 
 ---
 
@@ -941,10 +1405,12 @@ Available on all commands:
 | `OPM_CONFIG_PATH` | Config directory location | `~/.opm` |
 | `OPM_REGISTRY_PATH` | Definition registry path override | - |
 | `OPM_CACHE_DIR` | Cache directory | `~/.cache/opm` (Linux/Mac)<br>`%LOCALAPPDATA%\opm\cache` (Windows) |
-| `OPM_REGISTRY` | Default OCI registry | - |
-| `OPM_LOG_LEVEL` | Default log level | `info` |
+| `OPM_REGISTRY` | Default OCI registry (overrides `config.cue`) | Read from `~/.opm/config.cue` |
+| `OPM_LOG_LEVEL` | Default log level | Read from `~/.opm/config.cue` |
 | `NO_COLOR` | Disable colored output | - |
 | `EDITOR` | Editor for `config edit` | `vim`, `nano`, or `vi` |
+
+**Note:** OPM ignores `CUE_REGISTRY` environment variable to avoid confusion. Use `OPM_REGISTRY` instead.
 
 ### Platform-Specific Cache Locations
 
@@ -995,169 +1461,112 @@ Short forms for common commands:
 
 ## Configuration File Structure
 
-The OPM configuration is stored as a CUE module in `~/.opm/`.
+The OPM configuration is stored as a CUE module in `~/.opm/`, automatically generated on first CLI use or via `opm config init`.
 
 **Directory Structure:**
 
 ```text
 ~/.opm/
-├── cue.mod/
-│   └── module.cue      # CUE module definition
-├── config.cue          # Main configuration
-└── registries.cue      # Registry credentials (optional)
+├── cue.mod/module.cue  # CUE module definition
+├── config.cue          # Main configuration (all defaults written here)
+└── credentials         # Sensitive credentials (optional, kubectl-style)
 ```
 
-**Example `config.cue`:**
+**Design Philosophy:** All configuration defaults are written to `config.cue` on initialization, making them visible and editable. No hidden or hardcoded configuration in the CLI binary.
 
-```cue
-package opmconfig
-
-config: {
-    oci: {
-        defaultRegistry: "registry.opm.dev"
-    }
-    cache: {
-        enabled: true
-        ttl:     "24h"
-    }
-    registry: {
-        path: ""  // Override Definition registry path
-    }
-    log: {
-        level:  "info"
-        format: "text"
-    }
-}
-```
+**For complete configuration details, see [CLI Configuration Guide](cli/CLI_CONFIGURATION.md).**
 
 ---
 
 ## Common Workflows
 
-### Initialize and Build a Module
+This specification focuses on command syntax and options. For complete workflow examples and usage patterns, see **[CLI Workflows Guide](cli/CLI_WORKFLOWS.md)**.
+
+**Quick examples:**
 
 ```bash
-# 1. Initialize new module
-opm mod init my-app --blueprint oci://registry.opm.dev/blueprints/webapp
+# Initialize and build a module
+opm mod init my-app --template standard
+opm mod build ./module.cue --output ./dist/my-app.module.cue
 
-# 2. Edit module definition
-vim module.cue
-
-# 3. Validate module
-opm mod vet ./module.cue
-
-# 4. Build platform resources
-opm mod build ./module.cue --output ./k8s --verbose
-
-# 5. Apply to platform
-opm mod apply ./module.cue
-```
-
-### Work with Registry Definitions
-
-```bash
-# 1. List available Blueprints
+# Work with registry definitions
 opm blueprint list
-
-# 2. List available Units
-opm unit list
-
-# 3. Describe a specific Blueprint
 opm registry describe opm.dev/blueprints@v1#StatelessWorkload --examples
 
-# 4. Describe a specific Unit
-opm registry describe opm.dev/units/workload@v1#Container --schema
-
-# 5. Search across all Definition types
-opm registry search database
-
-# 6. Clear cache if needed
-opm registry cache clear
-```
-
-### Develop with Local Registry
-
-```bash
-# 1. Start local registry (see Makefile.registry)
-make -f Makefile.registry start
-
-# 2. Configure CLI to use local registry
+# Develop with local registry
 export OPM_REGISTRY=localhost:5000
-
-# 3. Login to local registry
-opm registry login localhost:5000
-
-# 4. Push module to local registry
 opm registry push ./my-module oci://localhost:5000/opm/my-module --version v0.1.0
-
-# 5. List modules in registry
-opm registry list localhost:5000/opm
-
-# 6. Pull module
-opm registry pull oci://localhost:5000/opm/my-module@v0.1.0
 ```
 
-### Debug Module Transformation
+For comprehensive workflows including CI/CD integration, multi-environment deployment, and debugging, see the [CLI Workflows Guide](cli/CLI_WORKFLOWS.md).
+
+---
+
+## Directory Structure & Templates
+
+**For complete information on directory structures, templates, and file organization, see [Module Structure Guide](cli/MODULE_STRUCTURE_GUIDE.md).**
+
+### Architecture Overview
+
+OPM uses a **three-layer architecture**:
+
+1. **Authoring Layer** - Flexible structure (ModuleDefinition/BundleDefinition in `module.cue`/`bundle.cue`)
+2. **Compiled Layer** - Single optimized file (Module/Bundle, CLI-generated `.module.cue`/`.bundle.cue`)
+3. **Deployment Layer** - Single deployment file (ModuleRelease/BundleRelease with concrete values)
+
+### Available Templates
+
+- **Simple** - Everything in one `module.cue` file (beginners, quick starts)
+- **Standard** - Separate `module.cue`, `components.cue`, and `values.cue` (most applications)
+- **Advanced** - Multi-file organization with external template imports (complex applications)
+- **Platform Bundle** - Bundle with multiple modules (platform teams)
+- **Custom OCI Templates** - From OCI registry (e.g., `oci://registry.opm.dev/templates/webapp`)
+
+**Example initialization:**
 
 ```bash
-# 1. Inspect transformation pipeline
-opm dev inspect ./module.cue --verbose
+# Simple template
+opm mod init my-app --template simple
 
-# 2. Focus on specific component
-opm dev inspect ./module.cue --component web-server --stage transformers
+# Standard template (recommended)
+opm mod init my-app --template standard
 
-# 3. Compare two module versions
-opm dev diff ./module-v1.cue ./module-v2.cue
+# Advanced template
+opm mod init my-app --template advanced
 
-# 4. Generate dependency graph
-opm dev graph ./module.cue --format mermaid > diagram.md
-
-# 5. Watch for changes during development
-opm dev watch ./module.cue --output ./k8s
+# From OCI registry
+opm mod init my-app --template oci://registry.opm.dev/templates/webapp
 ```
 
----
+### File Discovery
 
-## Design Principles
+```bash
+# Explicit file path
+opm mod build ./path/to/module.cue
 
-1. **Consistent Command Structure**: All commands follow `opm <noun> <verb>` pattern
-2. **Sensible Defaults**: Common use cases work with minimal flags
-3. **Progressive Disclosure**: Basic usage is simple, advanced features available via flags
-4. **Composability**: Commands can be piped and combined with standard Unix tools
-5. **Machine-Readable Output**: All commands support JSON/YAML output for scripting
-6. **XDG Compliance**: Follows XDG Base Directory specification on Linux/Mac
-7. **Clear Separation**: Config in `~/.opm/`, cache in `~/.cache/opm` (Linux/Mac)
+# Auto-detect in current directory
+opm mod build .  # Searches for ./module.cue
 
----
+# Auto-detect in subdirectory
+opm mod build ./my-app  # Searches for ./my-app/module.cue
+```
 
-## Future Considerations
-
-Commands that may be added in future versions:
-
-1. **`opm platform`** - Manage platform definitions
-2. **`opm upgrade`** - Self-update CLI
-3. **`opm policy`** - Manage policy definitions
-4. **`opm scope`** - Manage scope definitions
-5. **`opm plugin`** - Extensibility via plugins
+CUE automatically unifies all `.cue` files in the same package—no imports needed between files in the same directory.
 
 ---
 
-**Status:** This specification is a draft for OPM v1 CLI development.
+## Technical Implementation & Design
 
-**Next Steps:**
+**For implementation details, design decisions, and research notes, see [CLI Implementation Guide](cli/CLI_IMPLEMENTATION.md).**
 
-1. Review and approve specification
-2. Design Go CLI framework structure
-3. Implement core commands (version, config, completion)
-4. Implement module commands (init, build, vet)
-5. Implement registry commands (unit, trait, blueprint list/describe, cache)
-6. Implement provider commands
-7. Implement OCI registry commands (login, push, pull)
-8. Implement dev tools
-9. Write tests and documentation
-10. Package and release
+### Quick Summary
+
+- **CLI Framework**: Cobra (kubectl-like patterns)
+- **Configuration**: CUE-based config in `~/.opm/config.cue` with explicit defaults
+- **OCI Registry**: CUE's built-in registry support
+- **Design Principles**: Consistent command structure, sensible defaults, progressive disclosure, machine-readable output
 
 ---
 
 **Document Version:** 1.0.0-draft
-**Date:** 2025-10-28
+**Date:** 2025-11-03

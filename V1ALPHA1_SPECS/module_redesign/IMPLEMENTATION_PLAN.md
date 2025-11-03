@@ -551,7 +551,7 @@ blogAppRelease: opm.#ModuleRelease & {
     }
 
     // Reference to the Module (IR)
-    #module: blogAppModule
+    module: blogAppModule
 
     // CONCRETE VALUES (everything closed)
     values: {

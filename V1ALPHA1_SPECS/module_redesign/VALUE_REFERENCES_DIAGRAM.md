@@ -82,7 +82,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │ ModuleRelease (Layer 3)                                     │
 ├─────────────────────────────────────────────────────────────┤
-│ #module: <Module IR above>                                  │
+│ module: <Module IR above>                                  │
 │                                                             │
 │ values: {                                                   │
 │   api: {                                                    │
@@ -302,7 +302,7 @@ values: {
 **ModuleRelease**:
 
 ```cue
-#module: <Module IR above>
+module: <Module IR above>
 values: {
     // Still no api field
 }
@@ -332,7 +332,7 @@ values: {
 **ModuleRelease**:
 
 ```cue
-#module: <Module IR above>
+module: <Module IR above>
 values: {
     api: {
         image: "INVALID_IMAGE"  // Uppercase not allowed by regex
@@ -361,7 +361,7 @@ values: {
 **ModuleRelease**:
 
 ```cue
-#module: <Module IR above>
+module: <Module IR above>
 values: {
     api: {
         // image not provided

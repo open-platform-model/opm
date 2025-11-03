@@ -219,6 +219,7 @@ blogAppModule: opm.#ModuleIR & {
 ```
 
 **Key Points**:
+
 - ✅ Blueprints removed (`#StatelessWorkload`, `#SimpleDatabase`)
 - ✅ Unit and Trait schemas inlined
 - ✅ **Value references preserved as CUE paths** (`values.frontend.image`)
@@ -245,7 +246,7 @@ blogAppRelease: opm.#ModuleRelease & {
     }
 
     // Reference the Module (IR)
-    #module: blogAppModule
+    module: blogAppModule
 
     // PROVIDE CONCRETE VALUES
     values: {
@@ -384,6 +385,7 @@ values: {
 ```
 
 **Key Properties**:
+
 1. References are **symbolic paths** in the CUE lattice
 2. They remain unresolved until all parts are unified
 3. CUE validates constraints during unification
@@ -403,7 +405,7 @@ values: {
 }
 
 // ModuleRelease adds:
-#module: <Module IR above>
+module: <Module IR above>
 values: {
     frontend: {
         image: "nginx:latest"  // Concrete value
@@ -425,6 +427,7 @@ values: {
 ### Example 1: Simple Reference
 
 **ModuleDefinition**:
+
 ```cue
 components: {
     api: {
@@ -441,6 +444,7 @@ values: {
 ```
 
 **Module (IR)** (after flattening):
+
 ```cue
 components: {
     api: {
@@ -460,8 +464,9 @@ values: {
 ```
 
 **ModuleRelease**:
+
 ```cue
-#module: <Module IR above>
+module: <Module IR above>
 values: {
     api: {
         image: "myapi:v1.0.0"  // ← CONCRETE
@@ -473,6 +478,7 @@ values: {
 ### Example 2: Conditional Reference
 
 **ModuleDefinition**:
+
 ```cue
 components: {
     db: {
@@ -496,6 +502,7 @@ values: {
 ```
 
 **Module (IR)**:
+
 ```cue
 components: {
     db: {
@@ -523,8 +530,9 @@ values: {
 ```
 
 **ModuleRelease**:
+
 ```cue
-#module: <Module IR above>
+module: <Module IR above>
 values: {
     db: {
         persistence: {
@@ -539,6 +547,7 @@ values: {
 ### Example 3: Complex Expression
 
 **ModuleDefinition**:
+
 ```cue
 components: {
     app: {
@@ -558,6 +567,7 @@ values: {
 ```
 
 **Module (IR)**:
+
 ```cue
 components: {
     app: {
@@ -580,8 +590,9 @@ values: {
 ```
 
 **ModuleRelease**:
+
 ```cue
-#module: <Module IR above>
+module: <Module IR above>
 values: {
     registry: {host: "registry.example.com"}
     app: {
@@ -693,7 +704,7 @@ values: {
 ### In ModuleRelease
 
 ```cue
-#module: <Module IR with constraint above>
+module: <Module IR with constraint above>
 
 values: {
     api: {
@@ -753,6 +764,7 @@ values: {
 ## Code Reference
 
 See `examples/flattener_example.go`:
+
 - Line 234-253: `preserveDataField()` implementation
 - Line 300-320: Component serialization with reference preservation
 - Line 156-180: Component flattening that preserves data fields

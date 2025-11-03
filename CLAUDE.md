@@ -53,12 +53,13 @@ opm/
 │   │   ├── policy.cue            # PolicyDefinition schema
 │   │   ├── scope.cue             # ScopeDefinition schema
 │   │   ├── common.cue            # Common types and utilities
-│   │   ├── *_testing.cue         # Test definitions
 │   │   └── cue.mod/module.cue    # CUE module definition
-│   ├── units/           # Unit library (future)
-│   ├── traits/          # Trait library (future)
-│   ├── blueprints/      # Blueprint library (future)
-│   ├── policies/        # Policy library (future)
+│   ├── units/           # Unit implementations (Container, Volumes)
+│   ├── traits/          # Trait implementations (Replicas, Expose)
+│   ├── blueprints/      # Blueprint implementations (StatelessWorkload)
+│   ├── policies/        # Policy implementations (ResourceLimit, NetworkRules, Encryption)
+│   ├── schemas/         # Shared schemas (network, storage, workload, config)
+│   ├── examples/        # Example workflows (component composition, module/bundle flows)
 │   └── modules/         # Module examples (future)
 ├── benchmarks/          # Performance testing
 │   └── precompilation_tests/
@@ -138,7 +139,7 @@ opm/
 - `module`: Module CUE implementation
 - `policy`: Policy CUE implementation
 - `scope`: Scope CUE implementation
-- `testing`: Test definitions
+- `examples`: Example workflows and compositions
 
 **Benchmarks**:
 
@@ -184,22 +185,27 @@ opm/
 
 The [v1/core/](v1/core/) directory contains the reference CUE implementation of v1alpha1 definitions.
 
-#### Testing V1 Definitions
+#### Validating V1 Definitions
 
 ```bash
-# Navigate to v1/core directory
-cd v1/core
+# From repository root, use Taskfile commands
 
 # Format all CUE files
-cue fmt .
+task fmt
 
-# Validate definitions
-cue vet .
+# Validate all packages
+task validate:all
 
-# Run tests
-cue vet *_testing.cue
+# Validate specific packages
+task core:vet
+task units:vet
+task traits:vet
+task blueprints:vet
+task policies:vet
+task examples:vet
 
-# Export specific definition
+# Export specific definition (from v1/core/)
+cd v1/core
 cue export -e '#UnitDefinition' unit.cue
 ```
 
@@ -209,8 +215,9 @@ When adding new definition types to v1:
 
 1. **Create the specification** in `V1ALPHA1_SPECS/`
 2. **Implement the CUE schema** in `v1/core/`
-3. **Add tests** in `v1/core/*_testing.cue`
-4. **Update documentation** in `docs/` and `README.md`
+3. **Add implementations** in appropriate v1/ subdirectories (`units/`, `traits/`, `blueprints/`, `policies/`)
+4. **Add examples** in `v1/examples/` demonstrating usage
+5. **Update documentation** in `docs/` and `README.md`
 
 #### V1 Definition Structure
 
@@ -411,7 +418,15 @@ Located in [v1/core/](v1/core/):
 - **[policy.cue](v1/core/policy.cue)** - PolicyDefinition schema
 - **[scope.cue](v1/core/scope.cue)** - ScopeDefinition schema
 - **[common.cue](v1/core/common.cue)** - Common types and utilities
-- **[*_testing.cue](v1/core/)** - Test definitions for each schema
+
+**V1 Implementations and Examples:**
+
+- **[v1/units/](v1/units/)** - Unit implementations (Container, Volumes)
+- **[v1/traits/](v1/traits/)** - Trait implementations (Replicas, Expose)
+- **[v1/blueprints/](v1/blueprints/)** - Blueprint implementations (StatelessWorkload)
+- **[v1/policies/](v1/policies/)** - Policy implementations (ResourceLimit, NetworkRules, Encryption)
+- **[v1/schemas/](v1/schemas/)** - Shared schemas (network, storage, workload, config)
+- **[v1/examples/](v1/examples/)** - Example workflows (component composition, module/bundle flows)
 
 ### V1 vs V0 Terminology
 
@@ -531,13 +546,15 @@ All OPM repositories follow Semver v2 independently:
 
 ### Development Best Practices
 
-1. **Format CUE files before committing**: `cue fmt ./v1/core/...`
-2. **Validate v1 schemas**: `cd v1/core && cue vet .`
-3. **Run tests**: `cd v1/core && cue vet *_testing.cue`
+1. **Format CUE files before committing**: `task fmt`
+2. **Validate all packages**: `task validate:all`
+3. **Validate specific packages**: `task core:vet`, `task units:vet`, `task traits:vet`, etc.
 4. **Keep commits focused and concise**
 5. **Use appropriate scopes** in commit messages (see [Commit Message Guidelines](#commit-message-guidelines))
 6. **Update specifications** when changing v1/core schemas
-7. **Keep documentation in sync** with specifications and implementation
+7. **Add implementations** to appropriate subdirectories (units/, traits/, blueprints/, policies/)
+8. **Add examples** in v1/examples/ to demonstrate new features
+9. **Keep documentation in sync** with specifications and implementation
 
 ## Getting Help
 
@@ -565,4 +582,4 @@ All OPM repositories follow Semver v2 independently:
 
 ---
 
-**Last Updated**: 2025-10-31
+**Last Updated**: 2025-11-03

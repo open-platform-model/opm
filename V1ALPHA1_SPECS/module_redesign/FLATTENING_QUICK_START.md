@@ -50,7 +50,7 @@ Compiled to this (Module IR):
                     ⬇ BIND (add values, ~100ms)
 
 Runtime uses this (ModuleRelease):
-    #module: <reference to Module IR above>
+    module: <reference to Module IR above>
     values: {api: {image: "api:v1.2.3", replicas: 3}}
 ```
 
