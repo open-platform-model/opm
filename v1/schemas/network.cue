@@ -29,19 +29,48 @@ import (
 	// What port to expose on the host.
 	// This must be a valid port number, 0 < x < 65536.
 	hostPort?: uint & >=1 & <=65535
-	...
-}
-
-// Expose port specification (extends PortSchema from workload schema)
-#ExposePortSchema: close(#PortSchema & {
 	// The port that will be exposed outside the container.
 	// exposedPort in combination with exposed must inform the platform of what port to map to the container when exposing.
 	// This must be a valid port number, 0 < x < 65536.
 	exposedPort?: uint & >=1 & <=65535
-})
+}
 
 // Expose specification
 #ExposeSchema: {
-	ports: [portName=string]: #ExposePortSchema & {name: portName}
+	ports: [portName=string]: #PortSchema & {name: portName}
 	type: "ClusterIP" | "NodePort" | "LoadBalancer" | *"ClusterIP"
+}
+
+//////////////////////////////////////////////////////////////////
+//// Network Rules Schema (for Network Policies)
+//////////////////////////////////////////////////////////////////
+
+#NetworkRuleSchema: {
+	ingress?: [...{
+		from!: [...] // Component references - keeping flexible for now
+		ports?: [...#PortSchema]
+	}]
+	egress?: [...{
+		to!: [...] // Component references - keeping flexible for now
+		ports?: [...#PortSchema]
+	}]
+	denyAll?: bool | *false
+}
+
+//////////////////////////////////////////////////////////////////
+//// Shared Network Schema
+//////////////////////////////////////////////////////////////////
+
+#SharedNetworkSchema: {
+	networkConfig: {
+		dnsPolicy: *"ClusterFirst" | "Default" | "None"
+		dnsConfig?: {
+			nameservers: [...string]
+			searches: [...string]
+			options: [...{
+				name:   string
+				value?: int
+			}]
+		}
+	}
 }

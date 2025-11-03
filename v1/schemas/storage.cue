@@ -4,15 +4,7 @@ package schemas
 //// Volume Schemas
 /////////////////////////////////////////////////////////////////
 
-// Persistent claim specification
-#PersistentClaimSchema: {
-	size:         string
-	accessMode:   "ReadWriteOnce" | "ReadOnlyMany" | "ReadWriteMany" | *"ReadWriteOnce"
-	storageClass: string | *"standard"
-}
-
-// Volume specification
-#VolumeSchema: {
+#VolumeBaseSchema: {
 	name!: string
 	emptyDir?: {
 		medium?:    *"node" | "memory"
@@ -24,9 +16,28 @@ package schemas
 	...
 }
 
+// Volume specification
+#VolumeSchema: close(#VolumeBaseSchema & {
+	name!: string
+	emptyDir?: {
+		medium?:    *"node" | "memory"
+		sizeLimit?: string
+	}
+	persistentClaim?: #PersistentClaimSchema
+	configMap?:       #ConfigMapSchema
+	secret?:          #SecretSchema
+})
+
 // Volume mount specification
-#VolumeMountSchema: close(#VolumeSchema & {
+#VolumeMountSchema: close(#VolumeBaseSchema & {
 	mountPath!: string
 	subPath?:   string
 	readOnly?:  bool | *false
 })
+
+// Persistent claim specification
+#PersistentClaimSchema: {
+	size:         string
+	accessMode:   "ReadWriteOnce" | "ReadOnlyMany" | "ReadWriteMany" | *"ReadWriteOnce"
+	storageClass: string | *"standard"
+}
