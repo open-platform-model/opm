@@ -7,3 +7,4 @@ dagger.json
 .registry-data/
 .env
 watch-fmt
+watch-vet
