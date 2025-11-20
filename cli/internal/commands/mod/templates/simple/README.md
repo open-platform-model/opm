@@ -52,7 +52,7 @@ Open this file to see working examples with detailed comments.
    cue vet .
    ```
 
-4. **Render (future):**
+4. **Build (future):**
 
    ```bash
    opm mod render . --platform kubernetes --output ./k8s

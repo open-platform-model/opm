@@ -19,22 +19,13 @@ This document defines the algorithm for matching OPM components to transformers 
 
 ## Matching Workflow
 
-The complete workflow from Module to Manifests:
+The complete workflow from ModuleDefinition to Manifests:
 
 ```
 ┌─────────────────┐
 │ ModuleDefinition│
 │ (with Blueprints│
-└────────┬────────┘
-         │
-         ▼
-    [FLATTEN]  ← Already implemented (cli/pkg/flatten)
-         │
-         ▼
-┌─────────────────┐
-│ Module (IR)     │
-│ (Resources +    │
-│  Traits only)   │
+│ Components)     │
 └────────┬────────┘
          │
          ▼

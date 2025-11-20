@@ -40,7 +40,7 @@
 - [ ] Implement layer extraction and verification in cli/pkg/oci/client/layers.go
 - [ ] Implement module reconstruction from OCI layers in cli/pkg/oci/module/fetch.go
 - [ ] Implement `opm mod get <reference>` command with --output flag
-- [ ] Integrate OCI module fetching into `opm mod build` command
+- [ ] Integrate OCI module fetching into `opm mod render` command
 - [ ] Integrate OCI module fetching into `opm mod tidy` command
 - [ ] Add parallel layer downloads for performance
 - [ ] Add progress indicators for downloads
