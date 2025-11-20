@@ -1,31 +1,118 @@
 # TODO
 
-## v0
-
-- [ ] Docs: Start with WHY, then WHAT then HOW. Then quickstart
-- [ ] Go through all element "Specs" and add sane default to relevant values.
-  - **Status**: PARTIALLY COMPLETE - Some defaults exist (e.g., `Replicas.count: int | *1`, `Container.protocol: *"TCP"`), needs comprehensive review
-- [x] ~~Refactor how Modifier elements points out what primitive elements they are compatible with.~~
-  - **Status**: COMPLETE - `modifies: []` field exists
-- [x] ~~Investigate in replacing workloadType with "hints" or "annotations" in element. Would function similarly to labels in #Element but would NOT be used for categorization or filtering. Would have workloadType, and could be expanded in the future with more fields.~~
-  - **Completed 2025-10-02**: Implemented annotations system
-  - Replaced `workloadType?: #WorkloadTypes` field with `labels?: [string]: string` map
-  - Workload type now specified via `"core.opm.dev/workload-type"` label
-- [x] ~~Implement standard status definition for module, should inherit from components in some way.~~
-  - **Completed**: Module status implemented in `module.cue`
-  - `#ModuleDefinition.#status`: Has `componentCount` and `scopeCount` fields
-  - `#Module.#status`: Extended with `#allComponents` aggregation and counts
-  - Note: Component-level status still pending (see above)
-
 ## v1
 
-- [ ] Change everything from "v0" to "v1alpha1"
-- [ ] Rethink the usage of # for structs. Ruleset for where it should be used MUST be defined.
-- [ ] Rename #Element.name to #Element.#kind, just like everything else. Also rename #Element.kind to #Element.type to not confuse people.
-- [ ] Implement standard status definition for component.
-- [ ] Find a better way to handle secrets. Maybe a way to generate. Maybe a way to inform the platform team of what the secrets should be and how they should look (an informed handoff). Secrets should be implemented by the platform so that they are actual secrets (today we are just templating values, which is insecure). For K8s this would mean a secret being referenced in a Container.env would create the secret and then reference it in the container. This MUST be solved.
-- [ ] Ability to bundle several Modules into a Bundle, that can be deployed as a whole into a platform. Support scopes in bundles.
-- [ ] Add deteremistic UUID to all components and module definitions.
+- [x] Change everything from "v0" to "v1alpha1"
+- [x] Rethink the usage of # for structs. Ruleset for where it should be used MUST be defined.
+
+### Critical (v1.0 Blockers)
+
+- [x] Update PROVIDER_DEFINITION.md spec to match implementation (requiredResources/optionalResources pattern)
+- [x] Update TRANSFORMER_MATCHING.md spec to match implementation (required/optional distinction)
+- [ ] Complete `opm mod render` command implementation (currently stub at render.go:112)
+- [ ] Implement secret handling mechanism (secretRef, external secret providers, secure storage) - **DEFERRED**: Design needed
+- [ ] Implement standard status definition for component
+- [x] Fix config file permissions to 0600/0700 (was 0644/0755, world-readable) - **FIXED**: config.cue now 0600, config dir now 0700
+- [ ] Expand test coverage to 40%+ (currently 17%, no command tests, no integration tests)
+- [x] Implement Kubernetes provider reference implementation in v1/providers/kubernetes/ - **COMPLETE**: 7 transformers implemented (Deployment, StatefulSet, DaemonSet, Job, CronJob, Service, PVC)
+
+#### OCI Registry Integration (Sprints 1-2, HIGH PRIORITY)
+
+- [ ] Define OPM mediaType specifications for all artifact types (module, bundle, template, provider, transformer)
+- [ ] Implement Docker config.json reader in cli/pkg/oci/auth/config.go
+- [ ] Implement OAuth bearer token flow in cli/pkg/oci/auth/token.go
+- [ ] Implement registry HTTP client with automatic auth in cli/pkg/oci/client/client.go
+- [ ] Implement `opm registry login <url>` command
+- [ ] Implement `opm registry logout <url>` command
+- [ ] Implement module artifact builder with two-layer design in cli/pkg/oci/module/build.go
+- [ ] Implement .opmignore file parser in cli/pkg/oci/ignore/ignore.go (gitignore-compatible syntax)
+- [ ] Implement default ignore patterns (node_modules/, .git/, cue.mod/pkg/, etc.)
+- [ ] Implement blob upload (monolithic and chunked) in cli/pkg/oci/client/upload.go
+- [ ] Implement manifest upload with tag management in cli/pkg/oci/client/manifest.go
+- [ ] Implement `opm mod publish <path> <version>` command with --ignore-file flag
+- [ ] Add progress indicators for blob/manifest uploads
+
+### High Priority
+
+#### OCI Registry Integration (Sprint 3)
+
+- [ ] Implement manifest download from registry in cli/pkg/oci/client/download.go
+- [ ] Implement layer extraction and verification in cli/pkg/oci/client/layers.go
+- [ ] Implement module reconstruction from OCI layers in cli/pkg/oci/module/fetch.go
+- [ ] Implement `opm mod get <reference>` command with --output flag
+- [ ] Integrate OCI module fetching into `opm mod build` command
+- [ ] Integrate OCI module fetching into `opm mod tidy` command
+- [ ] Add parallel layer downloads for performance
+- [ ] Add progress indicators for downloads
+
+#### Other High Priority
+
+- [ ] Complete registry list command implementations (currently stubs returning placeholder data)
+- [ ] Implement bundle command group (init, build, render, vet, show, tidy, fix)
+- [ ] Add JSON/YAML output to all commands (provider list/describe/transformers currently stub)
+- [ ] Implement path traversal validation for user-provided paths
+- [ ] Create missing specification documents:
+  - [ ] BLUEPRINT_DEFINITION.md
+  - [ ] COMPONENT_DEFINITION.md
+  - [ ] SCOPE_DEFINITION.md
+  - [ ] MODULE_DEFINITION.md (beyond module_redesign/)
+  - [ ] RENDERER_DEFINITION.md
+  - [ ] TEMPLATE_DEFINITION.md
+
+### Medium Priority
+
+#### OCI Registry Integration (Sprint 4)
+
+- [ ] Implement bundle artifact builder in cli/pkg/oci/bundle/
+- [ ] Implement `opm bundle publish` command
+- [ ] Implement `opm bundle get` command
+- [ ] Update template system to support OCI references in `opm mod init --template oci://...`
+- [ ] Implement multi-registry configuration schema in cli/pkg/config/
+- [ ] Implement reference parser for OCI URLs in cli/pkg/oci/reference/
+- [ ] Implement content-addressed OCI cache in cli/pkg/oci/cache/
+- [ ] Create cache directory structure (~/.opm/cache/oci/blobs/sha256/, manifests/, index.json)
+- [ ] Implement cache invalidation logic
+- [ ] Add registry search command `opm registry search <query>`
+- [ ] Add registry cache management commands (clear, status, path)
+
+#### Other Medium Priority
+
+- [ ] Add OpenAPIv3 schema validation to Resource/Trait/Blueprint/Policy definitions
+- [ ] Document label/annotation unification design decision for components
+- [ ] Implement config set/get/unset/edit commands
+- [ ] Implement dev tools (inspect, diff, graph, watch)
+- [ ] Implement utility commands (doctor, completion, docs)
+- [ ] Expand #TransformerContext with full module metadata (version, namespace, labels)
+- [ ] Expand example coverage:
+  - [ ] 10-15 resource examples in v1/resources/
+  - [ ] 15-20 trait examples in v1/traits/
+  - [ ] 10-15 policy examples in v1/policies/
+  - [ ] 5-10 scope examples
+
+### Low Priority
+
+#### OCI Registry Integration (Sprint 5)
+
+- [ ] Implement provider artifact builder in cli/pkg/oci/provider/
+- [ ] Implement `opm provider install <reference>` command
+- [ ] Implement transformer artifact builder in cli/pkg/oci/transformer/
+- [ ] Implement `opm transformer install <reference>` command
+- [ ] Add resumable download support for large artifacts
+- [ ] Add parallel layer fetching optimization
+- [ ] Implement chunked upload optimization for large modules
+- [ ] Add comprehensive OCI integration tests with local registry
+- [ ] Add performance benchmarks for OCI operations
+- [ ] Create OCI migration guide documentation
+
+#### Other Low Priority
+
+- [ ] Add renderer output format validation/constraints
+- [ ] Remove debug code from test files (flatten_test.go:315,422)
+- [ ] Fix TOCTOU race condition in module init (use MkdirAll directly, check ErrExist)
+- [ ] Add renderer scoring/ranking for multiple transformer matches
+- [ ] Add transformer values conversion to CUE format
+- [ ] Add deterministic sorting for provider list output
+- [ ] Add deteremistic UUID to all components and module definitions
 - [ ] Support the [OSCAL](https://pages.nist.gov/OSCAL/) model
 
 ### v1 Research
@@ -35,6 +122,9 @@
   - What is the folder structure?
   - What files must exist?
   - Should we introduce ModuleRelease again?
+- [ ] Add automatic documentation generation based on special comment in the ModuleDefinition CUE code.
+  - Should have a summary on what the module does.
+  - Should have have an API spec for the "values".
 - [ ] Every component requires a unique identity (SPIFFE/SPIRE) so that it can be utilized to grab secrets accesible to the component
 - [ ] Investigate the ability to write workflows/pipelines. Tasks that execute in series, either in combination with Modules and Components or completely separately.
 - [ ] Investigate the implementation of a runtime query system. The ability to query the platform for extra "not required" data. This data can help in generation but is not required for CUE-OAM to function. The inherint insecurity of this feature can be mitigated by that the query system is a fixed data struct defined in CUE. Meaning we know what the values can be, it just need to be populated at runtimne. It should include some core (builtin) fields, but should also be extendable by the platform team.
