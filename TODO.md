@@ -9,11 +9,14 @@
 
 - [x] Update PROVIDER_DEFINITION.md spec to match implementation (requiredResources/optionalResources pattern)
 - [x] Update TRANSFORMER_MATCHING.md spec to match implementation (required/optional distinction)
-- [ ] Complete `opm mod render` command implementation (currently stub at render.go:112)
+- [x] Complete `opm mod render` command implementation - **COMPLETE**: Full implementation with security validation, all renderer types, and proper provider/transformer integration
 - [ ] Implement secret handling mechanism (secretRef, external secret providers, secure storage) - **DEFERRED**: Design needed
 - [ ] Implement standard status definition for component
 - [x] Fix config file permissions to 0600/0700 (was 0644/0755, world-readable) - **FIXED**: config.cue now 0600, config dir now 0700
-- [ ] Expand test coverage to 40%+ (currently 17%, no command tests, no integration tests)
+- [x] Add comprehensive unit tests for opm mod render command (validateOutputPath 92.9%, getReleaseFilePath 92.3%, extractModuleRelease 93.8% coverage)
+- [x] Create test fixtures for render command testing (webapi-module, database-module, complex-module, invalid-modules)
+- [ ] Complete integration tests for opm mod render (infrastructure in place, blocked by CUE module dependency resolution)
+- [ ] Expand overall test coverage to 40%+ (currently 17%, command unit tests added, integration tests pending)
 - [x] Implement Kubernetes provider reference implementation in v1/providers/kubernetes/ - **COMPLETE**: 7 transformers implemented (Deployment, StatefulSet, DaemonSet, Job, CronJob, Service, PVC)
 
 #### OCI Registry Integration (Sprints 1-2, HIGH PRIORITY)
