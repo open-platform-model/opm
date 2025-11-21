@@ -380,7 +380,6 @@ func TestLoadProvider_NotImplementedYet(t *testing.T) {
 // Fix needed: Restructure transformers to only validate when executed with actual components
 
 func TestRenderCommand_StreamYAML(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	setupTestConfig(t)
 	outputDir := t.TempDir()
 	modulePath := filepath.Join("..", "..", "..", "testdata", "webapi-module")
@@ -417,7 +416,6 @@ func TestRenderCommand_StreamYAML(t *testing.T) {
 }
 
 func TestRenderCommand_KubernetesList(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	setupTestConfig(t)
 	outputDir := t.TempDir()
 	modulePath := filepath.Join("..", "..", "..", "testdata", "webapi-module")
@@ -453,7 +451,6 @@ func TestRenderCommand_KubernetesList(t *testing.T) {
 }
 
 func TestRenderCommand_SplitFiles(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	setupTestConfig(t)
 	outputDir := t.TempDir()
 	modulePath := filepath.Join("..", "..", "..", "testdata", "webapi-module")
@@ -495,7 +492,6 @@ func TestRenderCommand_SplitFiles(t *testing.T) {
 }
 
 func TestRenderCommand_JSONFormat(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	setupTestConfig(t)
 	outputDir := t.TempDir()
 	modulePath := filepath.Join("..", "..", "..", "testdata", "webapi-module")
@@ -531,7 +527,6 @@ func TestRenderCommand_JSONFormat(t *testing.T) {
 }
 
 func TestRenderCommand_CustomNamespace(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	setupTestConfig(t)
 	outputDir := t.TempDir()
 	modulePath := filepath.Join("..", "..", "..", "testdata", "webapi-module")
@@ -560,7 +555,6 @@ func TestRenderCommand_CustomNamespace(t *testing.T) {
 }
 
 func TestRenderCommand_WithTraits(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	setupTestConfig(t)
 	outputDir := t.TempDir()
 	modulePath := filepath.Join("..", "..", "..", "testdata", "complex-module")
@@ -594,7 +588,6 @@ func TestRenderCommand_WithTraits(t *testing.T) {
 }
 
 func TestRenderCommand_DryRun(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	setupTestConfig(t)
 	outputDir := t.TempDir()
 	modulePath := filepath.Join("..", "..", "..", "testdata", "webapi-module")
@@ -621,7 +614,6 @@ func TestRenderCommand_DryRun(t *testing.T) {
 }
 
 func TestRenderCommand_ErrorCases(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	tests := []struct {
 		name         string
 		modulePath   string
@@ -669,7 +661,6 @@ func TestRenderCommand_ErrorCases(t *testing.T) {
 }
 
 func TestRenderCommand_ValidKubernetesOutput(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	if !isKubectlAvailable() {
 		t.Skip("kubectl not available, skipping Kubernetes validation")
 	}
@@ -701,7 +692,6 @@ func TestRenderCommand_ValidKubernetesOutput(t *testing.T) {
 }
 
 func TestRenderCommand_FilePermissions(t *testing.T) {
-	t.Skip("Skipped: Provider loading blocked by CUE validation errors in transformers")
 	setupTestConfig(t)
 	outputDir := t.TempDir()
 	modulePath := filepath.Join("..", "..", "..", "testdata", "webapi-module")

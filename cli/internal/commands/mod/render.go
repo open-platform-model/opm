@@ -372,7 +372,11 @@ func runRender(opts *renderOptions, args []string) error {
 }
 
 func loadProvider(cfg *config.Config, opts *renderOptions) (*provider.Provider, error) {
-	loader := provider.NewLoader(provider.DefaultLoadOptions())
+	// Note: We disable ValidateOnLoad because provider transforms contain template
+	// references (e.g., #component.spec.container) that will be resolved at execution time
+	loadOpts := provider.DefaultLoadOptions()
+	loadOpts.ValidateOnLoad = false
+	loader := provider.NewLoader(loadOpts)
 
 	// If provider path is specified, load from there
 	if opts.providerPath != "" {

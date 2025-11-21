@@ -17,19 +17,19 @@ package core
 		// Namespace (typically unified from Module)
 		namespace?: string
 
-		// Component labels - unified with unit/trait/blueprint labels
+		// Component labels - unified with resource/trait/blueprint labels
 		// If definitions have conflicting labels, CUE unification will fail (automatic validation)
 		labels?: #LabelsAnnotationsType
-		// TODO: Enable label unification of the component from units/traits/blueprints. Must be careful with conflicts.
+		// TODO: Enable label unification of the component from resources/traits/blueprints. Must be careful with conflicts.
 
-		// Component annotations - unified with unit/trait/blueprint annotations
+		// Component annotations - unified with resource/trait/blueprint annotations
 		// If definitions have conflicting annotations, CUE unification will fail (automatic validation)
 		annotations?: #LabelsAnnotationsType
-		// TODO: Enable annotation unification of the component from units/traits/blueprints. Must be careful with conflicts.
+		// TODO: Enable annotation unification of the component from resources/traits/blueprints. Must be careful with conflicts.
 	}
 
-	// Units applied for this component
-	#units: #UnitMap
+	// Resources applied for this component
+	#resources: #ResourceMap
 
 	// Traits applied to this component
 	#traits?: #TraitMap
@@ -48,9 +48,9 @@ package core
 	}
 
 	_allFields: {
-		for _, unit in #units {
-			if unit.#spec != _|_ {
-				for k, v in unit.#spec {
+		for _, resource in #resources {
+			if resource.#spec != _|_ {
+				for k, v in resource.#spec {
 					(k): v
 				}
 			}
@@ -84,15 +84,19 @@ package core
 		}
 	}
 
-	// Fields exposed by this component (merged from all units, traits, and blueprints)
+	// Fields exposed by this component (merged from all resources, traits, and blueprints)
 	// Automatically turned into a spec
 	// Must be made concrete by the user
 	// Have to do it this way because if we allowed the spec flattened in the root of the component
 	// we would have to open the Definition which would prevent inconcrete components
-	spec: close(_allFields)
+	// Note: Uses close() with ... to allow validation in transformers while maintaining type safety
+	spec: close({
+		_allFields
+		...
+	})
 
 	status: {
-		unitCount: len(#units)
+		resourceCount: len(#resources)
 		traitCount?: {if #traits != _|_ {len(#traits)}}
 		blueprintCount?: {if #blueprints != _|_ {len(#blueprints)}}
 		policyCount?: {if #policies != _|_ {len(#policies)}}
