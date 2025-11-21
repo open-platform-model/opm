@@ -169,29 +169,31 @@ func runRender(opts *renderOptions, args []string) error {
 		return fmt.Errorf("expected kind 'ModuleRelease', got '%s'", kind)
 	}
 
-	// Step 5: Extract embedded module (already unified with values by CUE!)
-	moduleVal := moduleReleaseVal.LookupPath(cue.ParsePath("module"))
-	if !moduleVal.Exists() {
-		return fmt.Errorf("ModuleRelease has no 'module' field")
+	// Step 5: Extract module definition for metadata
+	moduleDefVal := moduleReleaseVal.LookupPath(cue.ParsePath("#module"))
+	if !moduleDefVal.Exists() {
+		return fmt.Errorf("ModuleRelease has no '#module' field")
 	}
 
-	// Extract module metadata
-	moduleName, err := l.ExtractString(moduleVal, "metadata.name")
+	// Extract module metadata from definition
+	moduleName, err := l.ExtractString(moduleDefVal, "metadata.name")
 	if err != nil {
 		return fmt.Errorf("failed to extract module name: %w", err)
 	}
 
-	moduleVersion, _ := l.ExtractString(moduleVal, "metadata.apiVersion")
+	moduleVersion, _ := l.ExtractString(moduleDefVal, "metadata.apiVersion")
 
 	logger.Infow("module loaded from release",
 		"name", moduleName,
 		"version", moduleVersion,
 	)
 
-	// Step 6: Extract components (should be concrete after CUE unification)
-	componentsVal := moduleVal.LookupPath(cue.ParsePath("#components"))
+	// Step 6: Extract concrete components (values already unified by CUE)
+	// ModuleRelease schema creates: components: (_module: #module & {#values: values}).#components
+	// This gives us fully resolved components with concrete values, not #values references
+	componentsVal := moduleReleaseVal.LookupPath(cue.ParsePath("components"))
 	if !componentsVal.Exists() {
-		return fmt.Errorf("module has no #components field")
+		return fmt.Errorf("ModuleRelease has no 'components' field")
 	}
 
 	// Step 4: Create transformer matcher and executor
