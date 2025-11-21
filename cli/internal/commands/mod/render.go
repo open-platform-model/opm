@@ -371,6 +371,32 @@ func runRender(opts *renderOptions, args []string) error {
 	return nil
 }
 
+// findRepoRoot walks up the directory tree to find the repository root
+// It looks for a .git directory as the primary marker
+func findRepoRoot() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+
+	dir := cwd
+	for {
+		// Check for .git directory (git repo marker) - most reliable
+		gitPath := filepath.Join(dir, ".git")
+		if info, err := os.Stat(gitPath); err == nil && info.IsDir() {
+			return dir
+		}
+
+		// Move up one directory
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// Reached filesystem root without finding .git
+			return ""
+		}
+		dir = parent
+	}
+}
+
 func loadProvider(cfg *config.Config, opts *renderOptions) (*provider.Provider, error) {
 	// Note: We disable ValidateOnLoad because provider transforms contain template
 	// references (e.g., #component.spec.container) that will be resolved at execution time
@@ -390,6 +416,51 @@ func loadProvider(cfg *config.Config, opts *renderOptions) (*provider.Provider, 
 	}
 
 	// Otherwise, search by name (defaults to "kubernetes")
+	// For now, we hardcode the kubernetes provider path
+	// TODO: Implement proper provider discovery/registry system
+	if opts.providerName == "kubernetes" {
+		// Try to find repo root and construct path from there
+		repoRoot := findRepoRoot()
+		logger.Debugw("repo root detection", "repo-root", repoRoot)
+
+		if repoRoot != "" {
+			kubernetesPath := filepath.Join(repoRoot, "v1", "providers", "kubernetes")
+			logger.Debugw("checking kubernetes path from repo root", "path", kubernetesPath)
+
+			// Check if path exists
+			if _, err := os.Stat(kubernetesPath); err == nil {
+				logger.Debugw("loading kubernetes provider from repo root",
+					"path", kubernetesPath,
+					"repo-root", repoRoot,
+				)
+				return loader.LoadFromPath(kubernetesPath)
+			} else {
+				logger.Debugw("kubernetes path from repo root does not exist",
+					"path", kubernetesPath,
+					"error", err,
+				)
+			}
+		}
+
+		// If repo root not found, try relative path from current directory
+		kubernetesPath := filepath.Join("v1", "providers", "kubernetes")
+		logger.Debugw("checking kubernetes path from current directory", "path", kubernetesPath)
+
+		if _, err := os.Stat(kubernetesPath); err == nil {
+			logger.Debugw("loading kubernetes provider from relative path",
+				"path", kubernetesPath,
+			)
+			return loader.LoadFromPath(kubernetesPath)
+		} else {
+			logger.Debugw("kubernetes path from current directory does not exist",
+				"path", kubernetesPath,
+				"error", err,
+			)
+		}
+
+		logger.Debugw("kubernetes provider not found at hardcoded paths, trying configured path")
+	}
+
 	providersPath := cfg.Providers.Path
 	if providersPath == "" {
 		providersPath = "."
