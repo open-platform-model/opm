@@ -15,8 +15,9 @@
 - [x] Fix config file permissions to 0600/0700 (was 0644/0755, world-readable) - **FIXED**: config.cue now 0600, config dir now 0700
 - [x] Add comprehensive unit tests for opm mod render command (validateOutputPath 92.9%, getReleaseFilePath 92.3%, extractModuleRelease 93.8% coverage)
 - [x] Create test fixtures for render command testing (webapi-module, database-module, complex-module, invalid-modules)
-- [ ] Complete integration tests for opm mod render (infrastructure in place, blocked by CUE module dependency resolution)
-- [ ] Expand overall test coverage to 40%+ (currently 17%, command unit tests added, integration tests pending)
+- [ ] Complete integration tests for opm mod render (infrastructure complete, tests skipped due to provider CUE validation issue)
+- [ ] Fix Kubernetes provider transformers to make error() statements lazy-evaluated (currently blocks provider loading in tests)
+- [ ] Expand overall test coverage to 40%+ (currently 17%, command unit tests added, integration tests skipped)
 - [x] Implement Kubernetes provider reference implementation in v1/providers/kubernetes/ - **COMPLETE**: 7 transformers implemented (Deployment, StatefulSet, DaemonSet, Job, CronJob, Service, PVC)
 
 #### OCI Registry Integration (Sprints 1-2, HIGH PRIORITY)
