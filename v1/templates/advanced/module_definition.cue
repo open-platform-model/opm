@@ -11,7 +11,7 @@ import (
 // - Complex component definitions
 //
 // File Structure:
-// - module.cue: Main ModuleDefinition (this file - aggregates everything)
+// - module_definition.cue: Main ModuleDefinition (this file - aggregates everything)
 // - components: Component definitions
 //   -  api.cue: API component definition
 //   -  backend.cue: Backend component definition

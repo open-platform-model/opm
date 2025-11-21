@@ -26,6 +26,8 @@ advanced/
 ├── components.cue                 # Package: module (references templates)
 ├── scopes.cue                     # Package: module (references templates)
 ├── values.cue                     # Package: module (value schema)
+├── releases/                      # Deployment releases
+│   └── module_release.cue        # Default release with concrete values
 ├── components/                    # Package: components (local templates)
 │   ├── api.cue                   # _api component template
 │   ├── db.cue                    # _db component template
@@ -56,6 +58,10 @@ advanced/
 
 - **`frontend.cue`** - Frontend scope template (`_api`)
 - **`backend.cue`** - Backend scope template (`_backend`)
+
+### Deployment Releases (releases/ directory)
+
+- **`module_release.cue`** - ModuleRelease with concrete values for all components
 
 All template files contain working examples with detailed comments.
 
@@ -173,6 +179,80 @@ This creates clear separation between what you define and how you use it.
 **Step 3:** Define constraints in `values.cue`
 
 See the actual template files for complete working examples.
+
+### ModuleRelease for Deployment
+
+The `releases/module_release.cue` file binds the module with concrete values for deployment:
+
+```cue
+core.#ModuleRelease & {
+    metadata: {
+        name:      "advanced-app-local"
+        namespace: "default"  // Required: target namespace
+    }
+
+    module: {
+        // Reference to the module definition with all components and scopes
+        // Imports parent package using: import module ".."
+    }
+
+    values: {
+        // Concrete values for ALL four components
+        web: {
+            image: "nginx:latest"
+            replicas: 3
+            port: 80
+            resources: {
+                cpu:    "100m"
+                memory: "128Mi"
+            }
+        }
+        api: {
+            image: "myapp/api:v1.0.0"
+            replicas: 5
+            port: 8080
+            resources: {
+                cpu:    "500m"
+                memory: "512Mi"
+            }
+            rateLimit: {
+                enabled:        true
+                requestsPerMin: 1000
+            }
+        }
+        // ... worker and db configurations
+    }
+}
+```
+
+**Key characteristics for complex applications:**
+- Must provide concrete values for all required fields across all components
+- Supports deeply nested configuration structures (resources, rate limits, backups)
+- Can conditionally include scopes if they exist
+- All optional fields can use defaults or be explicitly overridden
+- Perfect for managing complex multi-tier application configurations
+
+**Environment-specific releases:**
+
+For large applications, create multiple releases with different configurations:
+
+```text
+releases/
+├── module_release.cue      # Default (local development)
+├── dev.release.cue         # Development environment
+├── staging.release.cue     # Staging environment
+└── prod.release.cue        # Production environment
+```
+
+Each environment typically differs in:
+- **Image tags**: `v1.0.0-dev`, `v1.0.0-staging`, `v1.0.0`
+- **Replica counts**: 1-2 in dev, 3-5 in staging, 10-20 in prod
+- **Resource allocations**: Small in dev, medium in staging, large in prod
+- **Storage sizes**: 10Gi in dev, 50Gi in staging, 500Gi in prod
+- **Feature flags**: Rate limiting off in dev, strict in prod
+- **Backup policies**: Disabled in dev, full retention in prod
+
+This pattern enables safe promotion from dev → staging → prod with validated configurations.
 
 ## Customization Guide
 

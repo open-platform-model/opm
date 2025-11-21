@@ -1,7 +1,7 @@
 package advanced
 
 import (
-	scopes "template.opm.dev/scopes"
+	scopes "opm.dev/templates/advanced/scopes"
 )
 
 // Scope Definitions

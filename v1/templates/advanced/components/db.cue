@@ -2,8 +2,8 @@ package components
 
 import (
 	core "opm.dev/core@v1"
-	workload_units "opm.dev/units/workload@v1"
-	storage_units "opm.dev/units/storage@v1"
+	workload_resources "opm.dev/resources/workload@v1"
+	storage_resources "opm.dev/resources/storage@v1"
 )
 
 // Database Component Definition
@@ -11,9 +11,9 @@ import (
 _db: core.#ComponentDefinition & {
 	metadata: name: "db"
 
-	// Compose units and traits using helpers
-	workload_units.#Container
-	storage_units.#Volumes
+	// Compose resources and traits using helpers
+	workload_resources.#Container
+	storage_resources.#Volumes
 
 	// Define concrete spec values
 	spec: {

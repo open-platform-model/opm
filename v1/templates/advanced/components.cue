@@ -1,7 +1,7 @@
 package advanced
 
 import (
-	components "template.opm.dev/components"
+	comps "opm.dev/templates/advanced/components"
 )
 
 // Component Definitions
@@ -10,7 +10,7 @@ import (
 
 #components: {
 	// Example: Frontend web server (uncomment and customize)
-	web: components._web & {
+	web: comps._web & {
 		container: {
 			image: #values.web.image
 			ports: http: {
@@ -28,7 +28,7 @@ import (
 	}
 
 	// Example: Backend API server (uncomment and customize)
-	api: components._api & {
+	api: comps._api & {
 		container: {
 			image: #values.api.image
 			ports: apiPort: {
@@ -46,7 +46,7 @@ import (
 	}
 
 	// Example: Background worker (uncomment and customize)
-	worker: components._worker & {
+	worker: comps._worker & {
 		container: {
 			image: #values.worker.image
 			resources: {
@@ -60,7 +60,7 @@ import (
 	}
 
 	// Example: Database (uncomment and customize)
-	db: components._db & {
+	db: comps._db & {
 		container: {
 			image: #values.db.image
 			resources: {
@@ -76,9 +76,9 @@ import (
 		}
 		volumes: dbData: {
 			persitentClaim: {
-				size:         #values.db.volumeSize
-				accessMode:   #values.db.persistentStorage.accessMode
-				storageClass: if #values.db.storageClass != _|_ {#values.db.storageClass}
+				size:       #values.db.volumeSize
+				accessMode: #values.db.persistentStorage.accessMode
+				storageClass: {if #values.db.storageClass != _|_ {#values.db.storageClass}}
 			}
 		}
 	}

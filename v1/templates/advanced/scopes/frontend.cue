@@ -2,18 +2,20 @@ package scopes
 
 import (
 	core "opm.dev/core@v1"
-	components "template.opm.dev/components"
+	comps "opm.dev/templates/advanced/components"
 	network_policies "opm.dev/policies/network"
 )
 
 // Api Component Definition
 
 _api: core.#ScopeDefinition & {
-	metadata: name: "frontend"
-	description: "Frontend scope for public-facing components"
+	metadata: {
+		name:        "frontend"
+		description: "Frontend scope for public-facing components"
+	}
 
 	appliesTo: {
-		components: [components._web]
+		components: [comps._web]
 	}
 
 	network_policies.#NetworkRules

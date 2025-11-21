@@ -2,8 +2,8 @@ package standard
 
 import (
 	core "opm.dev/core@v1"
-	// units_workload "opm.dev/units/workload@v1"
-	// units_storage "opm.dev/units/storage@v1"
+	// units_workload "opm.dev/resources/workload@v1"
+	// units_storage "opm.dev/resources/storage@v1"
 	// traits_workload "opm.dev/traits/workload@v1"
 )
 
@@ -15,7 +15,7 @@ import (
 // - When values need to be shared or reused
 //
 // Structure:
-// - module.cue: ModuleDefinition + components (this file)
+// - module_definition.cue: ModuleDefinition + components (this file)
 // - values.cue: Value schema (separate file)
 //
 // CUE automatically unifies both files in the same package.

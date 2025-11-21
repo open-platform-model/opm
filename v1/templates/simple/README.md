@@ -20,7 +20,9 @@ The Simple template provides everything in a single `module_definition.cue` file
 ```text
 simple/
 ├── cue.mod/module.cue        # CUE module definition
-└── module_definition.cue      # Everything in one file
+├── module_definition.cue      # Everything in one file
+└── releases/                  # Deployment releases
+    └── module_release.cue     # Default release with concrete values
 ```
 
 ## Quick Reference
@@ -30,7 +32,12 @@ simple/
   - Component definitions using Units and Traits
   - Value schema with constraints
 
-Open this file to see working examples with detailed comments.
+- **`releases/module_release.cue`** - ModuleRelease providing:
+  - Reference to the module definition
+  - Concrete values for deployment
+  - Target namespace and environment labels
+
+Open these files to see working examples with detailed comments.
 
 ## Getting Started
 
@@ -87,6 +94,54 @@ The `#values` field defines **constraints**, not concrete values:
 - Add validation: `replicas?: int & >=1 & <=10 | *3`
 
 Concrete values are provided later (at ModuleRelease deployment).
+
+### ModuleRelease
+
+A **ModuleRelease** binds a ModuleDefinition with concrete values for deployment:
+
+```cue
+core.#ModuleRelease & {
+    metadata: {
+        name:      "simple-app-local"
+        namespace: "default"  // Required: target namespace
+    }
+
+    module: {
+        // Reference to the module definition
+        // Can be embedded inline or referenced
+    }
+
+    values: {
+        // Concrete values matching the value schema
+        web: {
+            image:    "nginx:latest"  // Required field
+            replicas: 3               // Optional with default
+        }
+    }
+}
+```
+
+**Key points:**
+- ModuleRelease is the deployable artifact
+- `metadata.namespace` is required (defines where to deploy)
+- `values` must satisfy the module's `#values` schema
+- All required fields (marked with `!`) must have concrete values
+- You can create multiple releases for different environments
+
+**Multiple environments:**
+```text
+releases/
+├── module_release.cue      # Default (local/test)
+├── dev.release.cue         # Development environment
+├── staging.release.cue     # Staging environment
+└── prod.release.cue        # Production environment
+```
+
+Each release can have different:
+- Replica counts
+- Container images (tags)
+- Resource limits
+- Environment-specific configuration
 
 ## Customization Guide
 

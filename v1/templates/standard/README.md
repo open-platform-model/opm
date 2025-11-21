@@ -22,7 +22,9 @@ standard/
 ├── cue.mod/module.cue           # CUE module definition
 ├── module_definition.cue         # ModuleDefinition (main entry point)
 ├── components.cue                # Component definitions
-└── values.cue                    # Value schema
+├── values.cue                    # Value schema
+└── releases/                     # Deployment releases
+    └── module_release.cue        # Default release with concrete values
 ```
 
 ## Quick Reference
@@ -30,8 +32,9 @@ standard/
 - **`module_definition.cue`** - Main entry point with module metadata
 - **`components.cue`** - Component definitions using Units and Traits
 - **`values.cue`** - Value schema with constraints and defaults
+- **`releases/module_release.cue`** - ModuleRelease with concrete values for deployment
 
-All files are in the same package—CUE automatically unifies them. No imports needed between these files.
+All definition files are in the same package—CUE automatically unifies them. No imports needed between these files. The releases/ directory uses imports to reference the parent module.
 
 ## Getting Started
 
@@ -90,6 +93,60 @@ The `values.cue` file defines constraints separately from components:
 - Changes to constraints don't affect component definitions
 - Value schema serves as configuration documentation
 
+### ModuleRelease for Deployment
+
+The `releases/module_release.cue` file provides concrete values for deployment:
+
+```cue
+core.#ModuleRelease & {
+    metadata: {
+        name:      "standard-app-local"
+        namespace: "default"  // Required: target namespace
+    }
+
+    module: {
+        // Reference to the module definition
+        // Imports parent package using: import module ".."
+    }
+
+    values: {
+        // Concrete values for ALL components
+        web: {
+            image:    "nginx:latest"
+            replicas: 3
+        }
+        db: {
+            image:      "postgres:14"
+            volumeSize: "10Gi"
+        }
+    }
+}
+```
+
+**Key characteristics:**
+- ModuleRelease is the deployable artifact that binds definition with values
+- Must provide concrete values for all required fields (marked with `!`)
+- Can override defaults for optional fields or use schema defaults
+- Target namespace is required (defines where to deploy)
+
+**Multiple environment releases:**
+
+Create additional release files for different environments:
+
+```text
+releases/
+├── module_release.cue      # Default (local/test)
+├── dev.release.cue         # Development
+├── staging.release.cue     # Staging
+└── prod.release.cue        # Production
+```
+
+Each environment can have different:
+- Container image tags (`v1.0.0` vs `v1.1.0`)
+- Replica counts (3 in dev, 10 in prod)
+- Resource allocations (smaller in dev, larger in prod)
+- Volume sizes (10Gi in dev, 100Gi in prod)
+
 ## File Responsibilities
 
 ### module_definition.cue
@@ -129,6 +186,19 @@ Edit this file to:
 - Document configuration options
 
 See the file for constraint patterns (required fields, defaults, validation).
+
+### releases/module_release.cue
+
+**Purpose:** Bind module definition with concrete values for deployment
+
+Edit this file to:
+
+- Provide concrete values for all components
+- Set target namespace for deployment
+- Configure environment-specific settings
+- Override defaults from value schema
+
+Create additional release files (`prod.release.cue`, `staging.release.cue`) for different environments with different configurations.
 
 ## Customization Guide
 

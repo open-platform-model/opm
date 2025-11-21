@@ -1,8 +1,8 @@
 package standard
 
 import (
-	workload_units "opm.dev/units/workload@v1"
-	storage_units "opm.dev/units/storage@v1"
+	workload_resources "opm.dev/resources/workload@v1"
+	storage_resources "opm.dev/resources/storage@v1"
 	workload_traits "opm.dev/traits/workload@v1"
 )
 
@@ -13,11 +13,11 @@ import (
 #components: {
 	// Example: Web server component (uncomment and customize)
 	web: {
-		// Compose component from units and traits using helper shortcuts
+		// Compose component from resources and traits using helper shortcuts
 		// CUE automatically unifies these into the component definition
-		units_workload.#Container // Adds container unit (workload type)
+		workload_resources.#Container // Adds container unit (workload type)
 
-		traits_workload.#Replicas // Adds replicas trait (scaling behavior)
+		workload_traits.#Replicas // Adds replicas trait (scaling behavior)
 
 		spec: {
 			container: {
@@ -37,17 +37,16 @@ import (
 	// Example: Database component (uncomment and customize)
 	db: {
 		// Compose component from units
-		units_workload.#Container // Adds container unit
+		workload_resources.#Container // Adds container unit
 
-		units_storage.#Volumes // Adds volumes unit (persistent storage)
+		storage_resources.#Volumes // Adds volumes unit (persistent storage)
 
 		spec: {
 			container: {
 				name:  #values.db.image  // Use image from values
 				image: "postgres:latest" // Customize with your database image
 				ports: {
-					dbPort: {
-						name:       "db-port"
+					"db-port": {
 						targetPort: 5432
 					}
 				}
