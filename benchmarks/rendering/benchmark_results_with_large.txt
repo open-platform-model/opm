@@ -1,0 +1,24 @@
+goos: linux
+goarch: amd64
+pkg: github.com/open-platform-model/opm/benchmarks/rendering
+cpu: AMD Ryzen AI 7 350 w/ Radeon 860M              
+BenchmarkRenderModuleDefinition_Simple-16              	     153	  37749459 ns/op	11594516 B/op	   93103 allocs/op
+BenchmarkRenderModule_Simple-16                        	     776	   6641444 ns/op	 4466996 B/op	   41635 allocs/op
+BenchmarkRenderModuleDefinition_Moderate-16            	      42	 129428307 ns/op	23079876 B/op	  177511 allocs/op
+BenchmarkRenderModule_Moderate-16                      	     555	   9973432 ns/op	 5877224 B/op	   55200 allocs/op
+BenchmarkStage_Load_Simple_ModuleDefinition-16         	     145	  40437850 ns/op	11586701 B/op	   93008 allocs/op
+BenchmarkStage_Load_Simple_Module-16                   	     897	   6449522 ns/op	 4455941 B/op	   41529 allocs/op
+BenchmarkStage_Load_Moderate_ModuleDefinition-16       	      46	 129404180 ns/op	23059382 B/op	  177386 allocs/op
+BenchmarkStage_Load_Moderate_Module-16                 	     607	   9955783 ns/op	 5865773 B/op	   55069 allocs/op
+BenchmarkStage_Extract_Simple_ModuleDefinition-16      	  937390	      5630 ns/op	    8070 B/op	      92 allocs/op
+BenchmarkStage_Extract_Simple_Module-16                	  858740	      6853 ns/op	    8758 B/op	     102 allocs/op
+BenchmarkStage_Extract_Moderate_ModuleDefinition-16    	  813499	      6844 ns/op	    9052 B/op	     116 allocs/op
+BenchmarkStage_Extract_Moderate_Module-16              	  665635	      8461 ns/op	    9740 B/op	     126 allocs/op
+BenchmarkRenderModuleDefinition_Large-16               	      16	 340064218 ns/op	47645819 B/op	  362670 allocs/op
+BenchmarkRenderModule_Large-16                         	     368	  15992801 ns/op	 7881859 B/op	   78365 allocs/op
+BenchmarkStage_Load_Large_ModuleDefinition-16          	      16	 329833849 ns/op	47608098 B/op	  362426 allocs/op
+BenchmarkStage_Load_Large_Module-16                    	     396	  14946597 ns/op	 7858440 B/op	   78111 allocs/op
+BenchmarkStage_Extract_Large_ModuleDefinition-16       	  472965	     12322 ns/op	   15105 B/op	     230 allocs/op
+BenchmarkStage_Extract_Large_Module-16                 	  329192	     19256 ns/op	   16721 B/op	     242 allocs/op
+PASS
+ok  	github.com/open-platform-model/opm/benchmarks/rendering	122.632s

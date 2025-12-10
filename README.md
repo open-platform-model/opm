@@ -52,13 +52,13 @@ In OPM, everything is a **Definition**.
 
 Each Definition type has a clear job. Together they describe what should run, how it should behave, how it's governed, and how it's delivered.
 
-### Unit
+### Resource
 
-A Unit is the fundamental building block inside a Component. It describes "the thing that actually exists."
+A Resource is the fundamental building block inside a Component. It describes "the thing that actually exists."
 
-A Component must include at least one Unit.
+A Component must include at least one Resource.
 
-A Unit can represent:
+A Resource can represent:
 
 * a workload (`#Container`)
 * persistent state / storage (`#Volume`)
@@ -71,13 +71,13 @@ Examples:
 * `#Volume` – describes one or more persistent volumes.
 * `#ConfigMap`, `#Secret` – configuration and sensitive inputs.
 
-You can declare multiple Units in the same Component (for example: one container plus multiple volumes). At least one is required so the Component is about something real.
+You can declare multiple Resources in the same Component (for example: one container plus multiple volumes). At least one is required so the Component is about something real.
 
 ### Trait
 
 A Trait is an optional behavior and property modifier that applies to a Component.
 
-Traits adjust how a Component runs, scales, exposes itself, and reports health. Traits may relate to specific Units via `parentUnits`, but they modify the Component's overall behavior, not individual Units.
+Traits adjust how a Component runs, scales, exposes itself, and reports health. Traits may relate to specific Resources via `parentResources`, but they modify the Component's overall behavior, not individual Resources.
 
 Examples:
 
@@ -88,13 +88,13 @@ Examples:
 
 You can attach multiple Traits to the same Component. Defaults exist so you don't have to specify every Trait every time.
 
-In plain terms: Units are "what exists," Traits are "how the Component behaves."
+In plain terms: Resources are "what exists," Traits are "how the Component behaves."
 
 ### Blueprint
 
-A Blueprint is a reusable, higher-level definition that bundles Units and Traits into something humans actually want to deploy.
+A Blueprint is a reusable, higher-level definition that bundles Resources and Traits into something humans actually want to deploy.
 
-Blueprints exist so most developers don't have to wire Units and Traits manually.
+Blueprints exist so most developers don't have to wire Resources and Traits manually.
 
 Examples:
 
@@ -109,8 +109,8 @@ A Component is what an application developer (or platform engineer acting as an 
 
 A Component can be:
 
-* one or more Units plus Traits, or
-* a Blueprint, which already packages Units + Traits.
+* one or more Resources plus Traits, or
+* a Blueprint, which already packages Resources + Traits.
 
 In other words: the Component is the "piece of the app" you're describing.
 
@@ -166,9 +166,9 @@ A **Component** belongs to a ModuleDefinition. It represents one logical part of
 
 A Component is made from:
 
-* one or more Units (required),
+* one or more Resources (required),
 * optional Traits that modify the Component's behavior,
-* or a Blueprint (which already bundles Units and Traits).
+* or a Blueprint (which already bundles Resources and Traits).
 
 There are two broad categories of Components:
 
@@ -239,7 +239,7 @@ The portable intent. Created by developers and/or platform engineers.
 A ModuleDefinition for the developer:
 
 * declares Components,
-* wires Units and Traits (or uses Blueprints),
+* wires Resources and Traits (or uses Blueprints),
 * defines which values are tunable by the eventual user,
 * may already include Scopes.
 
@@ -260,7 +260,7 @@ The compiled and optimized form.
 
 A Module is the flattened result of a ModuleDefinition:
 
-* Blueprints are expanded into their constituent Units and Traits,
+* Blueprints are expanded into their constituent Resources and Traits,
 * the structure is optimized for runtime evaluation,
 * defaults are resolved,
 * everything is ready for binding with concrete values.
@@ -311,7 +311,7 @@ The point: mistakes get caught before rollout, not in production.
 | Configuration          | String templating in YAML           | Structured Definitions with constraints                             |
 | Policy Enforcement     | Out-of-band / manual                | Built-in via Policies + Scopes                                      |
 | Separation of Concerns | Single blob owned by whoever yells  | ModuleDefinition → Module → ModuleRelease                           |
-| Reuse                  | Subcharts, values files             | Blueprints (Units + Traits pre-bundled)                             |
+| Reuse                  | Subcharts, values files             | Blueprints (Resources + Traits pre-bundled)                             |
 | Portability            | Usually vendor- or cluster-specific | Same ModuleDefinition, different providers apply different Policies |
 | Compliance             | Manual review / wiki docs           | Scopes can express residency, security posture, audit requirements  |
 
@@ -321,7 +321,7 @@ The point: mistakes get caught before rollout, not in production.
 
 ### Now
 
-* Define and stabilize the Definition types (Unit, Trait, Blueprint, Component, Policy, Scope).
+* Define and stabilize the Definition types (Resource, Trait, Blueprint, Component, Policy, Scope).
 * Build a growing library of reusable Blueprints for common workloads.
 * Kubernetes provider implementation.
 * CLI and developer workflow around ModuleDefinition → Module → ModuleRelease.
