@@ -48,6 +48,8 @@ All core definitions use short names without the "Definition" suffix:
 - Q: What distinguishes a Trait from a Policy? → A: **Semantic purpose and enforcement**. Traits configure behavior ("run 3 replicas"). Policies enforce constraints ("must not run as root"). Policies have `enforcement` settings (mode, onViolation) while Traits do not.
 - Q: What are the policy levels? → A: **Component** (intrinsic to one component), **Scope** (cross-cutting across components), and **Module** (runtime enforcement via `#Module.#policies`).
 - Q: Should Policies have `appliesTo` like Traits? → A: No. Traits declare Resource compatibility via `appliesTo`. Policies declare application level via `target` (component or scope). They serve different purposes.
+- Q: How do transformers match components? → A: **Label-based matching**. Transformers declare `requiredLabels` that components must have. Component labels are the union of labels from the component itself plus all attached `#resources`, `#traits`, and `#policies`. Example: `#Container` component wrapper requires `workload-type` label, so users must specify "stateless" or "stateful", which transformers then match against.
+- Q: What happens when multiple transformers match? → A: If they have **identical requirements** (same requiredLabels + requiredResources + requiredTraits + requiredPolicies), it's an error. If they have **different requirements** (e.g., one requires Expose trait, one doesn't), they are complementary and both execute.
 
 ### Session 2025-12-09
 
@@ -117,21 +119,20 @@ A deployment system creates a ModuleRelease with concrete values targeting a spe
 
 ### User Story 6 - Transform to Platform Resources (Priority: P3)
 
-A provider transforms OPM components into platform-specific resources (e.g., Kubernetes Deployments).
+A provider transforms OPM components into platform-specific resources (e.g., Kubernetes Deployments). Transformers use label-based matching to determine which components they can handle. Component labels are inherited from attached resources, traits, and policies.
 
-**Acceptance Scenarios**:
-
-1. **Given** a Transformer with `requiredResources: [Container]`, **When** a component has that resource, **Then** the transform function receives the component.
-2. **Given** a Provider with transformers, **When** evaluated, **Then** `#declaredResources`, `#declaredTraits`, and `#declaredPolicies` list all supported FQNs.
+See [Transformer Matching Subsystem](./subsystems/transformer-matching.md) for detailed matching algorithm, acceptance criteria, and examples.
 
 ---
 
 ### Edge Cases
 
 - **Conflicting labels**: CUE unification fails automatically when resources/traits have conflicting labels.
-- **Optional traits not provided**: Transformers use `#defaults` from the Trait.
+- **Optional traits not provided**: Transformers use `#defaults` from the Trait definition.
 - **Scope matches no components**: Valid but has no effect.
 - **Platform-locked value override attempt**: CUE unification enforces immutability.
+
+See [Transformer Matching Subsystem](./subsystems/transformer-matching.md) for transformer-specific edge cases.
 
 ## Requirements
 
@@ -213,11 +214,21 @@ A provider transforms OPM components into platform-specific resources (e.g., Kub
 
 ### Provider and Transformation
 
+#### Transformer Structure
+
 - **FR-034**: `#Provider` contains a transformer registry mapping to platform resources.
-- **FR-035**: `#Transformer` declares required/optional resources, traits, policies and a `#transform` function.
-- **FR-036**: Transformer `#transform` MUST output a list of resources.
+- **FR-035**: `#Transformer` declares `requiredLabels`, required/optional resources, traits, policies, and a `#transform` function.
+- **FR-036**: Transformer `#transform` MUST output a list of resources (even for single-resource output).
 - **FR-037**: Provider MUST compute `#declaredResources`, `#declaredTraits`, `#declaredPolicies` from transformers.
 - **FR-038**: `#Renderer` converts transformed resources to manifest formats (yaml/json/toml/hcl).
+
+#### Label-Based Matching (FR-045 to FR-051)
+
+See [Transformer Matching Subsystem](./subsystems/transformer-matching.md) for detailed requirements covering:
+
+- Label-based matching algorithm (FR-045 to FR-047)
+- Conflict detection for identical vs complementary transformers (FR-048, FR-049)
+- Transform execution and output concatenation (FR-050, FR-051)
 
 ### Bundles and Templates
 
@@ -267,12 +278,12 @@ A provider transforms OPM components into platform-specific resources (e.g., Kub
 
 ### Platform Types
 
-| Entity | Purpose |
-|--------|---------|
-| `#Provider` | Platform adapter with transformer registry |
-| `#Transformer` | Converts components to platform resources |
-| `#Renderer` | Outputs final manifests |
-| `#Template` | Module initialization template |
+| Entity | Purpose | Key Fields |
+|--------|---------|------------|
+| `#Provider` | Platform adapter with transformer registry | `transformers`, `#declaredResources`, `#declaredTraits`, `#declaredPolicies` |
+| `#Transformer` | Converts components to platform resources | `requiredLabels`, `requiredResources`, `optionalResources`, `requiredTraits`, `optionalTraits`, `requiredPolicies`, `optionalPolicies`, `#transform` |
+| `#Renderer` | Outputs final manifests | `format` (yaml/json/toml/hcl) |
+| `#Template` | Module initialization template | `category`, `level` |
 
 ## Success Criteria
 
@@ -283,6 +294,9 @@ A provider transforms OPM components into platform-specific resources (e.g., Kub
 - **SC-005**: Modules without `values.cue` fail validation.
 - **SC-006**: Platform-locked values cannot be overridden by end-users.
 - **SC-007**: Provider correctly computes declared resources/traits/policies from transformers.
+- **SC-008**: Transformer matching correctly uses `requiredLabels` - only transformers whose labels match component labels are candidates.
+- **SC-009**: Multiple exact transformer matches (identical requirements) produce an error.
+- **SC-010**: Complementary transformers (different requirements) both match and produce concatenated output.
 
 ## Schema References
 
