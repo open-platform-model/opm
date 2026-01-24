@@ -1,15 +1,27 @@
 #!/usr/bin/env bash
 # Common functions and variables for all scripts
 
-# Get repository root, with fallback for non-git repositories
+# Get the .specify root directory (where .specify/ lives)
+# This is the "project root" for specs, which may differ from git root in monorepos
+get_specify_root() {
+    local script_dir="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    # Script is at .specify/scripts/bash/, so go up 3 levels to get .specify's parent
+    (cd "$script_dir/../../.." && pwd)
+}
+
+# Get repository root (git root), with fallback for non-git repositories
 get_repo_root() {
     if git rev-parse --show-toplevel >/dev/null 2>&1; then
         git rev-parse --show-toplevel
     else
-        # Fall back to script location for non-git repos
-        local script_dir="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        (cd "$script_dir/../../.." && pwd)
+        # Fall back to specify root for non-git repos
+        get_specify_root
     fi
+}
+
+# Get specs directory path
+get_specs_dir() {
+    echo "$(get_specify_root)/specs"
 }
 
 # Get current branch, with fallback for non-git repositories
@@ -27,8 +39,7 @@ get_current_branch() {
     fi
 
     # For non-git repos, try to find the latest feature directory
-    local repo_root=$(get_repo_root)
-    local specs_dir="$repo_root/specs"
+    local specs_dir=$(get_specs_dir)
 
     if [[ -d "$specs_dir" ]]; then
         local latest_feature=""
@@ -81,14 +92,13 @@ check_feature_branch() {
     return 0
 }
 
-get_feature_dir() { echo "$1/specs/$2"; }
+get_feature_dir() { echo "$(get_specs_dir)/$1"; }
 
 # Find feature directory by numeric prefix instead of exact branch match
 # This allows multiple branches to work on the same spec (e.g., 004-fix-bug, 004-add-feature)
 find_feature_dir_by_prefix() {
-    local repo_root="$1"
-    local branch_name="$2"
-    local specs_dir="$repo_root/specs"
+    local branch_name="$1"
+    local specs_dir=$(get_specs_dir)
 
     # Extract numeric prefix from branch (e.g., "004" from "004-whatever")
     if [[ ! "$branch_name" =~ ^([0-9]{3})- ]]; then
@@ -126,6 +136,7 @@ find_feature_dir_by_prefix() {
 
 get_feature_paths() {
     local repo_root=$(get_repo_root)
+    local specify_root=$(get_specify_root)
     local current_branch=$(get_current_branch)
     local has_git_repo="false"
 
@@ -134,10 +145,11 @@ get_feature_paths() {
     fi
 
     # Use prefix-based lookup to support multiple branches per spec
-    local feature_dir=$(find_feature_dir_by_prefix "$repo_root" "$current_branch")
+    local feature_dir=$(find_feature_dir_by_prefix "$current_branch")
 
     cat <<EOF
 REPO_ROOT='$repo_root'
+SPECIFY_ROOT='$specify_root'
 CURRENT_BRANCH='$current_branch'
 HAS_GIT='$has_git_repo'
 FEATURE_DIR='$feature_dir'

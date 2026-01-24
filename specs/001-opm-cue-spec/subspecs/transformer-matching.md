@@ -210,27 +210,17 @@ api: #Component & {
 
 ### Label-Based Matching
 
-- **FR-045**: Transformer MAY specify `requiredLabels: [string]: string` - label key-value pairs that a component MUST have to match.
-
-- **FR-046**: Component labels are the union of `metadata.labels` from all attached `#resources`, `#traits`, and `#policies`.
-
-- **FR-047**: A transformer matches a component when ALL of the following are true:
+- **FR-14-001**: Transformer MAY specify `requiredLabels: [string]: string` - label key-value pairs that a component MUST have to match.
+- **FR-14-002**: Component labels are the union of `metadata.labels` from all attached `#resources`, `#traits`, and `#policies`.
+- **FR-14-003**: A transformer matches a component when ALL of the following are true:
   - ALL `requiredLabels` are present on component with matching values
   - ALL `requiredResources` FQNs exist in `component.#resources`
   - ALL `requiredTraits` FQNs exist in `component.#traits`
   - ALL `requiredPolicies` FQNs exist in `component.#policies`
-
-### Conflict Detection
-
-- **FR-048**: When multiple transformers match a component with identical requirements (same requiredLabels, requiredResources, requiredTraits, requiredPolicies), the system MUST error.
-
-- **FR-049**: Transformers with different requirements (e.g., different `requiredTraits`) are considered complementary and may both match the same component.
-
-### Transform Execution
-
-- **FR-050**: Each matched transformer receives the full component (components are not partitioned across transformers).
-
-- **FR-051**: Outputs from multiple matched transformers are concatenated into a single resource list.
+- **FR-14-004**: When multiple transformers match a component with identical requirements (same requiredLabels, requiredResources, requiredTraits, requiredPolicies), the system MUST error.
+- **FR-14-005**: Transformers with different requirements (e.g., different `requiredTraits`) are considered complementary and may both match the same component.
+- **FR-14-006**: Each matched transformer receives the full component (components are not partitioned across transformers).
+- **FR-14-007**: Outputs from multiple matched transformers are concatenated into a single resource list.
 
 ## Edge Cases
 
@@ -243,3 +233,11 @@ api: #Component & {
 | Unhandled traits (`--strict` mode) | Error with list of unhandled traits |
 | No transformers match | Error with component details and available transformers |
 | Conflicting labels from definitions | CUE unification fails automatically |
+| Optional traits not provided | Transformers use `#defaults` from the Trait definition |
+
+## Success Criteria
+
+- **SC-007**: Provider correctly computes declared resources/traits/policies from transformers.
+- **SC-008**: Transformer matching correctly uses `requiredLabels` - only transformers whose labels match component labels are candidates.
+- **SC-009**: Multiple exact transformer matches (identical requirements) produce an error.
+- **SC-010**: Complementary transformers (different requirements) both match and produce concatenated output.

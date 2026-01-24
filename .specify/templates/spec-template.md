@@ -5,6 +5,8 @@
 **Status**: Draft  
 **Input**: User description: "$ARGUMENTS"
 
+> **IMPORTANT**: When creating a new spec, update the Project Structure tree in `/AGENTS.md` to include it.
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--

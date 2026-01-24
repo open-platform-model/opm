@@ -2,7 +2,32 @@
 
 ## Overview
 
-Landing project with docs, V1 specs (V1ALPHA1_SPECS/), benchmarks, and Taskfile automation.
+Landing project with docs, specs, benchmarks, and Taskfile automation.
+
+## Project Structure
+
+```text
+├── .specify/          # Spec-driven development configuration
+│   ├── memory/        # Constitution and memory files
+│   ├── scripts/       # Automation scripts
+│   └── templates/     # Templates for specs, plans, tasks, checklists
+├── benchmarks/        # Performance benchmarks
+│   └── rendering/     # Module rendering benchmarks
+├── docs/              # End-user documentation
+├── specs/             # Specifications
+│   ├── 001-opm-cue-spec/
+│   ├── 002-interface-spec/
+│   ├── 003-lifecycle-spec/
+│   ├── 004-cli-spec/
+│   ├── 005-taskfile-spec/
+│   └── 006-cli-module-template-spec/
+├── README.md
+└── Taskfile.yml
+```
+
+## Maintenance Notes
+
+- **Project Structure Tree**: Update the tree above when adding new specs or directories.
 
 ## Build/Test Commands
 
@@ -29,13 +54,6 @@ Landing project with docs, V1 specs (V1ALPHA1_SPECS/), benchmarks, and Taskfile 
 - **CUE**: Use `#` for definitions, `_` for hidden fields, `!` for required. See CUE_GUIDE.md.
 - **Specs**: Markdown in V1ALPHA1_SPECS/. Use consistent heading structure.
 - **Commits**: `type(scope): description` - scopes: vision/architecture/resource/trait/cli/module.
-
-## Key Files
-
-- `CLAUDE.md` - Comprehensive AI assistant context (use as primary reference)
-- `V1ALPHA1_SPECS/` - Formal API specifications
-- `Taskfile.yml` - All automation tasks
-- `.tasks/config.yml` - Module configuration
 
 ## Patterns
 

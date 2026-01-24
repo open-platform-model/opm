@@ -58,7 +58,7 @@
 
 - **Renamed**: `#Module` → `#CompiledModule` to avoid terminology collision
 - **Renamed**: `#Bundle` → `#CompiledBundle` for consistency
-- **Rationale**: "Module" was overloaded—used for both the CUE definition (flattened IR) and the module repository (directory with `module_definition.cue`, `values.cue`, etc.)
+- **Rationale**: "Module" was overloaded—used for both the CUE definition (flattened IR) and the module repository (directory with `module.cue`, `values.cue`, etc.)
 - **Updated**: FR-002, FR-003, FR-021
 - **Updated**: User Story 3, User Story 5 acceptance scenarios
 - **Added**: "Module (repository/package)" to Key Entities to clarify the directory structure concept
