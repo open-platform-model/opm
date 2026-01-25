@@ -15,12 +15,19 @@ Landing project with docs, specs, benchmarks, and Taskfile automation.
 │   └── rendering/     # Module rendering benchmarks
 ├── docs/              # End-user documentation
 ├── specs/             # Specifications
-│   ├── 001-opm-cue-spec/
-│   ├── 002-interface-spec/
-│   ├── 003-lifecycle-spec/
-│   ├── 004-cli-spec/
-│   ├── 005-taskfile-spec/
-│   └── 006-cli-module-template-spec/
+│   ├── 001-core-definitions-spec/
+│   ├── 002-cli-spec/
+│   ├── 003-taskfile-spec/
+│   ├── 004-definition-resource/
+│   ├── 005-definition-trait/
+│   ├── 006-definition-policy-spec/
+│   ├── 007-definition-blueprint-spec/
+│   ├── 008-definition-status-spec/
+│   ├── 009-definition-interface-spec/
+│   ├── 010-definition-lifecycle-spec/
+│   ├── 011-distribution-spec/
+│   ├── 012-cli-module-template-spec/
+│   └── 013-cli-render-spec/
 ├── README.md
 └── Taskfile.yml
 ```
@@ -60,24 +67,13 @@ Landing project with docs, specs, benchmarks, and Taskfile automation.
 - Definition structure: `apiVersion`, `kind`, `metadata` (with `name!`, `fqn`), `#spec`.
 - Three-layer module: ModuleDefinition -> Module -> ModuleRelease.
 
-## Personas
+## Glossary
 
-### Module Developer
+See [full glossary](docs/glossary.md) for detailed definitions.
 
-A developer of an OPM module. Responsible for maintaing the ModuleDefinition.
+### Personas
 
-### Platform team
-
-A team of operators consuming Modules and optinally modifying them to fit their needs. Responsible for the platform catalog (a catalog of curated modules).
-Consumes either an OPM Module (optimized and unchanged) or a ModuleDefinition when platform specifc modifications are required.
-
-### End-user
-
-The user that consumes a ModuleRelease.
-
-## Terms and Definitions
-
-- `ModuleDefinition` - A CUE OPM definition that acts as the RAW input for the model.
-- `CompiledModule` - A CUE OPM definition that acts as the optimized (flattened) version of the ModuleDefintion.
-- `ModuleRelease` - A CUE OPM definition that is used by end-users to reference either a ModuleDefintion or a CompiledModule for deployment.
-- `` -  
+- **Infrastructure Operator** - Operates underlying infrastructure (clusters, cloud, networking)
+- **Module Author** - Develops and maintains ModuleDefinitions with sane defaults
+- **Platform Operator** - Curates module catalog, bridges infrastructure and end-users
+- **End-user** - Consumes modules via ModuleRelease with concrete values
