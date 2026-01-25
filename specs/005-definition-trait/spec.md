@@ -52,7 +52,7 @@ A **Platform Operator** needs to publish a validated Trait definition to the reg
 
 **Acceptance Scenarios**:
 
-1. **Given** a valid Trait definition, **When** running `opm def trait publish`, **Then** it is successfully pushed to the registry.
+1. **Given** a valid Trait definition, **When** running `cue mod publish <version>`, **Then** it is successfully pushed to the registry.
 
 ## Edge Cases
 
@@ -84,7 +84,7 @@ A **Platform Operator** needs to publish a validated Trait definition to the reg
 
 - **FR-011**: The CLI MUST support initializing a new Trait via `opm def trait init`.
 - **FR-012**: The CLI MUST support validating a Trait via `opm def trait vet`.
-- **FR-013**: The CLI MUST support publishing a Trait via `opm def trait publish`.
+- **FR-013**: Trait publishing MUST use the standard CUE module workflow via `cue mod publish <version>`.
 
 ### Key Entities
 

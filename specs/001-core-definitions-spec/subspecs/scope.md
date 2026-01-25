@@ -4,6 +4,8 @@
 **Status**: Draft  
 **Last Updated**: 2025-12-26
 
+**Superseded By**: [Definition Scope Specification](../../014-definition-scope-spec/spec.md)
+
 ## Overview
 
 This document defines how scopes apply policies to groups of components within OPM modules. Scopes are cross-cutting policy applicators - they enable platform teams to apply governance rules across multiple components without modifying each component individually.

@@ -55,6 +55,20 @@ As a Module Author, I want to apply policies to specific scopes of components so
 
 ---
 
+### User Story 4 - Publishing a Policy (Priority: P2)
+
+As a Platform Operator, I want to publish validated Policy definitions to an OCI registry so they can be shared across teams.
+
+**Why this priority**: Policies are only reusable across catalogs when they can be distributed consistently.
+
+**Independent Test**: Publish a policy module to a local registry using `cue mod publish` and verify the artifact exists.
+
+**Acceptance Scenarios**:
+
+1. **Given** a valid Policy definition module, **When** running `cue mod publish <version>`, **Then** the module is pushed to the registry.
+
+---
+
 ### Edge Cases
 
 | Case | Behavior |

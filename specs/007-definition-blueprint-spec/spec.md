@@ -54,6 +54,20 @@ As a platform operator, I want to review Blueprint definitions for consistent me
 
 ---
 
+### User Story 4 - Publishing a Blueprint (Priority: P2)
+
+As a Platform Operator, I want to publish validated Blueprint definitions to an OCI registry so they can be reused across teams.
+
+**Why this priority**: Blueprints only deliver reuse once they can be distributed from a catalog.
+
+**Independent Test**: Publish a blueprint module to a local registry using `cue mod publish` and verify the artifact exists.
+
+**Acceptance Scenarios**:
+
+1. **Given** a valid Blueprint definition module, **When** running `cue mod publish <version>`, **Then** the module is pushed to the registry.
+
+---
+
 ### Edge Cases
 
 - Blueprint definition omits composed Resources.

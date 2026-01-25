@@ -15,7 +15,7 @@ The resource system for OPM is now defined in the **Resource Definition Specific
 Key features of the new specification:
 
 - **#Resource Definition**: Detailed schema for authoring resources.
-- **CLI Integration**: Standardized commands for resource management.
+- **Publishing**: Use `cue mod publish <version>` to push resource definitions.
 - **FQN Patterns**: Formalized naming conventions.
 
 For the complete specification including schemas, requirements, and examples, refer to the [Resource Definition Specification](../../004-definition-resource/spec.md).

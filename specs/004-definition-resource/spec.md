@@ -35,7 +35,7 @@ A **Platform Operator** needs to publish a validated Resource definition to an O
 
 **Acceptance Scenarios**:
 
-1. **Given** a valid `resource.cue` file, **When** running `opm def resource publish`, **Then** the CLI packages the definition and pushes it to the registry path defined in `apiVersion`.
+1. **Given** a valid `resource.cue` file, **When** running `cue mod publish <version>`, **Then** the module is pushed to the registry path defined in `apiVersion`.
 2. **Given** an invalid Resource definition, **When** running `opm def resource vet`, **Then** the CLI reports specific validation errors.
 
 ---
@@ -81,7 +81,7 @@ A **Module Author** needs to use a published Resource in a Component to define w
 
 - **FR-010**: The CLI MUST support initializing a new Resource via `opm def resource init`.
 - **FR-011**: The CLI MUST support validating a Resource via `opm def resource vet`.
-- **FR-012**: The CLI MUST support publishing a Resource via `opm def resource publish`.
+- **FR-012**: Resource publishing MUST use the standard CUE module workflow via `cue mod publish <version>`.
 
 ### Key Entities
 

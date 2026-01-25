@@ -16,6 +16,6 @@ Key features of the new specification:
 
 - **#Trait Definition**: Detailed schema for authoring traits.
 - **Applicability Rules**: Strict `appliesTo` whitelist enforcement.
-- **CLI Integration**: Standardized commands for trait management.
+- **Publishing**: Use `cue mod publish <version>` to push trait definitions.
 
 For the complete specification including schemas, requirements, and examples, refer to the [Trait Definition Specification](../../005-definition-trait/spec.md).
