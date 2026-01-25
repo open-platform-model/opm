@@ -4,7 +4,7 @@
 
 The Open Platform Model (OPM) represents a fundamental evolution beyond Helm Charts for Kubernetes application packaging and deployment. While Helm pioneered template-based configuration management, OPM introduces a type-safe, constraint-based approach using CUE that eliminates entire categories of errors, provides true modularity, and enables platform teams to enforce organizational policies without breaking application portability.
 
-OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) creates clear separation of concerns: developers and/or platform teams create ModuleDefinitions, the CLI compiles them into Modules (optimized IR), and users deploy ModuleReleases with concrete values - something Helm's monolithic chart structure cannot achieve. With built-in policy enforcement through scopes, composition using Units, Traits, and Blueprints for maximum reusability, and CUE's powerful type system preventing configuration drift, OPM delivers the reliability, governance, and developer experience that modern cloud-native organizations require.
+OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) creates clear separation of concerns: developers and/or platform teams create ModuleDefinitions, the CLI compiles them into Modules (optimized IR), and users deploy ModuleReleases with concrete values - something Helm's monolithic chart structure cannot achieve. With built-in policy enforcement through scopes, composition using Resources, Traits, and Blueprints for maximum reusability, and CUE's powerful type system preventing configuration drift, OPM delivers the reliability, governance, and developer experience that modern cloud-native organizations require.
 
 ## Why OPM is Superior to Helm Charts
 
@@ -22,7 +22,7 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 - CUE-based with compile-time type checking
 - Built from Units (what exists), Traits (how it behaves), Policies (governance rules), and Blueprints (blessed patterns)
-- Components can contain Units, Traits, AND Policies - Helm has no equivalent concept
+- Components can contain Resources, Traits, AND Policies - Helm has no equivalent concept
 - Errors caught before deployment
 - Strong typing prevents invalid configurations
 - Built-in schema validation and constraints
@@ -41,7 +41,7 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 - Three distinct layers with clear ownership:
   - **ModuleDefinition**: Developer-owned application logic OR platform team's extension via CUE unification
-  - **Module**: Compiled/optimized form (IR) after flattening Blueprints into Units, Traits, and Policies
+  - **Module**: Compiled/optimized form (IR) after flattening Blueprints into Resources, Traits, and Policies
   - **ModuleRelease**: User deployment with concrete values targeting specific environments
 - Platform teams can add Scopes and Policies via CUE unification without modifying developer code
 - Developers define application logic and value constraints (NO defaults)
@@ -78,12 +78,12 @@ OPM's three-layer architecture (ModuleDefinition → Module → ModuleRelease) c
 
 - Unit, Trait, and Policy-based composition enables maximum reuse
 - **Components can contain all three**: Units (what exists), Traits (how it behaves), AND Policies (governance rules) - Helm has nothing comparable
-- Blueprints bundle Units and Traits into reusable patterns
+- Blueprints bundle Resources and Traits into reusable patterns
 - Components are first-class citizens
-- Units, Traits, and Policies can be mixed and matched freely
+- Resources, Traits, and Policies can be mixed and matched freely
 - Resource sharing between components is natural
 - True modularity through CUE's composition model
-- **Blueprint Flattening**: Blueprints are compilation-time constructs. When a ModuleDefinition is compiled into a Module (IR - Intermediate Representation), Blueprints are expanded into their constituent Units, Traits, and Policies. This optimization provides 50-80% faster runtime builds since the Module only contains Units, Traits, and Policies, with structure optimized for runtime evaluation.
+- **Blueprint Flattening**: Blueprints are compilation-time constructs. When a ModuleDefinition is compiled into a Module (IR - Intermediate Representation), Blueprints are expanded into their constituent Resources, Traits, and Policies. This optimization provides 50-80% faster runtime builds since the Module only contains Resources, Traits, and Policies, with structure optimized for runtime evaluation.
 
 ### 5. Configuration Management
 
@@ -270,10 +270,10 @@ Platform requirements require chart forking or complex umbrella charts.
     }
     components: {
         database: {
-            // Blueprint expanded into Units and Traits
+            // Blueprint expanded into Resources and Traits
             #units: {
-                "opm.dev/units/workload@v1#Container": {}
-                "opm.dev/units/storage@v1#Volume": {}
+                "opm.dev/resources/workload@v1#Container": {}
+                "opm.dev/resources/storage@v1#Volumes": {}
             }
             #traits: {
                 "opm.dev/traits/scaling@v1#Replicas": {}
@@ -284,7 +284,7 @@ Platform requirements require chart forking or complex umbrella charts.
             }
 
             #Container
-            #Volume
+            #Volumes
             #Replicas
             #ResourceLimit
 

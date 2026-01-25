@@ -1,10 +1,19 @@
 out.cue
+out_test.cue
 out.yaml
 subdir
 dagger.json
 
 # Taskfile
 .registry-data/
+.checksums/
 .env
 watch-fmt
 watch-vet
+.task
+.old/
+testing
+
+# Module backup files
+*.backup
+cue.mod/module.cue.backup
