@@ -1,4 +1,4 @@
-# OPM Lifecycle Specification
+# Feature Specification: Definition Lifecycle Specification (DRAFT)
 
 **Status**: Draft  
 **Last Updated**: 2026-01-22

@@ -1,4 +1,4 @@
-# Feature Specification: Policy Definition
+# Feature Specification: Policy Definition Specification
 
 **Feature Branch**: `006-definition-policy-spec`
 **Created**: 2026-01-25

@@ -1,4 +1,4 @@
-# Feature Specification: Definition Status System
+# Feature Specification: Definition Status Specification
 
 **Feature Branch**: `008-definition-status-spec`  
 **Created**: 2026-01-24  

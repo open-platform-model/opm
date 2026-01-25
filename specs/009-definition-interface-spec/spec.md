@@ -1,4 +1,4 @@
-# Feature Specification: OPM Interface Model (DRAFT)
+# Feature Specification: Definition Interface Specification (DRAFT)
 
 **Status**: Draft (Archived)
 **Last Updated**: 2026-01-21
