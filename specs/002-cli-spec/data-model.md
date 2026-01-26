@@ -226,7 +226,7 @@ const DefaultWeight = 100
 // Labels used to identify OPM-managed resources
 const (
     LabelManagedBy       = "app.kubernetes.io/managed-by"
-    LabelManagedByValue  = "opm-platform-model"
+    LabelManagedByValue  = "open-platform-model"
     LabelModuleName      = "module.opmodel.dev/name"
     LabelModuleNamespace = "module.opmodel.dev/namespace"
     LabelModuleVersion   = "module.opmodel.dev/version"
@@ -663,4 +663,4 @@ type Client interface {
 | `module.opmodel.dev/namespace` | Required, must match target namespace |
 | `module.opmodel.dev/version` | Required, must match module version |
 | `component.opmodel.dev/name` | Required, must match component version |
-| `app.kubernetes.io/managed-by` | Required, must be `opm-platform-model` |
+| `app.kubernetes.io/managed-by` | Required, must be `open-platform-model` |

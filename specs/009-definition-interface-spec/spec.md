@@ -3,6 +3,8 @@
 **Status**: Draft (Archived)
 **Last Updated**: 2026-01-21
 
+> **Moved**: This specification has been migrated into the core definitions spec as a subspec. See [Interface Definition](../001-core-definitions-spec/subspecs/interface.md).
+
 ## Overview
 
 This document specifies the interface and dependency management system for the Open Platform Model (OPM). It was part of the original core specification but has since been separated for potential future development.

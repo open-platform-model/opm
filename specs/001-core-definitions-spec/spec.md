@@ -44,6 +44,27 @@ All core definitions use short names without the "Definition" suffix:
 - `#Scope` (not `#ScopeDefinition`)
 - `#Module` (not `#ModuleDefinition`)
 
+## Feature Availability
+
+To minimize cognitive load for the initial release (CLI v1), some core definitions are specified but **deferred**. They are part of the OPM model but will be enabled in future releases.
+
+| Definition | Status | Description |
+|------------|--------|-------------|
+| **#Resource** | **Enabled** | Core deployable unit |
+| **#Trait** | **Enabled** | Behavior modifier |
+| **#Blueprint** | **Enabled** | Reusable composition pattern |
+| **#Component** | **Enabled** | Logical application part |
+| **#Module** | **Enabled** | Portable application package |
+| **#Provider** | **Enabled** | Platform adapter |
+| **#Transformer** | **Enabled** | Resource transformation logic |
+| **#Template** | **Enabled** | Module initialization template |
+| **#Interface** | Deferred | Module interface contracts |
+| **#Lifecycle** | Deferred | Transition-time operations |
+| **#Policy** | Deferred | Governance constraint |
+| **#Scope** | Deferred | Policy applicator |
+| **#Status** | Deferred | Health and state reporting |
+| **#Bundle** | Deferred | Multi-module application stack |
+
 ## Clarifications
 
 ### Session 2025-12-10
@@ -52,9 +73,12 @@ All core definitions use short names without the "Definition" suffix:
 - Q: What are the policy levels? → A: **Scope** (cross-cutting across components).
 - Q: Should Policies have `appliesTo` like Traits? → A: No. Traits declare Resource compatibility via `appliesTo`. Policies declare application level via `target` (component or scope). They serve different purposes.
 - Q: How do transformers match components? → A: **Label-based matching**. Transformers declare `requiredLabels` that components must have. Component labels are the union of labels from the component itself plus all attached `#resources` and `#traits`. Example: `#Container` component wrapper requires `workload-type` label, so users must specify "stateless" or "stateful", which transformers then match against.
-- Q: What happens when multiple transformers match? → A: If they have **identical requirements** (same requiredLabels + requiredResources + requiredTraits + requiredPolicies), it's an error. If they have **different requirements** (e.g., one requires Expose trait, one doesn't), they are complementary and both execute.
-
+- Q: What happens when multiple transformers match? → A: If they have **identical requirements** (same requiredLabels + requiredResources + requiredTraits), it's an error. If they have **different requirements** (e.g., one requires Expose trait, one doesn't), they are complementary and both execute.
 - Q: What about the Module naming collision? → A: `#Module` is the CUE definition for the portable application blueprint. `#ModuleCompiled` is the compiled/flattened form. "Module package" refers to the file system structure.
+
+### Session 2026-01-26
+
+- Q: When are policies enforced? → A: Runtime only (controller/provider enforcement after deployment).
 
 ## User Scenarios
 
@@ -69,8 +93,9 @@ See [Module Component Subspec](./subspecs/component.md) for acceptance criteria.
 ### User Story 2 - Apply Governance via Policies (Priority: P1)
 
 A platform team applies governance rules using Policies via scopes, including module-wide scopes.
+Policies are enforced at runtime by controllers/providers; schema-time validation does not enforce policy behavior.
 
-See [Module Policy Subspec](./subspecs/policy.md) for acceptance criteria.
+See [Policy Definition Specification](./subspecs/policy.md) for acceptance criteria.
 
 ---
 
@@ -78,7 +103,7 @@ See [Module Policy Subspec](./subspecs/policy.md) for acceptance criteria.
 
 A developer uses Blueprints to quickly compose components following organizational best practices.
 
-See [Component Blueprint Subspec](./subspecs/component-blueprint.md) for acceptance criteria.
+See [Blueprint Definition Specification](./subspecs/blueprint.md) for acceptance criteria.
 
 ---
 
@@ -110,7 +135,7 @@ See [Transformer Matching Subspec](./subspecs/transformer-matching.md) for accep
 
 A developer defines status for a Module to expose health indicators, diagnostic details, and human-readable messages computed from configuration.
 
-See [Module Status Subspec](./subspecs/status.md) for acceptance criteria.
+See [Status Definition Specification](./subspecs/status.md) for acceptance criteria.
 
 ---
 
@@ -126,7 +151,7 @@ A platform engineer enforces both cost and security guardrails across multiple c
 4. **Then** the `api` component (labeled `tier: "backend"`) receives both `ResourceQuota` and `mTLS` policies.
 5. **And** the `worker` component (without the label) receives only the `ResourceQuota` policy.
 
-See [Module Scope Subspec](./subspecs/scope.md) and [Module Policy Subspec](./subspecs/policy.md) for details.
+See [Scope Definition Specification](./subspecs/scope.md) and [Policy Definition Specification](./subspecs/policy.md) for details.
 
 ---
 
@@ -142,7 +167,7 @@ An application developer defines application-specific health status that goes be
 4. **Then** the controller evaluates this probe at runtime by injecting live component state.
 5. **And** the module becomes unhealthy if the job queue exceeds the threshold, even if all pods are "ready".
 
-See [Module Status Subspec](./subspecs/status.md) for details.
+See [Status Definition Specification](./subspecs/status.md) for details.
 
 ---
 
@@ -160,7 +185,7 @@ A platform engineer creates a "golden path" for stateless web services, bundling
 4. **And** the developer only needs to provide values for the composed specs.
 5. **And** if the developer provides conflicting values, CUE validation fails with a clear error.
 
-See [Component Blueprint Subspec](./subspecs/component-blueprint.md) for details.
+See [Blueprint Definition Specification](./subspecs/blueprint.md) for details.
 
 ---
 
@@ -216,7 +241,6 @@ See [Bundle Definition Subspec](./subspecs/bundle-definition.md) for details.
 | `#Module` | Portable blueprint | `#components`, `#scopes`, `#values`, `#status`, `#interfaces` (or `#provides`, `#consumes`) |
 | `#ModuleCompiled` | Compiled form | Expanded blueprints, resolved defaults |
 | `#ModuleRelease` | Deployment instance | `module`, `values`, `namespace` |
-| `#ModuleStatus` | Status schema | `healthy`, `message`, `details`, `phase` |
 
 ### Bundle Types
 
@@ -261,14 +285,18 @@ All schemas are the authoritative specification:
 
 | Index | Subspec | Document | FR Range | Description |
 |---|---|---|---|---|
-| 1 | Resource | [resource.md](./subspecs/component-resource.md) | FR-1-001 to FR-1-008 | Definition of fundamental deployable units |
-| 2 | Trait | [trait.md](./subspecs/component-trait.md) | FR-2-001 to FR-2-007 | Definition of behavior modifiers |
-| 3 | Blueprint | [blueprint.md](./subspecs/component-blueprint.md) | FR-3-001 to FR-3-006 | Schema and behavior of reusable Blueprints |
+| 1 | Resource | [Resource Definition](./subspecs/resource.md) | FR-1-001 to FR-1-008 | Definition of fundamental deployable units |
+| 2 | Trait | [Trait Definition](./subspecs/trait.md) | FR-2-001 to FR-2-007 | Definition of behavior modifiers |
+| 3 | Blueprint | [Blueprint Definition](./subspecs/blueprint.md) | FR-3-001 to FR-3-006 | Schema and behavior of reusable Blueprints |
 | 5 | Module Definition | [module-definition.md](./subspecs/module-definition.md) | FR-5-001 to FR-5-007 | Defines the `#Module`, `#ModuleCompiled`, and `#ModuleRelease` entities |
 | 6 | Component | [component.md](./subspecs/component.md) | FR-6-001 to FR-6-009 | Component composition within modules |
-| 8 | Scope | [scope.md](./subspecs/scope.md) | FR-8-001 to FR-8-006 | Scope-level policy application |
-| 9 | Policy | [policy.md](./subspecs/policy.md) | FR-9-001 to FR-9-007 | Policy system for scope-level governance |
-| 10 | Status | [status.md](./subspecs/status.md) | FR-10-001 to FR-10-007 | Computed status from module configuration |
-| 12 | Bundle Definition | [bundle-definition.md](./subspecs/bundle-definition.md) | FR-12-001 to FR-12-004 | Aggregation of modules into bundles |
-| 13 | Platform Provider | [platform-provider.md](./subspecs/platform-provider.md) | FR-13-001 to FR-13-005 | Provider and Transformer structure |
-| 14 | Transformer Matching | [transformer.md](./subspecs/transformer-matching.md) | FR-14-001 to FR-14-007 | Label-based matching algorithm for transformers |
+| 7 | Interface | [interface.md](./subspecs/interface.md) | FR-094 to FR-110 | Module interface contracts |
+| 8 | Scope | [Scope Definition](./subspecs/scope.md) | FR-8-001 to FR-8-006 | Scope-level policy application |
+| 9 | Policy | [Policy Definition](./subspecs/policy.md) | FR-9-001 to FR-9-007 | Policy system for scope-level governance |
+| 10 | Status | [Status Definition](./subspecs/status.md) | FR-10-001 to FR-10-007 | Computed status from module configuration |
+| 11 | Lifecycle System | [lifecycle.md](./subspecs/lifecycle.md) | FR-4-001 to FR-11-007 | Lifecycle overview and subsystem context |
+| 12 | Component Lifecycle | [component-lifecycle.md](./subspecs/component-lifecycle.md) | FR-4-001 to FR-4-007 | Component transition lifecycle hooks |
+| 13 | Module Lifecycle | [module-lifecycle.md](./subspecs/module-lifecycle.md) | FR-11-001 to FR-11-007 | Module transition lifecycle hooks |
+| 14 | Bundle Definition | [bundle-definition.md](./subspecs/bundle-definition.md) | FR-12-001 to FR-12-004 | Aggregation of modules into bundles |
+| 15 | Platform Provider | [platform-provider.md](./subspecs/platform-provider.md) | FR-13-001 to FR-13-005 | Provider and Transformer structure |
+| 16 | Transformer Matching | [transformer.md](./subspecs/transformer-matching.md) | FR-14-001 to FR-14-007 | Label-based matching algorithm for transformers |

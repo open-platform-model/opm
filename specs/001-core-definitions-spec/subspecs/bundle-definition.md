@@ -4,6 +4,8 @@
 **Status**: Draft  
 **Last Updated**: 2026-01-21
 
+> **Feature Availability**: This definition is specified but currently **deferred** in CLI v1 to reduce initial complexity. It will be enabled in a future release.
+
 ## Overview
 
 This document defines the Bundle system for OPM. A **Bundle** is a higher-level aggregation that groups multiple related **Modules** into a single distributable and deployable unit.

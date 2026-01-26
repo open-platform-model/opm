@@ -4,6 +4,8 @@
 **Status**: Draft  
 **Last Updated**: 2025-12-26
 
+> **Moved**: This subspec has been migrated to [Module Lifecycle](../../001-core-definitions-spec/subspecs/module-lifecycle.md).
+
 ## Overview
 
 This document defines module-level lifecycle steps and cross-component coordination. Module lifecycle describes what happens when the entire module is installed, upgraded, or deleted, after all component lifecycles have completed.

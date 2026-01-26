@@ -4,6 +4,8 @@
 **Status**: Draft  
 **Last Updated**: 2025-12-26
 
+> **Feature Availability**: This definition is **enabled** in CLI v1.
+
 ## Overview
 
 This document defines how components are composed within OPM modules. Components are the fundamental units of composition - they combine resources, traits, and blueprints into a unified, deployable unit.

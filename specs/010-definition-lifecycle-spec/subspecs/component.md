@@ -4,6 +4,8 @@
 **Status**: Draft  
 **Last Updated**: 2025-12-26
 
+> **Moved**: This subspec has been migrated to [Component Lifecycle](../../001-core-definitions-spec/subspecs/component-lifecycle.md).
+
 ## Overview
 
 This document defines component-level lifecycle steps and transition actions. Component lifecycle describes what happens when an individual component is installed, upgraded, or deleted.

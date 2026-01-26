@@ -4,6 +4,8 @@
 **Status**: Draft
 **Last Updated**: 2026-01-21
 
+> **Feature Availability**: This definition is **enabled** in CLI v1.
+
 ## Overview
 
 This document defines the core entities related to the OPM Module: `#Module`, `#ModuleCompiled`, and `#ModuleRelease`. These three definitions represent the lifecycle of a module from its source code definition to a concrete, deployable instance.

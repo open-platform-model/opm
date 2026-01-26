@@ -4,11 +4,13 @@
 **Status**: Draft  
 **Last Updated**: 2026-01-21
 
+> **Feature Availability**: This definition is **enabled** in CLI v1.
+
 ## Overview
 
 This document defines the schema and structure for Platform Providers and Transformers. A **Provider** acts as an adapter layer that translates abstract OPM components into concrete platform resources (e.g., Kubernetes manifests, Terraform resources).
 
-It achieves this through a registry of **Transformers**, which are individual translation units responsible for specific component types.
+It achieves this through a registry of **Transformers**, which are individual translation units responsible for a combination of resources and traits.
 
 ### Core Principle: The Translation Layer
 
@@ -16,6 +18,72 @@ The Provider separates the *intent* (Component) from the *implementation* (Platf
 
 - **Component**: "I need a stateless container with 3 replicas."
 - **Provider**: "I will turn that into a Kubernetes Deployment and Service."
+
+## User Scenarios & Testing
+
+### User Story 1 - Create a Platform Provider (Priority: P1)
+
+A platform engineer defines a new Provider to act as an adapter for a specific infrastructure target (e.g., "Corporate K8s" or "Legacy VM Cloud"). They register it with a unique name and version so that the platform can identify and load it.
+
+**Why this priority**: This is the foundational entity required to bridge OPM components to any infrastructure. Without it, no translation can occur.
+
+**Independent Test**: Create a valid `#Provider` CUE definition and verify that the OPM system can load it and read its metadata.
+
+**Acceptance Scenarios**:
+
+1. **Given** a valid `#Provider` definition with `apiVersion`, `kind`, and `metadata`, **When** evaluated by the system, **Then** it is recognized as a valid platform adapter.
+2. **Given** a provider definition, **When** inspected, **Then** it exposes a `transformers` registry map.
+
+---
+
+### User Story 2 - Implement Resource Transformation (Priority: P1)
+
+A platform engineer creates a Transformer to map a high-level OPM Component into concrete platform resources. This defines the core logic of how an abstract "Container" becomes a concrete "Deployment".
+
+**Why this priority**: The transformer contains the actual logic for resource generation. It is the core functional unit of the provider.
+
+**Independent Test**: Define a `#Transformer` and run its `#transform` function with a mock `#component` input, asserting the output contains the expected platform resources.
+
+**Acceptance Scenarios**:
+
+1. **Given** a `#Transformer` registered in a Provider, **When** the `#transform` function is executed with a valid `#component` input, **Then** it produces a list of platform resources (e.g., K8s manifests) in the `output` field.
+2. **Given** a specific component spec (e.g., `replicas: 3`), **When** transformed, **Then** the output values correctly reflect the input (e.g., `spec.replicas: 3`).
+
+---
+
+### User Story 3 - Selective Matching via Labels (Priority: P2)
+
+A platform engineer configures a Transformer to only apply to components with specific characteristics using label matching. This allows distinguishing between different workload types (e.g., stateless vs stateful) within the same provider.
+
+**Why this priority**: Essential for supporting complex environments where different component types require different handling logic.
+
+**Independent Test**: Create two components with different labels and verify that the transformer matches only the one with the required label.
+
+**Acceptance Scenarios**:
+
+1. **Given** a Transformer with `requiredLabels: {"type": "frontend"}`, **When** a component with label `type: "frontend"` is evaluated, **Then** the Transformer matches and executes.
+2. **Given** the same Transformer, **When** a component with `type: "backend"` is evaluated, **Then** the Transformer is ignored.
+
+---
+
+### User Story 4 - Provider Capability Discovery (Priority: P3)
+
+A platform operator queries the Provider to understand which OPM features it supports. The system automatically aggregates capabilities from registered transformers.
+
+**Why this priority**: Improves the operator experience and tooling capabilities, allowing for validation of module compatibility with a provider.
+
+**Independent Test**: Define a provider with a specific set of transformers and inspect the computed `#declaredTraits` and `#declaredResources` fields.
+
+**Acceptance Scenarios**:
+
+1. **Given** a Provider with a transformer requiring `opm.dev/traits/scaling@v0#Replicas`, **When** the Provider's `#declaredTraits` field is evaluated, **Then** the list includes the full FQN of the Replicas trait.
+2. **Given** that the provider is loaded by the CLI, **When** a user asks for supported traits, **Then** the CLI displays this trait as "Supported".
+
+### Edge Cases
+
+- **Empty Output**: What happens if a transformer produces an empty list? (Should be valid, effectively a "no-op").
+- **Multiple Matches**: How does the system handle when multiple transformers match the same component? (See Transformer Matching subspec).
+- **Invalid Output Type**: What happens if the output is not a list? (Validation error).
 
 ## Schema
 
@@ -167,12 +235,6 @@ import "opm.dev/core@v0"
 - **FR-13-002**: Provider MUST compute `#declaredResources` and `#declaredTraits` by aggregating requirements from all registered transformers.
 - **FR-13-003**: `#Transformer` MUST declare matching criteria (`requiredLabels`, `requiredResources`, etc.) and a `#transform` function.
 - **FR-13-004**: The `#transform.output` field MUST be a list of resources.
-
-## Acceptance Criteria
-
-1. **Given** a Provider with 2 transformers, **When** evaluated, **Then** `#declaredTraits` contains the union of traits from both.
-2. **Given** a Transformer, **When** `#transform` produces a single object instead of a list, **Then** validation fails (schema enforces list type `[...]`).
-3. **Given** a Provider, **When** validated, **Then** it must have metadata including name and version.
 
 ## Matching Logic
 

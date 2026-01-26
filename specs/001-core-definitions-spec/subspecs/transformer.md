@@ -1,8 +1,58 @@
-# Transformer Definition
+# Feature Specification: OPM Component Transformers
 
-**Parent Spec**: [OPM Core CUE Specification](../spec.md)  
-**Status**: Draft  
-**Last Updated**: 2025-12-10
+**Parent Spec**: [OPM Core CUE Specification](../spec.md)
+**Status**: Draft
+**Last Updated**: 2026-01-26
+
+> **Feature Availability**: This definition is **enabled** in CLI v2.
+
+## User Scenarios & Testing *(mandatory)*
+
+This section outlines the key user journeys for OPM Transformers, ordered by priority. Each story is independently testable and delivers a distinct piece of value to a specific user persona.
+
+### User Story 1 - Basic Workload Transformation (Priority: P1)
+
+As a **Module Author**, I want to define a simple, stateless web application component and have it automatically transformed into a standard Kubernetes Deployment and Service, so that I can abstract away boilerplate infrastructure code.
+
+**Why this priority**: This is the core value proposition of OPM. It enables developers to work with high-level abstractions (`Container`, `Expose`) without needing to be Kubernetes experts.
+
+**Independent Test**: A user can define a component with a `#Container` and `#Expose` trait. When rendered, the output should contain a valid Kubernetes `Deployment` and `Service` resource. This delivers a runnable application.
+
+**Acceptance Scenarios**:
+
+1. **Given** a component with a `#Container` resource and a label `workload-type: stateless`, **When** the component is rendered, **Then** a `DeploymentTransformer` matches and produces a Kubernetes `Deployment`.
+2. **Given** a component with an `#Expose` trait, **When** the component is rendered, **Then** a `ServiceTransformer` matches and produces a Kubernetes `Service`.
+3. **Given** a component with both, **When** rendered, **Then** the output is an aggregated list containing both the `Deployment` and `Service`.
+
+---
+
+### User Story 2 - Enforcing Platform Standards (Priority: P2)
+
+As a **Platform Operator**, I want to create a transformer that automatically adds a security sidecar to any workload tagged with `security-profile: pci-dss`, so that I can enforce compliance across all teams without manual intervention.
+
+**Why this priority**: This empowers Platform Operators to enforce standards, security, and best practices automatically, which is critical for governance in a multi-team environment.
+
+**Independent Test**: Create a transformer that matches on the `security-profile: pci-dss` label. When a component with this label is rendered, the output should include the standard workload (e.g., a Deployment) AND the injected sidecar configuration.
+
+**Acceptance Scenarios**:
+
+1. **Given** a `SidecarTransformer` that has `requiredLabels: {"security-profile": "pci-dss"}`, **When** a component with that label is rendered, **Then** the `SidecarTransformer` executes in parallel with the main workload transformer.
+2. **Given** a component without that label, **When** rendered, **Then** the `SidecarTransformer` does NOT match.
+
+---
+
+### User Story 3 - Preventing Ambiguous Transformations (Priority: P3)
+
+As a **Module Author**, if I accidentally define two different workload transformers that match the exact same set of labels and resources, I want the system to fail with a clear error message, so that I can avoid unpredictable or non-deterministic behavior.
+
+**Why this priority**: Predictability is essential. The system must protect users from ambiguous states that could lead to incorrect deployments.
+
+**Independent Test**: Define two transformers with identical `requiredLabels`, `requiredResources`, and `requiredTraits`. Define a component that matches these requirements. The rendering process MUST fail with an error identifying the conflicting transformers.
+
+**Acceptance Scenarios**:
+
+1. **Given** two transformers with identical requirements are available, **When** a component that matches them is rendered, **Then** the system MUST produce an error and list the conflicting transformers.
+2. **Given** two transformers with slightly different `requiredLabels` (e.g., `tier: frontend` vs `tier: backend`), **When** a component matches only one, **Then** the system renders successfully using the correct transformer.
 
 ## Overview
 
@@ -21,10 +71,10 @@ Transformers declare `requiredLabels` that components must have to match. This p
 Component labels are the union of labels from all attached definitions:
 
 ```text
-Component.metadata.labels = 
+Component.metadata.labels =
     Component's own labels
     + labels from all #resources
-    + labels from all #traits  
+    + labels from all #traits
 ```
 
 If definitions have conflicting labels, CUE unification fails automatically.
@@ -37,6 +87,8 @@ A transformer matches a component when **ALL** of the following are true:
 2. **requiredResources** - Component `#resources` contains ALL FQNs
 3. **requiredTraits** - Component `#traits` contains ALL FQNs
 
+Optional inputs (`optionalLabels`, `optionalResources`, `optionalTraits`) do NOT affect matching; they only declare what additional data the transformer is capable of handling if present.
+
 ```cue
 function matches(transformer, component) -> bool:
 
@@ -44,17 +96,17 @@ function matches(transformer, component) -> bool:
     for key, value in transformer.requiredLabels:
         if component.metadata.labels[key] != value:
             return false
-    
+
     // Check resources
     for fqn in keys(transformer.requiredResources):
         if fqn not in component.#resources:
             return false
-    
+
     // Check traits
     for fqn in keys(transformer.requiredTraits):
         if fqn not in component.#traits:
             return false
-    
+
     return true
 ```
 
@@ -62,176 +114,141 @@ function matches(transformer, component) -> bool:
 
 ### Identical Requirements = Error
 
-When multiple transformers match with **identical requirements** (same requiredLabels, requiredResources, requiredTraits), the system MUST error:
+When multiple transformers match with **identical requirements** (same `requiredLabels`, `requiredResources`, `requiredTraits`), the system MUST error. This prevents ambiguity about which transformer handles the primary workload.
 
 ```text
 Error: Multiple exact transformer matches for component "api"
   Transformers with identical requirements:
     - DeploymentTransformerA
     - DeploymentTransformerB
-  
+
   Resolution: Differentiate transformers with different requiredLabels or requirements
 ```
 
 ### Different Requirements = Complementary
 
-Transformers with **different requirements** are complementary and both execute:
+Transformers with **different requirements** are complementary and execute in **parallel**. Their outputs are aggregated.
 
-| Transformer | requiredLabels | requiredTraits | Result |
-|-------------|---------------|----------------|--------|
-| DeploymentTransformer | `workload-type: stateless` | (none) | Matches stateless containers |
-| ServiceTransformer | (none) | `Expose` | Matches any component with Expose |
+| Transformer           | requiredLabels                | requiredTraits | Result                           |
+| --------------------- | ----------------------------- | -------------- | -------------------------------- |
+| DeploymentTransformer | `workload-type: stateless`    | (none)         | Matches stateless containers     |
+| ServiceTransformer    | (none)                        | `Expose`       | Matches any component with Expose |
 
-A component with `Container(stateless) + Expose` matches both → outputs Deployment + Service.
+A component with `Container(stateless) + Expose` matches both → outputs `Deployment + Service`.
 
-## Examples
+## Transformer Interface
 
-### Workload Transformers (Exclusive via Labels)
+Transformers must adhere to the following interface, supporting optional inputs and single-resource output.
 
 ```cue
-#DeploymentTransformer: #Transformer & {
-    requiredLabels: {
-        "core.opm.dev/workload-type": "stateless"
-    }
-    requiredResources: {
-        "opm.dev/resources/workload@v0#Container": #ContainerResource
+#Transformer: {
+    // Matching Requirements
+    requiredResources: {[string]: _}
+    requiredTraits: {[string]: _}
+    requiredLabels: {[string]: string}
+
+    // Optional Inputs (do not affect matching)
+    optionalResources: {[string]: _}
+    optionalTraits: {[string]: _}
+    optionalLabels: {[string]: string}
+
+    // Transform Function
+    #transform: {
+        #component: core.#Component
+        #context:   core.#TransformerContext
+
+        // Output must be a single resource
+        output: {...}
     }
 }
 
-#StatefulSetTransformer: #Transformer & {
-    requiredLabels: {
-        "core.opm.dev/workload-type": "stateful"
-    }
+#TransformerContext: {
+    name:      string
+    namespace: string
+    version:   string
+    provider:  string
+    timestamp: string // RFC3339
+    strict:    bool
+    labels:    {[string]: string} // Module-level tracking labels
+}
+```
+
+## Examples
+
+### Workload Transformer (Exclusive via Labels)
+
+```cue
+#DeploymentTransformer: #Transformer & {
     requiredResources: {
         "opm.dev/resources/workload@v0#Container": #ContainerResource
+    }
+    requiredLabels: {
+        "core.opm.dev/workload-type": "stateless"
+    }
+
+    #transform: {
+        #component: _
+        #context: _
+        output: {
+            apiVersion: "apps/v1"
+            kind: "Deployment"
+            // ... implementation
+        }
     }
 }
 ```
 
-A component can only have one `workload-type` value, so only one matches.
-
-### Complementary Transformer (No Label Requirement)
+### Complementary Transformer (Trait-based)
 
 ```cue
 #ServiceTransformer: #Transformer & {
-    // No requiredLabels - matches any component with Expose trait
     requiredResources: {
         "opm.dev/resources/workload@v0#Container": #ContainerResource
     }
     requiredTraits: {
         "opm.dev/traits/network@v0#Expose": #ExposeTrait
     }
-}
-```
+    // No requiredLabels - matches any component with Expose trait
 
-This matches alongside any workload transformer when component has Expose trait.
-
-### Component with Multiple Matches
-
-```cue
-api: #Component & {
-    #Container  // Has workload-type: "stateless" (required by user)
-    #Expose     // Has Expose trait
-
-    spec: {
-        container: {image: "api:v1"}
-        expose: {type: "ClusterIP", ports: [...]}
+    #transform: {
+        #component: _
+        #context: _
+        output: {
+            apiVersion: "v1"
+            kind: "Service"
+            // ... implementation
+        }
     }
 }
 ```
 
-**Matched transformers:**
-
-1. `DeploymentTransformer` - matches (stateless + Container)
-2. `ServiceTransformer` - matches (Container + Expose)
-
-**Output:** `[Deployment, Service]`
-
-## Acceptance Criteria
-
-### Label-Based Matching
-
-1. **Given** a Transformer with `requiredLabels: {"core.opm.dev/workload-type": "stateless"}`, **When** a component has that label (inherited from its Container Resource), **Then** the transformer matches.
-
-2. **Given** a Transformer with `requiredLabels`, **When** a component is missing ANY required label or has a different value, **Then** the transformer does NOT match.
-
-3. **Given** a Transformer with no `requiredLabels`, **When** a component exists, **Then** the transformer MAY match based on other requirements (requiredResources, requiredTraits).
-
-### Resource/Trait/Policy Requirements
-
-1. **Given** a Transformer with `requiredResources: {Container: ...}`, **When** a component has that resource in `#resources`, **Then** the resource requirement is satisfied.
-
-2. **Given** a Transformer with `requiredTraits: {Expose: ...}`, **When** a component has that trait in `#traits`, **Then** the trait requirement is satisfied.
-
-3. **Given** a Transformer with requirements, **When** a component is missing ANY required resource, trait, **Then** the transformer does NOT match.
-
-### Matching Algorithm
-
-1. **Given** a component with `#Container` resource (which defines `workload-type: "stateless"`), **When** matching against `DeploymentTransformer` (requires stateless) and `StatefulSetTransformer` (requires stateful), **Then** only `DeploymentTransformer` matches.
-
-2. **Given** `ServiceTransformer` with `requiredTraits: {Expose: ...}` and no `requiredLabels`, **When** a component has Expose trait, **Then** `ServiceTransformer` matches regardless of workload-type.
-
-3. **Given** a component with Container(stateless) + Expose trait, **When** matching, **Then** both `DeploymentTransformer` AND `ServiceTransformer` match (they are complementary).
-
-### Conflict Detection
-
-1. **Given** multiple transformers that match a component with identical requirements (same requiredLabels, requiredResources, requiredTraits), **When** matching, **Then** the system MUST error with "multiple exact transformer matches" listing the conflicting transformers.
-
-2. **Given** transformers with different `requiredTraits` (e.g., DeploymentTransformer has none, ServiceTransformer requires Expose), **When** both match a component, **Then** they are considered complementary (not conflicting) and both execute.
-
-### Transform Execution
-
-1. **Given** matched transformers for a component, **When** transforms execute, **Then** each transformer receives the full component (not partitioned).
-
-2. **Given** a transformer's `#transform.output`, **When** rendered, **Then** the output MUST be a list of platform resources (even for single-resource output).
-
-3. **Given** multiple transformers matched to one component, **When** all transforms complete, **Then** outputs are concatenated into a single resource list.
-
-### Unhandled Definitions
-
-1. **Given** a component with a Trait not declared in any matched transformer's `requiredTraits` or `optionalTraits`, **When** matching completes, **Then** the system SHOULD warn about unhandled traits.
-
-2. **Given** `--strict` mode enabled, **When** a component has unhandled traits, **Then** the system MUST error with the list of unhandled traits.
-
-### No Match
-
-1. **Given** no transformers match a component, **When** rendering, **Then** the system MUST error with component details and list of available transformers with their requirements.
-
-### Provider Declaration
-
-1. **Given** a Provider with transformers, **When** evaluated, **Then** `#declaredResources` and `#declaredTraits` list all supported FQNs from all transformers.
-
 ## Functional Requirements
 
-### Label-Based Matching
-
-- **FR-14-001**: Transformer MAY specify `requiredLabels: [string]: string` - label key-value pairs that a component MUST have to match.
-- **FR-14-002**: Component labels are the union of `metadata.labels` from all attached `#resources` and `#traits`.
-- **FR-14-003**: A transformer matches a component when ALL of the following are true:
-  - ALL `requiredLabels` are present on component with matching values
-  - ALL `requiredResources` FQNs exist in `component.#resources`
-  - ALL `requiredTraits` FQNs exist in `component.#traits`
-- **FR-14-004**: When multiple transformers match a component with identical requirements (same requiredLabels, requiredResources, requiredTraits), the system MUST error.
-- **FR-14-005**: Transformers with different requirements (e.g., different `requiredTraits`) are considered complementary and may both match the same component.
-- **FR-14-006**: Each matched transformer receives the full component (components are not partitioned across transformers).
-- **FR-14-007**: Outputs from multiple matched transformers are concatenated into a single resource list.
+- **FR-14-001**: Transformer MAY specify `requiredLabels`, `requiredResources`, `requiredTraits` for matching.
+- **FR-14-002**: Transformer MAY specify `optionalLabels`, `optionalResources`, `optionalTraits` which do not affect matching.
+- **FR-14-003**: Matching requires ALL `required*` criteria to be met.
+- **FR-14-004**: Component labels are the union of `metadata.labels` + definition labels.
+- **FR-14-005**: Transformers with identical requirements matching the same component MUST cause an error.
+- **FR-14-006**: Transformers with different requirements matching the same component execute in parallel.
+- **FR-14-007**: `#transform` MUST output a single resource (`output: {...}`).
+- **FR-14-008**: Outputs from all matched transformers MUST be aggregated into a list.
+- **FR-14-009**: Context MUST be injected with `provider`, `strict`, `timestamp`, and tracking `labels`.
 
 ## Edge Cases
 
-| Case | Behavior |
-|------|----------|
+| Case                               | Behavior                                       |
+| ---------------------------------- | ---------------------------------------------- |
 | Component without `workload-type` label | Workload transformers requiring that label do not match |
-| Multiple exact transformer matches | Error with list of conflicting transformers |
-| Complementary transformers match | Both execute, outputs concatenated |
-| Unhandled traits (normal mode) | Warning logged |
-| Unhandled traits (`--strict` mode) | Error with list of unhandled traits |
-| No transformers match | Error with component details and available transformers |
-| Conflicting labels from definitions | CUE unification fails automatically |
-| Optional traits not provided | Transformers use `#defaults` from the Trait definition |
+| Multiple exact transformer matches | Error with list of conflicting transformers    |
+| Complementary transformers match   | Both execute, outputs concatenated             |
+| Unhandled traits (normal mode)     | Warning logged                                 |
+| Unhandled traits (`--strict` mode) | Error with list of unhandled traits            |
+| No transformers match              | Error with component details and available transformers |
+| Transformer outputs empty struct   | Valid, results in no generated resource        |
 
 ## Success Criteria
 
-- **SC-007**: Provider correctly computes declared resources/traits from transformers.
-- **SC-008**: Transformer matching correctly uses `requiredLabels` - only transformers whose labels match component labels are candidates.
-- **SC-009**: Multiple exact transformer matches (identical requirements) produce an error.
-- **SC-010**: Complementary transformers (different requirements) both match and produce concatenated output.
+- **SC-007**: Provider correctly computes declared resources/traits from transformers (including optional ones).
+- **SC-008**: Matching logic respects `required*` vs `optional*` semantics.
+- **SC-009**: Multiple exact transformer matches produce an error.
+- **SC-010**: Parallel execution of complementary transformers produces correct aggregated output.

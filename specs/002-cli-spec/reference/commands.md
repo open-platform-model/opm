@@ -147,7 +147,8 @@ These flags are available on all commands.
 | `--context` | | `string` | `OPM_CONTEXT` | Kubernetes context to use |
 | `--namespace` | `-n` | `string` | `OPM_NAMESPACE` | Target namespace. Overrides the module namespace |
 | `--config` | `-c` | `string` | `OPM_CONFIG` | Path to OPM config file |
-| `--verbose` | `-v` | `bool` | | Increase output verbosity |
+| `--output-format` | `-o` | `string` | | Output format: `text` (default), `yaml`, `json` |
+| `--verbose` | `-v` | `bool` | | Increase log verbosity (debug level) |
 | `--help` | `-h` | `bool` | | Show help for command |
 | `--version` | | `bool` | | Show CLI version |
 
@@ -288,15 +289,15 @@ opm mod build [flags]
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
 | `--values` | `-v` | `string[]` | | Values file(s) to supply concrete values (can be specified multiple times, in which case all are unified by CUE) |
-| `--output` | `-o` | `string` | `yaml` | Output format: `yaml`, `json`, or `dir` |
-| `--out-dir` | | `string` | `./manifests` | Output directory (only used with `--output dir`) |
+| `--output-format` | `-o` | `string` | `text` | Output format: `text` (default, equals `yaml`), `yaml`, `json`, or `dir` |
+| `--out-dir` | | `string` | `./manifests` | Output directory (only used with `--output-format dir`) |
 
-**Mutually Exclusive:** `--output yaml` and `--output json` write to stdout; `--output dir` writes to `--out-dir`.
+**Mutually Exclusive:** `--output-format` values `text`, `yaml`, and `json` write to stdout; `dir` writes to `--out-dir`.
 
 **Examples:**
 
 ```sh
-# Build and output YAML to stdout
+# Build and output YAML to stdout (default)
 opm mod build
 
 # Build with values file
@@ -473,13 +474,13 @@ opm mod status [flags]
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
-| `--output` | `-o` | `string` | `table` | Output format: `table`, `json`, or `yaml` |
+| `--output-format` | `-o` | `string` | `text` | Output format: `text` (default, equals `table`), `json`, or `yaml` |
 | `--watch` | `-w` | `bool` | `false` | Continuously watch status updates |
 
 **Examples:**
 
 ```sh
-# Show status table
+# Show status table (default)
 opm mod status
 
 # Output as JSON
@@ -691,8 +692,8 @@ opm bundle build [flags]
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
 | `--values` | `-v` | `string[]` | | Values file(s) for the bundle |
-| `--output` | `-o` | `string` | `yaml` | Output format: `yaml`, `json`, or `dir` |
-| `--out-dir` | | `string` | `./manifests` | Output directory (with `--output dir`) |
+| `--output-format` | `-o` | `string` | `text` | Output format: `text` (default, equals `yaml`), `yaml`, `json`, or `dir` |
+| `--out-dir` | | `string` | `./manifests` | Output directory (with `--output-format dir`) |
 
 ---
 
@@ -774,7 +775,7 @@ opm bundle status [flags]
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
-| `--output` | `-o` | `string` | `table` | Output format: `table`, `json`, `yaml` |
+| `--output-format` | `-o` | `string` | `text` | Output format: `text` (default, equals `table`), `json`, `yaml` |
 | `--watch` | `-w` | `bool` | `false` | Continuously watch status |
 
 ---

@@ -9,7 +9,7 @@
 
 ### Session 2026-01-22
 
-- Q: How does the CLI uniquely identify and track Kubernetes resources belonging to a module? → A: Using labels: `app.kubernetes.io/managed-by: opm-platform-model`, `module.opmodel.dev/name`, `module.opmodel.dev/namespace`, `module.opmodel.dev/version`, and `component.opmodel.dev/name`.
+- Q: How does the CLI uniquely identify and track Kubernetes resources belonging to a module? → A: Using labels: `app.kubernetes.io/managed-by: open-platform-model`, `module.opmodel.dev/name`, `module.opmodel.dev/namespace`, `module.opmodel.dev/version`, and `component.opmodel.dev/name`.
 - Q: How should the CLI handle multiple `--values` flags? → A: Support multiple CUE, YAML, and JSON files. Convert all to CUE and rely on CUE unification for merging and schema validation (Timoni-style).
 - Q: How should `opm mod status` determine resource health? → A: Success on creation for passive resources; wait for standard `Ready` conditions on workloads (`Deployment`, `StatefulSet`, etc.).
 - Q: How should the CLI handle secrets? → A: Delegate to standard patterns (ExternalSecrets/SOPS). Users can include secret values in `values.yaml` (or CUE/JSON), which are unified like other values.
@@ -131,6 +131,8 @@ A new user needs to configure the OPM CLI with their preferred defaults (namespa
 - **FR-014**: The CLI MUST apply and delete resources based on a predefined weighting system to ensure hard dependencies (e.g., CRDs, Namespaces) are managed correctly).
 - **FR-015**: The `OPM_REGISTRY` configuration (env var or `config.yaml`) MUST act as a global registry redirect for all CUE module resolution. When set (e.g., `localhost:5000`), all CUE imports (e.g., `opm.dev/core@v0`) MUST resolve from the configured registry. The CLI MUST pass this configuration to the `cue` binary via the `CUE_REGISTRY` environment variable when executing `mod tidy`, `mod vet`, `bundle tidy`, and `bundle vet` commands.
 - **FR-016**: When `OPM_REGISTRY` is configured and the registry is unreachable, commands that require module resolution MUST fail fast with a clear error message indicating registry connectivity failure. The CLI MUST NOT silently fall back to alternative registries.
+- **FR-017**: The CLI MUST provide structured, human-readable logging to `stderr`. Logs MUST use colors to distinguish categories (Info, Warning, Error, Debug). The `--verbose` flag MUST increase the detail of logs.
+- **FR-018**: The CLI MUST provide a global `--output-format` flag (alias `-o`) supporting `text` (default), `yaml`, and `json` values. The `text` format MUST provide the most appropriate human-readable output for the command (e.g., tables for status, YAML for manifests) on `stdout`.
 
 ### Key Entities
 
@@ -146,7 +148,7 @@ All resources generated or managed by the OPM CLI MUST include the following lab
 
 | Label | Purpose |
 | :--- | :--- |
-| `app.kubernetes.io/managed-by` | Set to `opm-platform-model`. |
+| `app.kubernetes.io/managed-by` | Set to `open-platform-model`. |
 | `module.opmodel.dev/name` | The name of the module. |
 | `module.opmodel.dev/namespace` | The target namespace for the module. |
 | `module.opmodel.dev/version` | The version of the module being deployed. |

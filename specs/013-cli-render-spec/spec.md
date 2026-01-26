@@ -21,7 +21,20 @@ The rendering pipeline consists of three key concepts:
 
 1. **CLI-only rendering**: Rendering logic resides in the CLI, not in CUE schemas. This simplifies the model and avoids complexity of CUE-based output formatting.
 2. **Kubernetes-first**: The specification focuses on Kubernetes as the primary target platform, with hooks for future platform extensibility.
-3. **Existing transformer matching**: Documents the current label-based matching algorithm without changes.
+3. **Parallel Execution**: Component rendering occurs in parallel goroutines to minimize render time for large modules.
+4. **CUE-First Unification**: The CLI relies on CUE's unification engine for initial validation and label conflict resolution.
+
+## Clarifications
+
+### Session 2026-01-25
+
+- Q: How are providers resolved? → A: CLI resolves provider names to CUE modules (e.g., `kubernetes` -> `opm.dev/providers/kubernetes`) fetched via `OPM_REGISTRY`.
+- Q: How are render errors handled during parallel processing? → A: Fail on End. The CLI renders all components, collecting errors (unmatched components, transformation failures), and exits with a non-zero status and full error list only after all components are processed.
+- Q: What formats does verbose output support? → A: Both human-readable (default `--verbose`) and structured JSON (`--verbose=json`) for machine parsing.
+- Q: What fields are in the TransformerContext? → A: Extended context: `name`, `namespace`, `version`, `provider`, `timestamp` (RFC3339), `strict` (bool), and `labels` (module metadata labels).
+- Q: How are files named with `--split`? → A: Using the pattern `<lowercase-kind>-<resource-name>.yaml` (e.g., `deployment-api.yaml`).
+- Q: How should the render pipeline handle sensitive data (e.g., secrets from environment variables) to prevent exposure in logs or verbose output? → A: Redact Secrets in Logs. The CLI should not write logs that could even contain secrets to begin with, but if that happens we should redact it.
+- Q: What are the expected scalability limits for the render pipeline? (e.g., how many components/transformers) → A: No Defined Limits
 
 ---
 
@@ -97,66 +110,208 @@ A developer wants to control how rendered manifests are output - as a single fil
 
 ---
 
+## 3. Detailed Render Pipeline
+
+The render pipeline is the core execution flow of the `opm mod build` command. It is designed to be deterministic, parallelizable, and error-aggregating (fail-on-end).
+
+```text
++-----------------+      +-----------------+      +-----------------+
+|  Module Source  |----->|   CUE Unify     |----->|   Provider      |
+|  (User Input)   |      | (Deps + Values) |      | (Load & Index)  |
++-----------------+      +--------+--------+      +--------+--------+
+                                  |                        |
+                                  v                        v
+                         +------------------------------------------+
+                         |      Component Analysis & Matching       |
+                         |   (Map Transformers -> List[Component])  |
+                         +--------------------+---------------------+
+                                              |
+                                              v
+                         +------------------------------------------+
+                         |    Parallel Transformer Execution        |
+                         |   (Iterate Map -> Transform + Labels)    |
+                         +--------------------+---------------------+
+                                              |
+                                              v
+                         +------------------------------------------+
+                         |       Aggregation & Output               |
+                         |     (Collect Single Resources)           |
+                         +------------------------------------------+
+```
+
+### Phase 1: Module Loading & Validation
+
+- **Initialization**: Load CLI config, set up context.
+- **Resolution**: Resolve CUE dependencies (via `OPM_REGISTRY`).
+- **Unification**: Unify `module.cue` and user values into a single instance.
+- **Validation**: Verify schema against `ModuleDefinition`. Ensure the module is ready for processing.
+
+### Phase 2: Provider Loading
+
+- **Load Provider**: Resolve and load the configured provider (e.g., `kubernetes`).
+- **Index Transformers**: Build an in-memory registry of available transformers from the provider.
+
+### Phase 3: Component Matching (The "Matched" Map)
+
+- **Loop**: Iterate through all components in the unified module.
+- **Match**: For each component, identify **ALL** matching transformers (see Section 4). Multiple transformers can match the same component (e.g., a stateless workload with `Expose` trait matches both `DeploymentTransformer` and `ServiceTransformer`).
+- **Group**: Construct a `matched` data structure that groups components by their matched transformer.
+
+    ```cue
+    matched: {
+        "transformer.opm.dev/workload@v1#DeploymentTransformer": {
+            transformer: DeploymentTransformer
+            components: [comp1, comp2]
+        }
+        "opm.dev/providers/kubernetes/transformers@v1#ServiceTransformer": {
+            transformer: ServiceTransformer
+            components: [comp1]
+        }
+    }
+    ```
+
+### Phase 4: Parallel Transformer Execution
+
+- **Parallel Loop**: Iterate through the keys (transformers) of the `matched` map in parallel.
+- **Context Injection**: Create a `TransformerContext` for each execution. **Crucially**, OPM tracking labels (e.g., `app.kubernetes.io/managed-by`, `module.opmodel.dev/name`) are injected into the context here, rather than post-processing.
+- **Execution**: Run the `#transform` function for each component in the transformer's list.
+- **Output**: Each execution produces exactly **one** resource.
+
+### Phase 5: Aggregation & Output
+
+- **Aggregation**: Collect all generated resources from the parallel workers.
+- **Error Handling**: Aggregate all errors (unmatched components, transform failures) and report them together.
+- **Formatting**: Serialize and output to YAML/JSON or files (`--split`).
+
+---
+
+## 4. Transformer Matching Logic
+
+This logic determines which transformers run for a given component. It creates the execution plan (the `matched` map) before any transformation occurs.
+
+**Concept: Capability vs. Intent**
+Matching happens in two logical stages:
+
+1. **Capability (Resources & Traits)**: Does the component have the necessary data to support this transformer? (e.g., "I have a Container, so I *could* be a Deployment or StatefulSet").
+2. **Intent (Labels)**: Does the component have the specific label to disambiguate its type? (e.g., "I have `workload-type: stateless`, so I *am* a Deployment").
+
+**Guidance for Authors**: Transformers targeting common resources (like `Container`) **MUST** use `requiredLabels` to prevent ambiguous matches.
+
+```text
++-----------------------------+
+| For each Component in Module |
++-------------+---------------+
+              |
+              v
++---------------------------------+
+| For each Transformer in Provider |
++-------------+-------------------+
+              |
+              v
++---------------------------+    No
+| Required Resources Met? |------------> (Continue to next Transformer)
++-------------+-------------+
+              | Yes
+              v
++-------------------------+      No
+|   Required Traits Met?  |------------> (Continue to next Transformer)
++-------------+-----------+
+              | Yes
+              v
++-------------------------+      No
+|   Required Labels Met?  |------------> (Continue to next Transformer)
++-------------+-----------+
+              | Yes
+              v
++---------------------------------------------+
+| Add Component to `matched[Transformer].components` |
++---------------------------------------------+
+```
+
+### 4.1. Effective Labels
+
+`EffectiveLabels` are the result of CUE unification (Component labels + Resource labels + Trait labels).
+
+### 4.2. Matching Criteria
+
+A transformer matches if and only if **ALL** conditions are met:
+
+1. **Required Labels**: Present in Effective Labels.
+2. **Required Resources**: Present in component resources.
+3. **Required Traits**: Present in component traits.
+4. **Required Policies**: Present in component policies.
+
+### 4.3. Conflict Resolution
+
+- **Multiple Matches**: It is valid and expected for multiple transformers to match a single component. They will be executed independently in Phase 4.
+- **No Match**: If a component matches NO transformers, it is recorded as an error.
+
+---
+
 ## Requirements
 
 ### Functional Requirements
 
 #### Provider System
 
-- **FR-001**: Provider MUST contain a `transformers` map registry that maps unique keys to Transformer definitions.
-- **FR-002**: Provider MUST compute `#declaredResources`, `#declaredTraits`, and `#declaredPolicies` by aggregating from all registered transformers.
-- **FR-003**: Provider MUST include metadata with name, version, and description.
-- **FR-004**: The CLI MUST support specifying which provider to use via `--provider` flag (default: `kubernetes`).
+- **FR-001**: Provider MUST contain a `transformers` map registry.
+- **FR-002**: Provider MUST aggregate declared resources/traits/policies.
+- **FR-003**: Provider MUST include metadata.
+- **FR-004**: Support `--provider` flag.
 
 #### Transformer System
 
-- **FR-005**: Transformer MUST declare matching criteria: `requiredLabels`, `requiredResources`, `requiredTraits`, `requiredPolicies`.
-- **FR-006**: Transformer MAY declare optional inputs: `optionalResources`, `optionalTraits`, `optionalPolicies`.
-- **FR-007**: Transformer MUST implement a `#transform` function that receives `#component` and `#context` and produces `output: [...]`.
-- **FR-008**: Transformer output MUST be a list of resources, even for single-resource transformers.
-- **FR-009**: A transformer matches a component when ALL of:
-  - ALL `requiredLabels` are present on component with matching values
-  - ALL `requiredResources` FQNs exist in `component.#resources`
-  - ALL `requiredTraits` FQNs exist in `component.#traits`
-  - ALL `requiredPolicies` FQNs exist in `component.#policies`
+- **FR-005**: Transformer MUST declare matching criteria.
+- **FR-006**: Transformer MAY declare optional inputs: `optionalLabels`, `optionalResources`, `optionalTraits`.
+- **FR-007**: Transformer MUST implement `#transform` accepting `#component` and `#context`.
+- **FR-008**: Transformer output MUST be a **single resource** (`output: {...}`).
+- **FR-009**: Matching requires ALL criteria to be met.
 
-#### Matching & Conflict Resolution
+#### Matching & Execution
 
-- **FR-010**: Component labels MUST be the union of labels from `metadata.labels` plus all attached `#resources`, `#traits`, and `#policies`.
-- **FR-011**: When multiple transformers match with **identical requirements**, the system MUST error with "multiple exact transformer matches".
-- **FR-012**: Transformers with **different requirements** are complementary and MUST both execute when matched.
-- **FR-013**: Outputs from multiple matched transformers MUST be concatenated into a single resource list.
-- **FR-014**: Each matched transformer receives the full component (components are not partitioned).
+- **FR-010**: Use unified effective labels.
+- **FR-011**: Allow multiple transformers to match a single component.
+- **FR-012**: (Replaced by FR-011)
+- **FR-013**: Outputs from all matched transformers MUST be aggregated.
+- **FR-014**: Each matched transformer receives the full component.
+- **FR-022**: Rely on CUE unification for label conflicts.
 
 #### Render Pipeline
 
-- **FR-015**: The render pipeline MUST process in the following order:
-  1. Load and validate module definition
-  2. Unify values (module defaults + user values)
-  3. For each component: match transformers, execute transforms
-  4. Concatenate all transformer outputs
-  5. Format output (YAML/JSON, single/split)
-- **FR-016**: Generated resources MUST include OPM tracking labels:
-  - `app.kubernetes.io/managed-by: opm-platform-model`
-  - `module.opmodel.dev/name: <module-name>`
-  - `module.opmodel.dev/namespace: <namespace>`
-  - `module.opmodel.dev/version: <version>`
-  - `component.opmodel.dev/name: <component-name>`
-- **FR-017**: The CLI MUST support output formats: `yaml` (default), `json`.
-- **FR-018**: The CLI MUST support `--split` flag to output each resource as a separate file.
+- **FR-015**: The render pipeline MUST execute transformers in parallel (iterating the `matched` map).
+- **FR-016**: Generated resources MUST include OPM tracking labels, injected via **TransformerContext**:
+  - `app.kubernetes.io/managed-by: open-platform-model`
+  - `module.opmodel.dev/name`
+  - `module.opmodel.dev/version`
+  - `component.opmodel.dev/name`
+- **FR-017**: Support `yaml`, `json` output.
+- **FR-018**: Support `--split`.
+- **FR-023**: Aggregate outputs deterministically.
+- **FR-024**: Aggregate errors (fail-on-end).
+- **FR-025**: Support verbose logging (human/json).
+- **FR-026**: File naming for `--split`.
 
 #### Error Handling
 
-- **FR-019**: When no transformers match a component, the CLI MUST error with component details and list of available transformers with their requirements.
-- **FR-020**: In `--strict` mode, unhandled traits MUST cause an error with the list of unhandled traits.
-- **FR-021**: In normal mode, unhandled traits SHOULD produce a warning.
+- **FR-019**: Error on unmatched components (aggregated).
+- **FR-020**: Error on unhandled traits in `--strict` mode.
+- **FR-021**: Warning on unhandled traits in normal mode.
+- **FR-027**: The render pipeline MUST redact sensitive values (e.g., from environment variables) in all verbose or debug logging output.
+
+### Non-Functional Requirements
+
+- **NFR-001**: The render pipeline MUST NOT have predefined limits on the number of components or transformers it can process. Performance should scale linearly with the size of the input module.
 
 ### Key Entities
 
-- **Provider**: Platform adapter containing transformer registry and metadata. Maps transformer keys to transformer definitions.
-- **Transformer**: Declares matching criteria and transform function. Converts OPM components to platform-specific resources.
-- **TransformerContext**: Minimal context passed to transforms (module name, namespace).
+- **Provider**: Platform adapter.
+- **Transformer**: Converts OPM component to **one** platform resource.
+- **TransformerContext**:
+  - `name`, `namespace`, `version`, `provider`, `timestamp`
+  - `strict` (bool)
+  - `labels` (map[string]string): **Includes OPM tracking labels.**
 - **Component**: OPM component with resources, traits, policies, and computed labels.
+- **MatchedMap**: internal structure grouping components by transformer.
 
 ---
 
@@ -190,90 +345,11 @@ The default Kubernetes provider includes these transformers:
 
 ## Appendix B: Render Pipeline Flow
 
-```text
-+-----------------+
-|  Module.cue     |
-|  + values.yaml  |
-+--------+--------+
-         |
-         v
-+-----------------+
-|  CUE Unify      |  Merge module definition with user values
-+--------+--------+
-         |
-         v
-+-----------------+
-|  For each       |
-|  Component      |-------------------+
-+--------+--------+                   |
-         |                            |
-         v                            |
-+-----------------+                   |
-|  Match          |  Find transformers|
-|  Transformers   |  matching this    |
-+--------+--------+  component        |
-         |                            |
-         v                            |
-+-----------------+                   |
-|  Execute        |  Run #transform   |
-|  Transforms     |  for each match   |
-+--------+--------+                   |
-         |                            |
-         v                            |
-+-----------------+                   |
-|  Collect Output |  Concatenate all  |
-|  Resources      |<------------------+
-+--------+--------+
-         |
-         v
-+-----------------+
-|  Add Labels     |  OPM tracking labels
-+--------+--------+
-         |
-         v
-+-----------------+
-|  Format Output  |  YAML/JSON, single/split
-+--------+--------+
-         |
-         v
-+-----------------+
-|  Kubernetes     |
-|  Manifests      |
-+-----------------+
-```
+*(See Section 3 for detailed ASCII diagram)*
 
 ---
 
-## Appendix C: Transformer Matching Algorithm
-
-```text
-function matches(transformer, component) -> bool:
-    // Check labels
-    for key, value in transformer.requiredLabels:
-        if component.metadata.labels[key] != value:
-            return false
-    
-    // Check resources
-    for fqn in keys(transformer.requiredResources):
-        if fqn not in component.#resources:
-            return false
-    
-    // Check traits
-    for fqn in keys(transformer.requiredTraits):
-        if fqn not in component.#traits:
-            return false
-    
-    // Check policies
-    for fqn in keys(transformer.requiredPolicies):
-        if fqn not in component.#policies:
-            return false
-    
-    return true
-```
-
----
-
-## Appendix D: Example Transformer Implementation
+## Appendix C: Example Transformer Implementation
 
 ```cue
 #DeploymentTransformer: core.#Transformer & {
@@ -290,13 +366,16 @@ function matches(transformer, component) -> bool:
     requiredResources: {
         "opm.dev/resources/workload@v1#Container": _
     }
+    optionalLabels: {
+        "opm.dev/debug": "true"
+    }
 
     // Transform function
     #transform: {
         #component: core.#Component
         #context:   core.#TransformerContext
 
-        output: [{
+        output: {
             apiVersion: "apps/v1"
             kind:       "Deployment"
             metadata: {
@@ -311,7 +390,7 @@ function matches(transformer, component) -> bool:
                     spec: containers: [#component.spec.container]
                 }
             }
-        }]
+        }
     }
 }
 ```
