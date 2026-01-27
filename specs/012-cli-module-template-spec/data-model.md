@@ -357,7 +357,7 @@ import (
     // Resource and trait imports
 )
 
-_web: core.#ComponentDefinition & {
+_web: core.#Component & {
     metadata: name: "web"
     // Resource and trait composition
     spec: {

@@ -4,6 +4,21 @@
 
 Landing project with docs, specs, benchmarks, and Taskfile automation.
 
+## Constitution
+
+This project follows the **Open Platform Model Constitution**.
+All agents MUST read and adhere to `opm/.specify/memory/constitution.md`.
+
+**Core Principles:**
+1. **Type Safety First**: All definitions in CUE. Validation at definition time.
+2. **Separation of Concerns**: ModuleDefinition (Dev) -> Module (Platform) -> ModuleRelease (Consumer).
+3. **Policy Built-In**: Policies and Scopes are first-class; enforcement at definition time.
+4. **Portability by Design**: Definitions must be runtime-agnostic.
+5. **Semantic Versioning**: SemVer v2.0.0 and Conventional Commits v1 required.
+6. **Simplicity & YAGNI**: Justify complexity. Prefer explicit over implicit.
+
+**Governance**: The constitution supersedes this file in case of conflict.
+
 ## Project Structure
 
 ```text

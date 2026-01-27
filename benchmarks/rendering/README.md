@@ -40,7 +40,7 @@ CUE must:
 Blueprints manually expanded to resources + traits:
 
 ```cue
-frontend: core.#ComponentDefinition & {
+frontend: core.#Component & {
     workload_resources.#Container
     workload_traits.#Replicas
 

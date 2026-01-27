@@ -139,6 +139,38 @@ The render pipeline is the core execution flow of the `opm mod build` command. I
                          +------------------------------------------+
 ```
 
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                       Hybrid Render Pipeline                    │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 1: Module Loading & Validation                     [Go]  │
+│           ├─ Load CUE via cue/load                              │
+│           ├─ Extract release metadata                           │
+│           └─ Build base TransformerContext                      │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 2: Provider Loading                                [Go]  │
+│           └─ Access provider.transformers from CUE              │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 3: Component Matching                             [CUE]  │
+│           ├─ CUE evaluates #Matches predicate                   │
+│           ├─ CUE computes #matchedTransformers map              │
+│           └─ Go reads back the computed matching plan           │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 4: Parallel Transformer Execution                  [Go]  │
+│           ├─ Iterate CUE-computed matches                       │
+│           ├─ For each (transformer, component):                 │
+│           │   ├─ Unify transformer.#transform + inputs          │
+│           │   ├─ Export unified AST (thread-safe)               │
+│           │   └─ Send Job to worker goroutine                   │
+│           └─ Workers: isolated cue.Context → Decode output      │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 5: Aggregation & Output                            [Go]  │
+│           ├─ Collect results from workers                       │
+│           ├─ Aggregate errors (fail-on-end)                     │
+│           └─ Output YAML manifests                              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ### Phase 1: Module Loading & Validation
 
 - **Initialization**: Load CLI config, set up context.
@@ -155,16 +187,21 @@ The render pipeline is the core execution flow of the `opm mod build` command. I
 
 - **Loop**: Iterate through all components in the unified module.
 - **Match**: For each component, identify **ALL** matching transformers (see Section 4). Multiple transformers can match the same component (e.g., a stateless workload with `Expose` trait matches both `DeploymentTransformer` and `ServiceTransformer`).
-- **Group**: Construct a `matched` data structure that groups components by their matched transformer.
+- **Group**: Construct a `matchedTransformers` data structure that groups components by their matched transformer.
 
     ```cue
-    matched: {
+    #MatchedTransformersMap: [string]: {
+        transformer: #Transformer
+        components: [...#Component]
+    }
+
+    matchedTransformers: #MatchedTransformersMap {
         "transformer.opm.dev/workload@v1#DeploymentTransformer": {
-            transformer: DeploymentTransformer
+            transformer: #DeploymentTransformer
             components: [comp1, comp2]
         }
         "opm.dev/providers/kubernetes/transformers@v1#ServiceTransformer": {
-            transformer: ServiceTransformer
+            transformer: #ServiceTransformer
             components: [comp1]
         }
     }
@@ -172,7 +209,7 @@ The render pipeline is the core execution flow of the `opm mod build` command. I
 
 ### Phase 4: Parallel Transformer Execution
 
-- **Parallel Loop**: Iterate through the keys (transformers) of the `matched` map in parallel.
+- **Parallel Loop**: Iterate through the keys (transformers) of the `matchedTransformers` map in parallel.
 - **Context Injection**: Create a `TransformerContext` for each execution. **Crucially**, OPM tracking labels (e.g., `app.kubernetes.io/managed-by`, `module.opmodel.dev/name`) are injected into the context here, rather than post-processing.
 - **Execution**: Run the `#transform` function for each component in the transformer's list.
 - **Output**: Each execution produces exactly **one** resource.
@@ -187,7 +224,7 @@ The render pipeline is the core execution flow of the `opm mod build` command. I
 
 ## 4. Transformer Matching Logic
 
-This logic determines which transformers run for a given component. It creates the execution plan (the `matched` map) before any transformation occurs.
+This logic determines which transformers run for a given component. It creates the execution plan (the `matchedTransformers` map) before any transformation occurs.
 
 **Concept: Capability vs. Intent**
 Matching happens in two logical stages:
@@ -224,7 +261,7 @@ Matching happens in two logical stages:
               | Yes
               v
 +---------------------------------------------+
-| Add Component to `matched[Transformer].components` |
+| Add Component to `matchedTransformers[Transformer].components` |
 +---------------------------------------------+
 ```
 
@@ -278,7 +315,7 @@ A transformer matches if and only if **ALL** conditions are met:
 
 #### Render Pipeline
 
-- **FR-015**: The render pipeline MUST execute transformers in parallel (iterating the `matched` map).
+- **FR-015**: The render pipeline MUST execute transformers in parallel (iterating the `matchedTransformers` map).
 - **FR-016**: Generated resources MUST include OPM tracking labels, injected via **TransformerContext**:
   - `app.kubernetes.io/managed-by: open-platform-model`
   - `module.opmodel.dev/name`

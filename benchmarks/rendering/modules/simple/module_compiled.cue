@@ -17,7 +17,7 @@ simpleModule: core.#Module & {
 	}
 
 	#components: {
-		frontend: core.#ComponentDefinition & {
+		frontend: core.#Component & {
 			metadata: {
 				name: "web-frontend"
 				labels: {
@@ -61,7 +61,7 @@ simpleModule: core.#Module & {
 			}
 		}
 
-		api: core.#ComponentDefinition & {
+		api: core.#Component & {
 			metadata: {
 				name: "api-backend"
 				labels: {

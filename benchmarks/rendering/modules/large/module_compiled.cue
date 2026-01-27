@@ -20,7 +20,7 @@ largeModule: core.#Module & {
 
 	#components: {
 		// 1. Frontend - React SPA
-		frontend: core.#ComponentDefinition & {
+		frontend: core.#Component & {
 			metadata: {
 				name: "web-frontend"
 				labels: {
@@ -78,7 +78,7 @@ largeModule: core.#Module & {
 		}
 
 		// 2. API Gateway
-		apiGateway: core.#ComponentDefinition & {
+		apiGateway: core.#Component & {
 			metadata: {
 				name: "api-gateway"
 				labels: {
@@ -159,7 +159,7 @@ largeModule: core.#Module & {
 		}
 
 		// 3. Auth Service
-		authService: core.#ComponentDefinition & {
+		authService: core.#Component & {
 			metadata: {
 				name: "auth-service"
 				labels: {
@@ -228,7 +228,7 @@ largeModule: core.#Module & {
 		}
 
 		// 4. User Service
-		userService: core.#ComponentDefinition & {
+		userService: core.#Component & {
 			metadata: {
 				name: "user-service"
 				labels: {
@@ -293,7 +293,7 @@ largeModule: core.#Module & {
 		}
 
 		// 5. Product Service
-		productService: core.#ComponentDefinition & {
+		productService: core.#Component & {
 			metadata: {
 				name: "product-service"
 				labels: {
@@ -358,7 +358,7 @@ largeModule: core.#Module & {
 		}
 
 		// 6. Order Service
-		orderService: core.#ComponentDefinition & {
+		orderService: core.#Component & {
 			metadata: {
 				name: "order-service"
 				labels: {
@@ -427,7 +427,7 @@ largeModule: core.#Module & {
 		}
 
 		// 7. Payment Service
-		paymentService: core.#ComponentDefinition & {
+		paymentService: core.#Component & {
 			metadata: {
 				name: "payment-service"
 				labels: {
@@ -492,7 +492,7 @@ largeModule: core.#Module & {
 		}
 
 		// 8. Notification Service
-		notificationService: core.#ComponentDefinition & {
+		notificationService: core.#Component & {
 			metadata: {
 				name: "notification-service"
 				labels: {
@@ -561,7 +561,7 @@ largeModule: core.#Module & {
 		}
 
 		// 9. PostgreSQL Database
-		postgresDatabase: core.#ComponentDefinition & {
+		postgresDatabase: core.#Component & {
 			metadata: {
 				name: "postgres-database"
 				labels: {
@@ -646,7 +646,7 @@ largeModule: core.#Module & {
 		}
 
 		// 10. Redis Cache
-		redisCache: core.#ComponentDefinition & {
+		redisCache: core.#Component & {
 			metadata: {
 				name: "redis-cache"
 				labels: {
@@ -713,7 +713,7 @@ largeModule: core.#Module & {
 		}
 
 		// 11. MongoDB (Product Catalog)
-		mongoDatabase: core.#ComponentDefinition & {
+		mongoDatabase: core.#Component & {
 			metadata: {
 				name: "mongodb-database"
 				labels: {
@@ -794,7 +794,7 @@ largeModule: core.#Module & {
 		}
 
 		// 12. Message Queue Worker
-		messageQueueWorker: core.#ComponentDefinition & {
+		messageQueueWorker: core.#Component & {
 			metadata: {
 				name: "mq-worker"
 				labels: {

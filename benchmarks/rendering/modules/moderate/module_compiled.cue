@@ -18,7 +18,7 @@ moderateModule: core.#Module & {
 	}
 
 	#components: {
-		frontend: core.#ComponentDefinition & {
+		frontend: core.#Component & {
 			metadata: {
 				name:        "web-frontend"
 				
@@ -76,7 +76,7 @@ moderateModule: core.#Module & {
 			}
 		}
 
-		api: core.#ComponentDefinition & {
+		api: core.#Component & {
 			metadata: {
 				name:        "api-backend"
 				
@@ -163,7 +163,7 @@ moderateModule: core.#Module & {
 			}
 		}
 
-		database: core.#ComponentDefinition & {
+		database: core.#Component & {
 			metadata: {
 				name:        "postgres-database"
 				
@@ -255,7 +255,7 @@ moderateModule: core.#Module & {
 			}
 		}
 
-		worker: core.#ComponentDefinition & {
+		worker: core.#Component & {
 			metadata: {
 				name:        "background-worker"
 				
