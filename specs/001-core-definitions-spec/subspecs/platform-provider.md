@@ -101,6 +101,9 @@ The `#Provider` definition serves as the root of a platform adapter.
         description: string
         version:     string
         minVersion:  string // Minimum supported OPM version
+        
+        // Optional labels for provider categorization
+        labels?: #LabelsAnnotationsType
     }
 
     // Transformer Registry
@@ -109,8 +112,12 @@ The `#Provider` definition serves as the root of a platform adapter.
 
     // Computed lists of all OPM definitions supported by this provider
     // (Automatically derived from the transformers map)
-    #declaredResources: [...] 
-    #declaredTraits:    [...]
+    #declaredResources: [...string]
+    #declaredTraits:    [...string]
+    #declaredDefinitions: [...string]  // Concat of resources + traits
+    
+    // Open struct - allows for provider-specific extensions
+    ...
 }
 ```
 
@@ -120,26 +127,34 @@ The `#Transformer` definition declares how to match and convert a component.
 
 ```cue
 #Transformer: {
+    apiVersion: "opm.dev/core/v0"
+    kind:       "Transformer"
+    
     metadata: {
-        name:        string
-        description: string
+        apiVersion!:  #NameType
+        name!:        #NameType
+        fqn:          #FQNType & "\(apiVersion)#\(name)"
+        description!: string
+        
+        labels?:      #LabelsAnnotationsType
+        annotations?: #LabelsAnnotationsType
     }
 
-    // Matching Criteria (See transformer-matching.md)
-    requiredLabels?:    [string]: string
-    requiredResources:  [string]: #Resource
-    requiredTraits:     [string]: #Trait
+    // Matching Criteria (See transformer.md)
+    requiredLabels?:    #LabelsAnnotationsType
+    requiredResources:  [string]: _
+    requiredTraits:     [string]: _
     
-    optionalResources: [string]: #Resource
-    optionalTraits:    [string]: #Trait
+    optionalResources?: [string]: _
+    optionalTraits?:    [string]: _
 
     // The Transform Function
     #transform: {
-        #component: #Component // Input
-        #context:   {...}      // Context (module name, etc.)
+        #component: _  // Unconstrained input
+        context:    #TransformerContext
 
-        // Output MUST be a list of resources
-        output: [...] 
+        // Output MUST be a single resource
+        output: {...} 
     }
 }
 ```
@@ -149,21 +164,67 @@ The `#Transformer` definition declares how to match and convert a component.
 The `#transform` field is a CUE function (struct with inputs and outputs).
 
 - **Input**: `#component` (The fully unified component being transformed).
-- **Output**: `output` (A list of platform-specific resources).
+- **Output**: `output` (A single platform-specific resource).
 
-**Constraint**: The `output` field MUST be a list, even if generating a single resource. This ensures consistent handling when concatenating outputs from multiple transformers.
+**Constraint**: Each transformer MUST output exactly one resource. When multiple resources are needed for a component (e.g., Deployment + Service), multiple transformers match the same component and each produces its own resource. The render pipeline aggregates outputs from all matched transformers.
 
 ## Registry & Discovery
 
 The Provider automatically computes the set of supported OPM definitions by inspecting its registered transformers. This allows the CLI to answer questions like "Which traits does this provider support?".
 
 ```cue
-// Pseudo-code for computation logic in #Provider
-#declaredTraits: flatten([
-    for t in transformers {
-        keys(t.requiredTraits) + keys(t.optionalTraits)
+// Actual CUE implementation in #Provider
+#declaredResources: list.FlattenN([
+    for _, transformer in transformers {
+        list.Concat([
+            [for fqn, _ in transformer.requiredResources {fqn}],
+            [for fqn, _ in transformer.optionalResources {fqn}],
+        ])
+    },
+], 1)
+
+#declaredTraits: list.FlattenN([
+    for _, transformer in transformers {
+        list.Concat([
+            [for fqn, _ in transformer.requiredTraits {fqn}],
+            [for fqn, _ in transformer.optionalTraits {fqn}],
+        ])
+    },
+], 1)
+
+#declaredDefinitions: list.Concat([#declaredResources, #declaredTraits])
+```
+
+## Matching Plan Computation
+
+The `#MatchTransformers` function computes the matching plan for a render pipeline. This maps each transformer to its list of matched components and is used during Phase 3 (Component Matching) of the render pipeline.
+
+```cue
+#MatchTransformers: {
+    provider: #Provider
+    module:   #ModuleRelease
+
+    out: {
+        // Iterate over all transformers in the provider
+        for tID, t in provider.transformers {
+            // Find all components in the module that match this transformer
+            let matches = [
+                for _, c in module.components
+                if (#Matches & {transformer: t, component: c}).result {
+                    c
+                },
+            ]
+
+            // Only include this transformer if it matched at least one component
+            if len(matches) > 0 {
+                (tID): {
+                    transformer: t
+                    components:  matches
+                }
+            }
+        }
     }
-])
+}
 ```
 
 ## Examples
@@ -211,7 +272,7 @@ import "opm.dev/core@v0"
         #component: _
         #context:   _
 
-        output: [{
+        output: {
             apiVersion: "apps/v1"
             kind:       "Deployment"
             metadata: {
@@ -222,7 +283,7 @@ import "opm.dev/core@v0"
                 replicas: #component.spec.replicas
                 // ...
             }
-        }]
+        }
     }
 }
 ```
@@ -232,9 +293,14 @@ import "opm.dev/core@v0"
 ### Provider Structure
 
 - **FR-13-001**: `#Provider` MUST contain a `transformers` map registry.
-- **FR-13-002**: Provider MUST compute `#declaredResources` and `#declaredTraits` by aggregating requirements from all registered transformers.
-- **FR-13-003**: `#Transformer` MUST declare matching criteria (`requiredLabels`, `requiredResources`, etc.) and a `#transform` function.
-- **FR-13-004**: The `#transform.output` field MUST be a list of resources.
+- **FR-13-002**: Provider MUST compute `#declaredResources` and `#declaredTraits` by aggregating FQNs from all registered transformers (both required and optional).
+- **FR-13-003**: Provider MUST compute `#declaredDefinitions` as the concatenation of `#declaredResources` and `#declaredTraits`.
+- **FR-13-004**: `#Provider` MUST be an open struct (not closed) to allow provider-specific extensions.
+- **FR-13-005**: `#Provider.apiVersion` MUST be `"core.opm.dev/v0"`.
+- **FR-13-006**: `#Transformer` MUST have full metadata including `apiVersion`, `name`, `fqn`, and `description`.
+- **FR-13-007**: `#Transformer` MUST declare matching criteria (`requiredLabels`, `requiredResources`, etc.) and a `#transform` function.
+- **FR-13-008**: The `#transform.output` field MUST be a single resource (not a list). Multiple resources per component are achieved through multiple transformers matching.
+- **FR-13-009**: The `#MatchTransformers` function MUST compute the matching plan mapping transformers to their matched components.
 
 ## Matching Logic
 

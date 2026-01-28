@@ -58,13 +58,26 @@ The compiled form where all included modules are fully evaluated and flattened (
 
 ```cue
 #CompiledBundle: close({
-    // ... metadata ...
+    apiVersion: "opm.dev/core/v0"
+    kind:       "Bundle"  // Note: same kind as #Bundle
     
+    metadata: {
+        apiVersion!: #NameType
+        name!:       #NameType
+        fqn:         #FQNType & "\(apiVersion)#\(name)"
+        description?: string
+        labels?:      #LabelsAnnotationsType
+        annotations?: #LabelsAnnotationsType
+    }
+
     // Modules are fully compiled
-    #modules!: [string]: #CompiledModule
+    #modules!: #CompiledModuleMap
     
-    // Concrete values
-    values: #Values
+    // Value schema (required)
+    #values!: _
+    
+    // Concrete values (preserved from Bundle)
+    values: _
 })
 ```
 
@@ -78,15 +91,26 @@ The deployment artifact that binds a `#CompiledBundle` (or `#Bundle`) to specifi
     kind:       "BundleRelease"
 
     metadata: {
-        name!: string
-        // ...
+        name!:        string
+        labels?:      #LabelsAnnotationsType
+        annotations?: #LabelsAnnotationsType
     }
 
     // Reference to the bundle
-    #bundle!: #Bundle | #CompiledBundle
+    #bundle!: #CompiledBundle | #Bundle
 
     // Concrete values satisfying #bundle.#spec
     values!: close(#bundle.#spec)
+    
+    // Optional status
+    if #bundle.#status != _|_ {status: #bundle.#status}
+    status?: {
+        // Deployment lifecycle phase
+        phase: "pending" | "deployed" | "failed" | "unknown" | *"pending"
+        
+        // Human-readable status message
+        message?: string
+    }
 })
 ```
 
@@ -134,6 +158,9 @@ import (
 - **FR-12-002**: The bundle MUST be able to import modules from different repositories/packages.
 - **FR-12-003**: `#CompiledBundle` represents the state where all child modules have been compiled to `#CompiledModule` (blueprints expanded, defaults applied).
 - **FR-12-004**: `#BundleRelease` MUST bind a Bundle to concrete values, creating a deployable instance of the entire stack.
+- **FR-12-005**: `#CompiledBundle.kind` MUST be `"Bundle"` (same as `#Bundle`).
+- **FR-12-006**: `#CompiledBundle` MUST use `#values!: _` (required) and `values: _` for value schema and concrete values.
+- **FR-12-007**: `#BundleRelease` MAY include optional `status` block with `phase` and `message` fields.
 
 ## Acceptance Criteria
 

@@ -142,35 +142,75 @@ Transformers must adhere to the following interface, supporting optional inputs 
 
 ```cue
 #Transformer: {
+    apiVersion: "opm.dev/core/v0"
+    kind:       "Transformer"
+
+    metadata: {
+        apiVersion!:  #NameType
+        name!:        #NameType
+        fqn:          #FQNType & "\(apiVersion)#\(name)"
+        description!: string
+        
+        labels?:      #LabelsAnnotationsType
+        annotations?: #LabelsAnnotationsType
+    }
+
     // Matching Requirements
-    requiredResources: {[string]: _}
-    requiredTraits: {[string]: _}
-    requiredLabels: {[string]: string}
+    requiredResources: [string]: _
+    requiredTraits:    [string]: _
+    requiredLabels?:   #LabelsAnnotationsType
 
     // Optional Inputs (do not affect matching)
-    optionalResources: {[string]: _}
-    optionalTraits: {[string]: _}
-    optionalLabels: {[string]: string}
+    optionalResources?: [string]: _
+    optionalTraits?:    [string]: _
+    optionalLabels?:    #LabelsAnnotationsType
 
     // Transform Function
     #transform: {
-        #component: core.#Component
-        #context:   core.#TransformerContext
+        #component: _  // Unconstrained - validated by matching, not signature
+        context:    #TransformerContext
 
         // Output must be a single resource
         output: {...}
     }
 }
 
-#TransformerContext: {
-    name:      string
-    namespace: string
-    version:   string
-    provider:  string
-    timestamp: string // RFC3339
-    strict:    bool
-    labels:    {[string]: string} // Module-level tracking labels
-}
+#TransformerContext: close({
+    #moduleMetadata:    _  // Injected during rendering
+    #componentMetadata: _  // Injected during rendering
+    name:               string  // Release name
+    namespace:          string  // Target namespace
+
+    moduleLabels: {
+        if #moduleMetadata.labels != _|_ {#moduleMetadata.labels}
+    }
+
+    componentLabels: {
+        "app.kubernetes.io/instance": "\(name)-\(namespace)"
+        
+        if #componentMetadata.labels != _|_ {#componentMetadata.labels}
+    }
+
+    controllerLabels: {
+        "app.kubernetes.io/managed-by": "open-platform-model"
+        "app.kubernetes.io/name":       #componentMetadata.name
+        "app.kubernetes.io/version":    #moduleMetadata.version
+    }
+
+    labels: {[string]: string}
+    labels: {
+        for k, v in moduleLabels {
+            (k): "\(v)"
+        }
+        for k, v in componentLabels {
+            (k): "\(v)"
+        }
+        for k, v in controllerLabels {
+            (k): "\(v)"
+        }
+        ...
+    }
+})
 ```
 
 ## Examples
@@ -188,7 +228,7 @@ Transformers must adhere to the following interface, supporting optional inputs 
 
     #transform: {
         #component: _
-        #context: _
+        context: _
         output: {
             apiVersion: "apps/v1"
             kind: "Deployment"
@@ -212,7 +252,7 @@ Transformers must adhere to the following interface, supporting optional inputs 
 
     #transform: {
         #component: _
-        #context: _
+        context: _
         output: {
             apiVersion: "v1"
             kind: "Service"
@@ -232,7 +272,10 @@ Transformers must adhere to the following interface, supporting optional inputs 
 - **FR-14-006**: Transformers with different requirements matching the same component execute in parallel.
 - **FR-14-007**: `#transform` MUST output a single resource (`output: {...}`).
 - **FR-14-008**: Outputs from all matched transformers MUST be aggregated into a list.
-- **FR-14-009**: Context MUST be injected with `provider`, `strict`, `timestamp`, and tracking `labels`.
+- **FR-14-009**: `#TransformerContext` MUST be injected with `#moduleMetadata`, `#componentMetadata`, `name`, `namespace`, and computed tracking `labels`.
+- **FR-14-010**: `#TransformerContext.labels` MUST aggregate `moduleLabels`, `componentLabels`, and `controllerLabels` with Kubernetes-standard label keys.
+- **FR-14-011**: `#Transformer` MUST have full metadata including `apiVersion`, `name`, `fqn`, and `description`.
+- **FR-14-012**: `#transform.#component` is unconstrained (`_`) - validation occurs during matching, not at transform signature level.
 
 ## Edge Cases
 

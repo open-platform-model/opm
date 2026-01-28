@@ -115,31 +115,6 @@ A developer wants to control how rendered manifests are output - as a single fil
 The render pipeline is the core execution flow of the `opm mod build` command. It is designed to be deterministic, parallelizable, and error-aggregating (fail-on-end).
 
 ```text
-+-----------------+      +-----------------+      +-----------------+
-|  Module Source  |----->|   CUE Unify     |----->|   Provider      |
-|  (User Input)   |      | (Deps + Values) |      | (Load & Index)  |
-+-----------------+      +--------+--------+      +--------+--------+
-                                  |                        |
-                                  v                        v
-                         +------------------------------------------+
-                         |      Component Analysis & Matching       |
-                         |   (Map Transformers -> List[Component])  |
-                         +--------------------+---------------------+
-                                              |
-                                              v
-                         +------------------------------------------+
-                         |    Parallel Transformer Execution        |
-                         |   (Iterate Map -> Transform + Labels)    |
-                         +--------------------+---------------------+
-                                              |
-                                              v
-                         +------------------------------------------+
-                         |       Aggregation & Output               |
-                         |     (Collect Single Resources)           |
-                         +------------------------------------------+
-```
-
-```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                       Hybrid Render Pipeline                    │
 ├─────────────────────────────────────────────────────────────────┤
@@ -318,9 +293,6 @@ A transformer matches if and only if **ALL** conditions are met:
 - **FR-015**: The render pipeline MUST execute transformers in parallel (iterating the `matchedTransformers` map).
 - **FR-016**: Generated resources MUST include OPM tracking labels, injected via **TransformerContext**:
   - `app.kubernetes.io/managed-by: open-platform-model`
-  - `module.opmodel.dev/name`
-  - `module.opmodel.dev/version`
-  - `component.opmodel.dev/name`
 - **FR-017**: Support `yaml`, `json` output.
 - **FR-018**: Support `--split`.
 - **FR-023**: Aggregate outputs deterministically.

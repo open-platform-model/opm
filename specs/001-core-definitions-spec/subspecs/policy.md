@@ -152,7 +152,8 @@ This document defines the OPM policy system at the scope application level. Poli
     }
 
     // Policy specification schema
-    #spec!: _
+    // Uses camelCase naming pattern: field name matches strings.ToCamel(metadata.name)
+    #spec!: (strings.ToCamel(metadata.name)): _
 })
 ```
 

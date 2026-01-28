@@ -89,20 +89,56 @@ Components are instantiated within modules via `#Module.#components`:
     kind:       "Component"
 
     metadata: {
-        name!:      string
-        namespace?: string
+        name!: string
         
-        // Labels unified from all attached definitions
-        labels: {
-            [string]: string | int | bool | [...(string | int | bool)]
-            
-            // Inherited from #resources, #traits
+        // Component labels - unified from all attached resources, traits
+        // Labels are inherited from definitions and used for transformer matching.
+        // If definitions have conflicting labels, CUE unification will fail (automatic validation).
+        labels: #LabelsAnnotationsType & {
+            // Standard label for component name
+            "component.opmodel.dev/name": name
+
+            // Inherit labels from resources
+            for _, resource in #resources if resource.metadata.labels != _|_ {
+                for lk, lv in resource.metadata.labels {
+                    (lk): lv
+                }
+            }
+
+            // Inherit labels from traits
+            if #traits != _|_ {
+                for _, trait in #traits if trait.metadata.labels != _|_ {
+                    for lk, lv in trait.metadata.labels {
+                        (lk): lv
+                    }
+                }
+            }
         }
         
-        annotations?: {...}
+        // Component annotations - unified from all attached resources, traits
+        // If definitions have conflicting annotations, CUE unification will fail (automatic validation).
+        annotations?: {
+            [string]: string | int | bool | [...(string | int | bool)]
+
+            // Inherit annotations from resources
+            for _, resource in #resources if resource.metadata.annotations != _|_ {
+                for ak, av in resource.metadata.annotations {
+                    (ak): av
+                }
+            }
+
+            // Inherit annotations from traits
+            if #traits != _|_ {
+                for _, trait in #traits if trait.metadata.annotations != _|_ {
+                    for ak, av in trait.metadata.annotations {
+                        (ak): av
+                    }
+                }
+            }
+        }
     }
 
-    // Resources applied to this component (required, at least one)
+    // Resources applied to this component
     #resources: #ResourceMap
 
     // Traits applied to this component (optional)
@@ -114,14 +150,13 @@ Components are instantiated within modules via `#Module.#components`:
     // Merged spec from all definitions
     spec: close({
         _allFields
-        ...
     })
 
     // Computed status
     status: {
-        resourceCount:  int
-        traitCount?:    int
-        blueprintCount?: int
+        resourceCount: len(#resources)
+        traitCount?: {if #traits != _|_ {len(#traits)}}
+        blueprintCount?: {if #blueprints != _|_ {len(#blueprints)}}
     }
 })
 ```
@@ -166,16 +201,16 @@ _allFields: {
 
 spec: close({
     _allFields
-    ...
 })
 ```
 
-### Why `close()` with Spread Operator?
+### Why `close()` without Spread Operator?
 
-The `spec` uses `close({_allFields ...})` to:
+The `spec` uses `close({_allFields})` to:
 
 1. **Type safety**: Prevent typos in field names from silently being ignored
 2. **Transformer validation**: Allow transformers to validate against known fields
+3. **Direct field inclusion**: All fields from `_allFields` are directly included in the spec without the need for spread operator
 
 ## Label Inheritance
 
@@ -287,18 +322,14 @@ myModule: #Module & {
     }
     
     #components: {
-        // name defaults to "api", namespace to "production"
+        // name defaults to "api" (from map key)
         api: #Component & {
             #resources: {...}
             spec: {...}
         }
         
-        // name defaults to "worker", namespace to "production"
+        // name defaults to "worker" (from map key)
         worker: #Component & {
-            metadata: {
-                // Override namespace for this component
-                namespace: "background-jobs"
-            }
             #resources: {...}
             spec: {...}
         }
@@ -330,7 +361,7 @@ myModule: #Module & {
 
 ### Resource Requirement
 
-1. **Given** a Component with empty `#resources: {}`, **When** evaluated, **Then** validation fails (at least one resource required).
+1. **Given** a Component with empty `#resources: {}`, **When** evaluated, **Then** validation SHOULD fail (currently deferred in implementation).
 
 2. **Given** a Component with at least one Resource, **When** evaluated, **Then** validation succeeds.
 
@@ -338,9 +369,7 @@ myModule: #Module & {
 
 1. **Given** a Component defined in `#Module.#components` with key "api", **When** no explicit name provided, **Then** `metadata.name` defaults to "api".
 
-2. **Given** a Module with `defaultNamespace: "prod"` and a Component without explicit namespace, **When** evaluated, **Then** Component `metadata.namespace` is "prod".
-
-3. **Given** a Component with explicit `metadata.namespace: "staging"`, **When** in a Module with different defaultNamespace, **Then** Component uses "staging".
+2. **Given** a Component with explicit `metadata.name: "custom"`, **When** in a Module with map key "api", **Then** Component uses "custom".
 
 ### Status Computation
 
@@ -351,27 +380,29 @@ myModule: #Module & {
 ### Spec Merging
 
 - **FR-6-001**: `#Component` merges specs from `#resources`, `#traits`, and `#blueprints` into a unified `spec` field.
-- **FR-6-002**: Component `spec` MUST use `close()` with spread operator for type safety with transformer validation.
+- **FR-6-002**: Component `spec` MUST use `close()` for type safety with transformer validation.
 - **FR-6-003**: Component MUST merge `#spec` from all attached `#resources`, `#traits`, and `#blueprints` into unified `spec` field.
-- **FR-6-004**: Component `spec` MUST use `close()` to force the fields included from the compositions while maintaining type safety.
+- **FR-6-004**: Component `spec` MUST use `close({_allFields})` to include fields from compositions while maintaining type safety.
 - **FR-6-005**: Component labels MUST be the union of labels from the component itself plus all attached definitions (`#resources`, `#traits`).
 - **FR-6-006**: Conflicting labels from definitions (same key, different value) MUST cause CUE unification failure.
-- **FR-6-007**: Component MUST have at least one Resource in `#resources`.
+- **FR-6-007**: Component SHOULD have at least one Resource in `#resources` (validation currently deferred in code).
 - **FR-6-008**: Component `status` MUST compute counts for resources, traits, and blueprints.
-- **FR-6-009**: When component is defined in `#Module.#components`, name defaults to the map key and namespace defaults to `metadata.defaultNamespace`.
+- **FR-6-009**: When component is defined in `#Module.#components`, component name defaults to the map key via `metadata: {name: string | *Id}`.
+- **FR-6-010**: Component metadata MUST automatically add standard label `"component.opmodel.dev/name"`.
+- **FR-6-011**: Component MUST inherit annotations from attached resources and traits.
 
 ## Edge Cases
 
 | Case | Behavior |
 |------|----------|
-| Empty `#resources` | Validation error (at least one required) |
+| Empty `#resources` | Validation SHOULD error (currently deferred in code) |
 | Empty `#traits`, `#blueprints` | Valid (all optional) |
 | Conflicting labels | CUE unification error |
+| Conflicting annotations | CUE unification error |
 | Conflicting spec fields (incompatible) | CUE unification error |
 | Conflicting spec fields (compatible) | CUE unifies values |
 | No explicit component name in module | Defaults to map key |
-| No explicit namespace in module | Defaults to `defaultNamespace` |
-| Explicit namespace overrides default | Explicit value used |
+| Explicit name overrides default | Explicit value used |
 | Blueprint expands to same resource as direct | CUE unifies (if compatible) |
 
 ## Success Criteria

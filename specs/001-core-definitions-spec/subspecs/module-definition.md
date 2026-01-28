@@ -26,28 +26,42 @@ This is the primary authoring definition for an application or service.
 #Module: close({
     apiVersion: "opm.dev/core/v0"
     kind:       "Module"
+    
     metadata: {
         apiVersion!: #NameType
         name!:       #NameType
         fqn:         #FQNType & "\(apiVersion)#\(name)"
         version!:    #VersionType
-        // ... other metadata
+        
+        defaultNamespace?: string
+        description?:      string
+        labels?:           #LabelsAnnotationsType
+        annotations?:      #LabelsAnnotationsType
+        
+        // Standard labels automatically added
+        labels: #LabelsAnnotationsType & {
+            "module.opmodel.dev/name":    "\(fqn)"
+            "module.opmodel.dev/version": "\(version)"
+        }
     }
 
-    // The components that make up the module
-    #components: [Id=string]: #Component
+    // Components defined in this module
+    #components: [Id=string]: #Component & {
+        metadata: {
+            name: string | *Id  // Component name defaults to map key
+        }
+    }
 
-    // Optional Scopes
+    // Module-level scopes (optional)
     #scopes?: [Id=string]: #Scope
 
-    // The configuration schema (constraints)
-    #spec: _
+    // Value schema - constraints only, NO defaults
+    // MUST be OpenAPIv3 compliant (no CUE templating - for/if statements)
+    config: _
 
-    // Default configuration values
-    values: #Values
-    
-    // Status block for compile-time info and runtime probes
-    #status?: #ModuleStatus
+    // Concrete values - should contain sane default values
+    // Must satisfy the config schema
+    values: close(config)
 })
 ```
 
@@ -57,8 +71,8 @@ This section defines the configuration values system for Modules. It separates s
 
 ### Core Principle: Schema vs Data
 
-- **`#spec`**: The schema, defined in CUE. It sets types, constraints, and validation rules. No default values should be here.
-- **`values`**: The data, defined in `values.cue` and mapped to `#Module.values`. It contains concrete defaults and must unify with `#spec`.
+- **`config`**: The schema, defined in CUE. It sets types, constraints, and validation rules. No default values should be here.
+- **`values`**: The data, defined in `values.cue` and mapped to `#Module.values`. It contains concrete defaults and must satisfy `config` via `values: close(config)`.
 
 ### Core Principle: Immutable Platform Overrides
 
@@ -77,7 +91,7 @@ Values flow through a hierarchy. Once a higher-authority layer (Platform Team) s
 ```cue
 // module.cue
 #Module & {
-    #spec: {
+    config: {
         replicas: int & >=1
         image: string
     }
@@ -110,17 +124,17 @@ If a user tries to deploy `myProdModule` with `replicas: 1`:
 
 ### Functional Requirements
 
-- **FR-7-001**: `values` in Module MUST satisfy `#spec` and use OpenAPIv3-compatible data shapes.
-- **FR-7-002**: `#spec` MUST be a pure data schema compatible with OpenAPIv3 generation (no `if/for` logic that depends on values).
-- **FR-7-003**: `values.cue` file MUST contain concrete defaults satisfying the `#spec` schema.
+- **FR-7-001**: `values` in Module MUST satisfy `config` and use OpenAPIv3-compatible data shapes.
+- **FR-7-002**: `config` MUST be a pure data schema compatible with OpenAPIv3 generation (no `if/for` logic that depends on values).
+- **FR-7-003**: `values.cue` file MUST contain concrete defaults satisfying the `config` schema.
 - **FR-7-004**: Value override hierarchy: developer defaults → platform team overrides → end-user overrides.
 - **FR-7-005**: Platform team overrides become immutable for end-users.
 - **FR-7-006**: The system relies on CUE's unification properties to enforce immutability. If a value is made concrete by an upstream actor, downstream actors cannot change it.
 
 ### Acceptance Criteria
 
-1. **Given** a Module with `#spec.port: int` and `values.port: 80`, **When** evaluated, **Then** it is valid.
-2. **Given** a Module with `#spec.port: int` and missing `values`, **When** evaluated, **Then** it is incomplete (unless intended abstract).
+1. **Given** a Module with `config.port: int` and `values.port: 80`, **When** evaluated, **Then** it is valid.
+2. **Given** a Module with `config.port: int` and missing `values`, **When** evaluated, **Then** it is incomplete (unless intended abstract).
 3. **Given** a Platform override `replicas: 3`, **When** user supplies `replicas: 2`, **Then** evaluation fails.
 
 ### Edge Cases
@@ -129,7 +143,7 @@ If a user tries to deploy `myProdModule` with `replicas: 1`:
 |------|----------|
 | Platform-locked value override attempt | CUE unification enforces immutability - evaluation fails |
 | Module missing `values.cue` | Validation fails |
-| `values` does not satisfy `#spec` | CUE validation error |
+| `values` does not satisfy `config` | CUE validation error |
 | Nested value override (partial struct) | CUE unifies at field level |
 
 ### Success Criteria
@@ -137,30 +151,35 @@ If a user tries to deploy `myProdModule` with `replicas: 1`:
 - **SC-005**: Modules without `values.cue` fail validation.
 - **SC-006**: Platform-locked values cannot be overridden by end-users.
 
-### #ModuleCompiled
+### #CompiledModule
 
-This is an intermediate representation, not typically authored by users.
+This is an intermediate representation (IR), not typically authored by users. It is the result of flattening a Module (blueprints expanded into their constituent Resources, Traits, and Policies).
 
 ```cue
 #CompiledModule: close({
     apiVersion: "opm.dev/core/v0"
     kind:       "CompiledModule"
+    
     metadata: #Module.metadata
 
-    // Components are now flattened (blueprints expanded)
+    // Components (with blueprints expanded)
     #components: [string]: #Component
 
-    // Optional Scopes
+    // Scopes (from Module)
     #scopes?: [Id=string]: #Scope
 
-    // The configuration schema (constraints)
+    // Value schema (preserved from Module)
     #spec: _
 
-    // Default configuration values
-    values: #Values
-    
-    // Status block for compile-time info and runtime probes
-    #status?: #ModuleStatus
+    // Concrete values (preserved from Module)
+    values: _
+
+    // Optional computed status
+    #status?: {
+        componentCount: len(#components)
+        scopeCount?: {if #scopes != _|_ {len(#scopes)}}
+        ...
+    }
 })
 ```
 
@@ -172,28 +191,53 @@ This is the final, concrete object that a deployment system would create.
 #ModuleRelease: close({
     apiVersion: "opm.dev/core/v0"
     kind:       "ModuleRelease"
+    
     metadata: {
-        name!:      string
-        namespace!: string // Target environment
-        // ...
+        name!:        string
+        namespace!:   string // Required for releases (target environment)
+        labels?:      #LabelsAnnotationsType
+        annotations?: #LabelsAnnotationsType
+
+        // Propagated from module
+        fqn:          #module.metadata.fqn
+        version:      #module.metadata.version
+
+        // Inherit module labels
+        labels: {
+            if #module.metadata.labels != _|_ {#module.metadata.labels}
+        }
+        annotations: {
+            if #module.metadata.annotations != _|_ {#module.metadata.annotations}
+        }
     }
 
-    // Reference to the module being deployed
-    #module!: #CompiledModule | #Module
+    // Reference to the Module to deploy
+    #module!: #Module
 
-    // Concrete, user-provided values for this specific deployment
-    values!: close(#module.#spec)
+    // Components defined in this module release
+    components: #module.#components
+
+    // Module-level scopes (if any)
+    if #module.#scopes != _|_ {
+        scopes: #module.#scopes
+    }
+
+    // Concrete values (everything closed/concrete)
+    // Must satisfy the value schema from #module.config
+    values: close(#module.config)
 })
 ```
 
 ## Functional Requirements
 
-- **FR-5-001**: `#Module` is the portable application blueprint containing `#components`, `#spec` (schema), `values` (defaults), and optional `#scopes`.
+- **FR-5-001**: `#Module` is the portable application blueprint containing `#components`, `config` (schema), `values` (defaults), and optional `#scopes`.
+- **FR-5-002**: `#Module.metadata` MUST automatically add standard labels: `"module.opmodel.dev/name"` and `"module.opmodel.dev/version"`.
 - **FR-5-003**: A distributable Module MUST be accompanied by a `values.cue` file with default values.
-- **FR-5-004**: `#ModuleCompiled` is the compiled/optimized form with expanded Blueprints.
-- **FR-5-005**: `#ModuleCompiled` is ready for value binding and deployment, representing a complete, self-contained definition.
-- **FR-5-006**: `#ModuleRelease` binds a Module (or CompiledModule) to concrete `values` and a target namespace.
-- **FR-5-007**: `#ModuleRelease.values` MUST be validated against the `#module.#spec` schema.
+- **FR-5-004**: `#CompiledModule` is the compiled/optimized form with expanded Blueprints.
+- **FR-5-005**: `#CompiledModule` is ready for value binding and deployment, representing a complete, self-contained definition.
+- **FR-5-006**: `#ModuleRelease` binds a `#Module` to concrete `values` and a target namespace.
+- **FR-5-007**: `#ModuleRelease.values` MUST be validated against the `#module.config` schema.
+- **FR-5-008**: `#ModuleRelease.metadata` MUST propagate `fqn`, `version`, `labels`, and `annotations` from the referenced module.
 
 ## Examples
 
@@ -204,7 +248,7 @@ package myapp
 
 import "opm.dev/core@v0"
 
-#Module: core.#Module & {
+#MyModule: core.#Module & {
     metadata: {
         apiVersion: "example.com/modules@v0"
         name:       "WebApp"
@@ -215,13 +259,14 @@ import "opm.dev/core@v0"
         frontend: { /* ... Component definition ... */ }
     }
 
-    #spec: {
+    config: {
         image: string
         replicas: int | *1
     }
 
     values: {
         image: "nginx:latest"
+        replicas: 1
     }
 }
 ```
@@ -236,13 +281,13 @@ import (
     "example.com/modules@v0"
 )
 
-#Release: core.#ModuleRelease & {
+myRelease: core.#ModuleRelease & {
     metadata: {
         name:      "my-webapp-in-prod"
         namespace: "production"
     }
 
-    #module: myapp.#Module
+    #module: myapp.#MyModule
 
     // User provides the final values
     values: {

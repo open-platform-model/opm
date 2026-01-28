@@ -21,7 +21,7 @@ OPM organizes definitions into semantic categories that help humans and tooling 
 |------|---------|---------------------|-----------|------------|
 | **Resource** | What must exist | "What is being deployed?" | `#spec` | `Component` |
 | **Trait** | How it behaves | "How does it operate?" | `appliesTo`, `#spec` | `Component` |
-| **Blueprint** | How to compose it | "What does a common pattern look like?" | `composes` | `Component` |
+| **Blueprint** | How to compose it | "What does a common pattern look like?" | `composedResources`, `composedTraits` | `Component` |
 | **Policy** | What must be true | "What rules must it follow?" | `target`, `enforcement` | `Scope` |
 
 The first three types form the foundation of component composition:
@@ -74,7 +74,7 @@ To minimize cognitive load for the initial release (CLI v1), some core definitio
 - Q: Should Policies have `appliesTo` like Traits? → A: No. Traits declare Resource compatibility via `appliesTo`. Policies declare application level via `target` (component or scope). They serve different purposes.
 - Q: How do transformers match components? → A: **Label-based matching**. Transformers declare `requiredLabels` that components must have. Component labels are the union of labels from the component itself plus all attached `#resources` and `#traits`. Example: `#Container` component wrapper requires `workload-type` label, so users must specify "stateless" or "stateful", which transformers then match against.
 - Q: What happens when multiple transformers match? → A: If they have **identical requirements** (same requiredLabels + requiredResources + requiredTraits), it's an error. If they have **different requirements** (e.g., one requires Expose trait, one doesn't), they are complementary and both execute.
-- Q: What about the Module naming collision? → A: `#Module` is the CUE definition for the portable application blueprint. `#ModuleCompiled` is the compiled/flattened form. "Module package" refers to the file system structure.
+- Q: What about the Module naming collision? → A: `#Module` is the CUE definition for the portable application blueprint. `#CompiledModule` is the compiled/flattened form. "Module package" refers to the file system structure.
 
 ### Session 2026-01-26
 
@@ -127,7 +127,7 @@ See [Module Definition Subspec](./subspecs/module-definition.md) for acceptance 
 
 A provider transforms OPM components into platform-specific resources (e.g., Kubernetes Deployments). Transformers use label-based matching to determine which components they can handle. Component labels are inherited from attached resources and traits.
 
-See [Transformer Matching Subspec](./subspecs/transformer-matching.md) for acceptance criteria.
+See [Transformer Subspec](./subspecs/transformer.md) for acceptance criteria.
 
 ---
 
@@ -217,14 +217,18 @@ See [Bundle Definition Subspec](./subspecs/bundle-definition.md) for details.
 - **FR-043**: All definition `#spec` fields MUST be OpenAPIv3 compatible.
 - **FR-044**: Definition structs MUST use `close({})` to prevent unspecified fields.
 
+### Labels and Annotations
+
+- **FR-045**: `#LabelsAnnotationsType` supports `string | int | bool | [string | int | bool]` values to enable both simple and array-based label/annotation values.
+
 ## Key Entities
 
 ### Component Definition Types (Building Blocks)
 
 | Entity | Purpose | Key Fields |
 |--------|---------|------------|
-| `#Resource` | Deployable unit | `#spec`, `#defaults` |
-| `#Trait` | Behavior modifier | `appliesTo`, `#spec`, `#defaults` |
+| `#Resource` | Deployable unit | `#spec` |
+| `#Trait` | Behavior modifier | `appliesTo`, `#spec` |
 | `#Blueprint` | Reusable pattern | `composedResources`, `composedTraits`, `#spec` |
 
 ### Composition Types
@@ -238,25 +242,26 @@ See [Bundle Definition Subspec](./subspecs/bundle-definition.md) for details.
 
 | Entity | Purpose | Key Fields |
 |--------|---------|------------|
-| `#Module` | Portable blueprint | `#components`, `#scopes`, `#values`, `#status`, `#interfaces` (or `#provides`, `#consumes`) |
-| `#ModuleCompiled` | Compiled form | Expanded blueprints, resolved defaults |
-| `#ModuleRelease` | Deployment instance | `module`, `values`, `namespace` |
+| `#Module` | Portable blueprint | `#components`, `#scopes`, `config`, `values` |
+| `#CompiledModule` | Compiled form | Expanded blueprints, `#spec`, `values`, `#status` |
+| `#ModuleRelease` | Deployment instance | `#module`, `values`, `namespace` |
 
 ### Bundle Types
 
 | Entity | Purpose |
 |--------|---------|
 | `#Bundle` | Module collection |
-| `#BundleCompiled` | Compiled bundle |
+| `#CompiledBundle` | Compiled bundle |
 | `#BundleRelease` | Bundle deployment |
 
 ### Platform Types
 
 | Entity | Purpose | Key Fields |
 |--------|---------|------------|
-| `#Provider` | Platform adapter with transformer registry | `transformers`, `#declaredResources`, `#declaredTraits` |
+| `#Provider` | Platform adapter with transformer registry | `transformers`, `#declaredResources`, `#declaredTraits`, `#declaredDefinitions` |
 | `#Transformer` | Converts components to platform resources | `requiredLabels`, `requiredResources`, `optionalResources`, `requiredTraits`, `optionalTraits`, `#transform` |
 | `#Template` | Module initialization template | `category`, `level` |
+| `#MatchTransformers` | Computes component matching plan | `provider`, `module`, `out` |
 
 ## Schema References
 
@@ -288,15 +293,13 @@ All schemas are the authoritative specification:
 | 1 | Resource | [Resource Definition](./subspecs/resource.md) | FR-1-001 to FR-1-008 | Definition of fundamental deployable units |
 | 2 | Trait | [Trait Definition](./subspecs/trait.md) | FR-2-001 to FR-2-007 | Definition of behavior modifiers |
 | 3 | Blueprint | [Blueprint Definition](./subspecs/blueprint.md) | FR-3-001 to FR-3-006 | Schema and behavior of reusable Blueprints |
-| 5 | Module Definition | [module-definition.md](./subspecs/module-definition.md) | FR-5-001 to FR-5-007 | Defines the `#Module`, `#ModuleCompiled`, and `#ModuleRelease` entities |
+| 5 | Module Definition | [module-definition.md](./subspecs/module-definition.md) | FR-5-001 to FR-5-007 | Defines the `#Module`, `#CompiledModule`, and `#ModuleRelease` entities |
 | 6 | Component | [component.md](./subspecs/component.md) | FR-6-001 to FR-6-009 | Component composition within modules |
 | 7 | Interface | [interface.md](./subspecs/interface.md) | FR-094 to FR-110 | Module interface contracts |
 | 8 | Scope | [Scope Definition](./subspecs/scope.md) | FR-8-001 to FR-8-006 | Scope-level policy application |
 | 9 | Policy | [Policy Definition](./subspecs/policy.md) | FR-9-001 to FR-9-007 | Policy system for scope-level governance |
 | 10 | Status | [Status Definition](./subspecs/status.md) | FR-10-001 to FR-10-007 | Computed status from module configuration |
 | 11 | Lifecycle System | [lifecycle.md](./subspecs/lifecycle.md) | FR-4-001 to FR-11-007 | Lifecycle overview and subsystem context |
-| 12 | Component Lifecycle | [component-lifecycle.md](./subspecs/component-lifecycle.md) | FR-4-001 to FR-4-007 | Component transition lifecycle hooks |
-| 13 | Module Lifecycle | [module-lifecycle.md](./subspecs/module-lifecycle.md) | FR-11-001 to FR-11-007 | Module transition lifecycle hooks |
-| 14 | Bundle Definition | [bundle-definition.md](./subspecs/bundle-definition.md) | FR-12-001 to FR-12-004 | Aggregation of modules into bundles |
-| 15 | Platform Provider | [platform-provider.md](./subspecs/platform-provider.md) | FR-13-001 to FR-13-005 | Provider and Transformer structure |
-| 16 | Transformer Matching | [transformer.md](./subspecs/transformer-matching.md) | FR-14-001 to FR-14-007 | Label-based matching algorithm for transformers |
+| 12 | Bundle Definition | [bundle-definition.md](./subspecs/bundle-definition.md) | FR-12-001 to FR-12-004 | Aggregation of modules into bundles |
+| 13 | Platform Provider | [platform-provider.md](./subspecs/platform-provider.md) | FR-13-001 to FR-13-005 | Provider and Transformer structure |
+| 14 | Transformer | [transformer.md](./subspecs/transformer.md) | FR-14-001 to FR-14-007 | Label-based matching algorithm for transformers |

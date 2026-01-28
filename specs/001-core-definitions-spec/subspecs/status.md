@@ -11,7 +11,9 @@
 
 ## Overview
 
-This specification defines a unified status system for OPM definitions. The `#Status` definition provides a consistent way to report observed state across Components, Modules, and Bundles. The `#StatusProbe` definition enables reusable, composable runtime health checks that the platform controller evaluates against live system state.
+This specification defines a unified status system for OPM definitions.
+
+**Implementation Status Note**: Currently, only `#StatusProbe` is implemented in the codebase. The `#Status` and `#Condition` definitions described in this spec are **not yet implemented** and represent the planned design. This spec documents both what exists (`#StatusProbe`) and what is planned (`#Status`, `#Condition`).
 
 ### Design Principles
 
@@ -123,32 +125,32 @@ As a developer with unique health requirements, I want to define custom probe lo
 
 ### Functional Requirements
 
-#### #Condition Definition
+#### #Condition Definition (Not Yet Implemented)
 
-- **FR-001**: A `#Condition` definition MUST be created following the Kubernetes metav1.Condition pattern
-- **FR-002**: `#Condition.type` MUST be a required string field (e.g., "Ready", "Available", "Progressing")
-- **FR-003**: `#Condition.status` MUST be a required field with values: `"True"`, `"False"`, or `"Unknown"`
-- **FR-004**: `#Condition` MAY include optional fields: `reason` (string), `message` (string), `lastTransitionTime` (ISO 8601 string), `observedGeneration` (int)
+- **FR-001**: A `#Condition` definition MUST be created following the Kubernetes metav1.Condition pattern *(planned)*
+- **FR-002**: `#Condition.type` MUST be a required string field (e.g., "Ready", "Available", "Progressing") *(planned)*
+- **FR-003**: `#Condition.status` MUST be a required field with values: `"True"`, `"False"`, or `"Unknown"` *(planned)*
+- **FR-004**: `#Condition` MAY include optional fields: `reason` (string), `message` (string), `lastTransitionTime` (ISO 8601 string), `observedGeneration` (int) *(planned)*
 
-#### #Status Definition
+#### #Status Definition (Not Yet Implemented)
 
-- **FR-005**: The `#Status` definition MUST be usable by `#Component`, `#Module`, and `#Bundle` definitions
-- **FR-006**: `#Status` MUST support optional static field `valid` (bool) for configuration validity
-- **FR-007**: `#Status` MUST support optional field `message` (string) for human-readable status
-- **FR-008**: `#Status` MUST support optional field `phase` with enum values: `"healthy"`, `"degraded"`, `"pending"`, `"failed"`, `"unknown"`
-- **FR-009**: `#Status` MUST include optional `details` map for flexible key-value diagnostics with primitive values only (bool, int, string)
-- **FR-010**: `#Status` MUST support optional `conditions` array of `#Condition` for runtime status reporting
-- **FR-011**: `#Status` MUST support optional `#probes` map (`#StatusProbeMap`) for runtime health checks
-- **FR-012**: `#Status` MAY include optional timestamp fields: `lastObservedAt`, `lastUpdatedAt` (ISO 8601 format)
+- **FR-005**: The `#Status` definition MUST be usable by `#Component`, `#Module`, and `#Bundle` definitions *(planned)*
+- **FR-006**: `#Status` MUST support optional static field `valid` (bool) for configuration validity *(planned)*
+- **FR-007**: `#Status` MUST support optional field `message` (string) for human-readable status *(planned)*
+- **FR-008**: `#Status` MUST support optional field `phase` with enum values: `"healthy"`, `"degraded"`, `"pending"`, `"failed"`, `"unknown"` *(planned)*
+- **FR-009**: `#Status` MUST include optional `details` map for flexible key-value diagnostics with primitive values only (bool, int, string) *(planned)*
+- **FR-010**: `#Status` MUST support optional `conditions` array of `#Condition` for runtime status reporting *(planned)*
+- **FR-011**: `#Status` MUST support optional `#probes` map (`#StatusProbeMap`) for runtime health checks *(planned)*
+- **FR-012**: `#Status` MAY include optional timestamp fields: `lastObservedAt`, `lastUpdatedAt` (ISO 8601 format) *(planned)*
 
-#### #StatusProbe Definition
+#### #StatusProbe Definition (Implemented)
 
-- **FR-013**: `#StatusProbe` MUST include metadata with required `apiVersion` and `name` fields, and computed `fqn`
-- **FR-014**: `#StatusProbe` MUST define a `#params` struct for developer-provided inputs (open struct)
-- **FR-015**: `#StatusProbe` MUST define a `context` struct containing `outputs` (map of live resources) and `values` (deployment values)
-- **FR-016**: `#StatusProbe.result` MUST include required field `healthy` (bool)
-- **FR-017**: `#StatusProbe.result` MAY include optional fields: `message` (string), `details` (map), `conditions` (array of `#Condition`)
-- **FR-018**: `#StatusProbe` MUST expose `#spec` for OpenAPI compatibility
+- **FR-013**: `#StatusProbe` MUST include metadata with required `apiVersion` and `name` fields, and computed `fqn` *(implemented)*
+- **FR-014**: `#StatusProbe` MUST define a `#params` struct for developer-provided inputs (open struct) *(implemented)*
+- **FR-015**: `#StatusProbe` MUST define a `context` struct containing `outputs` (map of live resources) and `values` (deployment values) *(implemented)*
+- **FR-016**: `#StatusProbe.result` MUST include required field `healthy` (bool) *(implemented)*
+- **FR-017**: `#StatusProbe.result` MAY include optional fields: `message` (string), `details` (map) *(implemented - conditions not yet added)*
+- **FR-018**: `#StatusProbe` MUST expose `#spec` for OpenAPI compatibility using camelCase naming pattern `(strings.ToCamel(metadata.name))` *(implemented)*
 
 #### Controller Behavior
 
@@ -158,12 +160,12 @@ As a developer with unique health requirements, I want to define custom probe lo
 - **FR-022**: If any probe reports `healthy: false`, the entity's runtime health MUST be considered `false`
 - **FR-023**: The controller MUST aggregate conditions from all probes into the entity's status conditions
 
-#### Entity Integration
+#### Entity Integration (Not Yet Implemented)
 
-- **FR-024**: `#Module` MUST use `#Status` for its `#status` field (replacing `#ModuleStatus`)
-- **FR-025**: `#Component` MUST change its `status` field to optionally use `#Status`
-- **FR-026**: `#Bundle` MUST add optional `#status?: #Status` field
-- **FR-027**: Existing modules using `#ModuleStatus` should be updated to use `#Status`
+- **FR-024**: `#Module` MUST use `#Status` for its `#status` field (replacing `#ModuleStatus`) *(planned - currently no #status field on #Module)*
+- **FR-025**: `#Component` MUST change its `status` field to optionally use `#Status` *(planned - currently uses simple computed status)*
+- **FR-026**: `#Bundle` MUST add optional `#status?: #Status` field *(planned)*
+- **FR-027**: Existing modules using `#ModuleStatus` should be updated to use `#Status` *(planned)*
 
 ### Key Entities
 
