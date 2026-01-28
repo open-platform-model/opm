@@ -47,8 +47,6 @@ const (
 | `opm mod delete` | 0, 1, 3, 4 |
 | `opm mod diff` | 0 (no diff), 1 (has diff or error), 2, 3 |
 | `opm mod status` | 0, 1, 3, 4 |
-| `opm mod publish` | 0, 1, 2, 3 (registry unreachable), 4 (auth failed) |
-| `opm mod get` | 0, 1, 3, 5 |
 
 ### Special Cases
 

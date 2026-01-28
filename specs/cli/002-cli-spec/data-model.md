@@ -8,13 +8,13 @@ This document defines the key Go types and data structures for the OPM CLI.
 
 ### Config
 
-Configuration loaded from `~/.opm/config.yaml` and environment variables. The YAML config is validated against an embedded CUE schema.
+Configuration loaded from `~/.opm/config.cue` and environment variables. The CUE config is validated against an embedded CUE schema and can import provider modules for type-safe configuration.
 
 ```go
 // Package: internal/config
 
 // Config represents the OPM CLI configuration
-// Loaded from ~/.opm/config.yaml, validated against embedded CUE schema
+// Loaded from ~/.opm/config.cue, validated against embedded CUE schema
 type Config struct {
     // Kubeconfig is the path to the kubeconfig file
     // Env: OPM_KUBECONFIG, Default: ~/.kube/config
@@ -28,9 +28,8 @@ type Config struct {
     // Env: OPM_NAMESPACE, Default: "default"
     Namespace string `yaml:"namespace,omitempty" json:"namespace,omitempty"`
     
-    // Registry is the default registry for all CUE module resolution and OCI operations.
+    // Registry is the default registry for all CUE module resolution.
     // When set, all CUE imports resolve from this registry (passed to CUE via CUE_REGISTRY).
-    // Also used as default for publish/get commands.
     // Env: OPM_REGISTRY
     Registry string `yaml:"registry,omitempty" json:"registry,omitempty"`
     
@@ -41,7 +40,7 @@ type Config struct {
 
 // Paths contains standard filesystem paths
 type Paths struct {
-    ConfigFile string // ~/.opm/config.yaml
+    ConfigFile string // ~/.opm/config.cue
     CacheDir   string // ~/.opm/cache
     HomeDir    string // ~/.opm
 }
@@ -55,17 +54,48 @@ func DefaultConfig() *Config {
         CacheDir:   "~/.opm/cache",
     }
 }
+
+// ResolvedValue tracks a configuration value and its resolution chain
+// Used for logging config resolution with --verbose (FR-019)
+type ResolvedValue struct {
+    Key      string         // Configuration key (e.g., "namespace")
+    Value    any            // Resolved value
+    Source   string         // Source that provided the value: "flag", "env", "config", "default"
+    Shadowed map[string]any // Lower-precedence sources that were overridden: source -> value
+}
+
+// OPMConfig represents the fully-loaded CUE configuration
+// This includes provider definitions loaded from imports
+type OPMConfig struct {
+    // Config contains the basic configuration fields
+    Config *Config
+    
+    // Registry is the resolved registry URL after applying precedence
+    Registry string
+    
+    // RegistrySource indicates where the registry URL came from
+    RegistrySource string // "flag", "env", "config"
+    
+    // Providers maps provider names to their loaded CUE definitions
+    // Key: provider alias (e.g., "kubernetes")
+    // Value: loaded CUE value referencing the provider's #Provider definition
+    Providers map[string]cue.Value
+}
 ```
 
 ### Config Schema (CUE)
 
-Embedded CUE schema for validating the YAML config file.
+Expected structure of the user's `~/.opm/config.cue` file.
 
 ```cue
-// File: internal/config/schema.cue
+// File: ~/.opm/config.cue (user's config file)
 package config
 
-#Config: {
+import (
+    k8s "opm.dev/providers/kubernetes@v0"
+)
+
+config: {
     // kubeconfig is the path to the kubeconfig file
     kubeconfig?: string
     
@@ -76,11 +106,18 @@ package config
     namespace?: string & =~"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
     
     // registry is the default registry for all CUE module resolution and OCI operations.
-    // When set, all CUE imports resolve from this registry.
+    // This value is extractable via simple parsing without resolving imports.
     registry?: string
     
     // cacheDir is the local cache directory path
     cacheDir?: string
+    
+    // providers maps provider aliases to their definitions
+    // Providers are imported from their respective modules
+    providers: {
+        kubernetes: k8s.#Provider
+        // Additional providers can be added here
+    }
 }
 ```
 
@@ -119,28 +156,6 @@ type ModuleMetadata struct {
     
     // Description is an optional human-readable description
     Description string `json:"description,omitempty"`
-}
-
-// Bundle represents a loaded OPM bundle
-type Bundle struct {
-    // Metadata from the bundle definition
-    Metadata BundleMetadata
-    
-    // Modules contained in the bundle
-    Modules map[string]*Module
-    
-    // Root CUE value
-    Value cue.Value
-    
-    // Directory containing the bundle
-    Dir string
-}
-
-// BundleMetadata contains bundle identification information
-type BundleMetadata struct {
-    APIVersion string `json:"apiVersion"`
-    Name       string `json:"name"`
-    Version    string `json:"version,omitempty"`
 }
 ```
 
@@ -346,7 +361,6 @@ Types for OCI registry operations.
 // ArtifactMediaType is the OCI media type for OPM artifacts
 const (
     ModuleMediaType = "application/vnd.opm.module.v1+tar+gzip"
-    BundleMediaType = "application/vnd.opm.bundle.v1+tar+gzip"
 )
 
 // Artifact represents an OCI artifact
@@ -363,31 +377,6 @@ type Artifact struct {
     // Annotations are OCI annotations
     Annotations map[string]string
 }
-
-// PublishOptions configures the publish operation
-type PublishOptions struct {
-    // Tag is the artifact tag (default: "latest")
-    Tag string
-    
-    // Force overwrites existing tag
-    Force bool
-}
-
-// FetchOptions configures the fetch operation
-type FetchOptions struct {
-    // Version is the tag/version to fetch (default: "latest")
-    Version string
-    
-    // OutputDir is the directory to extract to
-    OutputDir string
-}
-
-// Annotations used for OPM artifacts
-const (
-    AnnotationModuleName    = "dev.opmodel.module.name"
-    AnnotationModuleVersion = "dev.opmodel.module.version"
-    AnnotationCreated       = "org.opencontainers.image.created"
-)
 ```
 
 ### Version
@@ -511,13 +500,10 @@ func DefaultStyles() *Styles
 ```go
 // Package: internal/cue
 
-// Loader loads OPM modules and bundles
+// Loader loads OPM modules
 type Loader interface {
     // LoadModule loads a module from a directory
     LoadModule(ctx context.Context, dir string, valuesFiles []string) (*Module, error)
-    
-    // LoadBundle loads a bundle from a directory
-    LoadBundle(ctx context.Context, dir string, valuesFiles []string) (*Bundle, error)
 }
 ```
 
@@ -530,9 +516,6 @@ type Loader interface {
 type Renderer interface {
     // RenderModule generates manifests from a module
     RenderModule(ctx context.Context, module *Module) (*ManifestSet, error)
-    
-    // RenderBundle generates manifests from a bundle
-    RenderBundle(ctx context.Context, bundle *Bundle) (*ManifestSet, error)
 }
 ```
 
@@ -573,10 +556,10 @@ type LabelSelector struct {
 
 // Client provides OCI registry operations
 type Client interface {
-    // Publish pushes a module/bundle to a registry
+    // Publish pushes a module to a registry
     Publish(ctx context.Context, dir string, ref string, opts PublishOptions) (*Artifact, error)
     
-    // Fetch pulls a module/bundle from a registry
+    // Fetch pulls a module from a registry
     Fetch(ctx context.Context, ref string, opts FetchOptions) error
     
     // Resolve resolves a reference to a digest

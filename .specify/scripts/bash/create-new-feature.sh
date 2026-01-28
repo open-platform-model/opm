@@ -5,7 +5,7 @@ set -e
 JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
-MODEL=""
+CATEGORY=""
 ARGS=()
 i=1
 while [ $i -le $# ]; do
@@ -41,33 +41,34 @@ while [ $i -le $# ]; do
             fi
             BRANCH_NUMBER="$next_arg"
             ;;
-        --model)
+        --category)
             if [ $((i + 1)) -gt $# ]; then
-                echo 'Error: --model requires a value (application, platform, or root)' >&2
+                echo 'Error: --category requires a value (application, platform, cli, or root)' >&2
                 exit 1
             fi
             i=$((i + 1))
             next_arg="${!i}"
             if [[ "$next_arg" == --* ]]; then
-                echo 'Error: --model requires a value (application, platform, or root)' >&2
+                echo 'Error: --category requires a value (application, platform, cli, or root)' >&2
                 exit 1
             fi
-            MODEL="$next_arg"
+            CATEGORY="$next_arg"
             ;;
         --help|-h) 
-            echo "Usage: $0 [--json] [--short-name <name>] [--number N] [--model <type>] <feature_description>"
+            echo "Usage: $0 [--json] [--short-name <name>] [--number N] [--category <type>] <feature_description>"
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
-            echo "  --model <type>      Specify model type: application, platform, or root (default: root)"
+            echo "  --category <type>   Specify category type: application, platform, cli, or root (default: root)"
             echo "  --help, -h          Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0 'Add user authentication system' --short-name 'user-auth' --model application"
-            echo "  $0 'Implement OAuth2 integration for API' --number 5 --model platform"
-            echo "  $0 'Update build system' --model root"
+            echo "  $0 'Add user authentication system' --short-name 'user-auth' --category application"
+            echo "  $0 'Implement OAuth2 integration for API' --number 5 --category platform"
+            echo "  $0 'Add new CLI command' --category cli"
+            echo "  $0 'Update build system' --category root"
             exit 0
             ;;
         *) 
@@ -79,7 +80,7 @@ done
 
 FEATURE_DESCRIPTION="${ARGS[*]}"
 if [ -z "$FEATURE_DESCRIPTION" ]; then
-    echo "Usage: $0 [--json] [--short-name <name>] [--number N] <feature_description>" >&2
+    echo "Usage: $0 [--json] [--short-name <name>] [--number N] [--category <type>] <feature_description>" >&2
     exit 1
 fi
 
@@ -310,19 +311,22 @@ else
     >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
 fi
 
-# Determine feature directory based on model parameter
-case "$MODEL" in
+# Determine feature directory based on category parameter
+case "$CATEGORY" in
     application)
         FEATURE_DIR="$SPECS_DIR/application-model/$BRANCH_NAME"
         ;;
     platform)
         FEATURE_DIR="$SPECS_DIR/platform-model/$BRANCH_NAME"
         ;;
+    cli)
+        FEATURE_DIR="$SPECS_DIR/cli/$BRANCH_NAME"
+        ;;
     root|"")
         FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
         ;;
     *)
-        echo "Error: --model must be 'application', 'platform', or 'root'" >&2
+        echo "Error: --category must be 'application', 'platform', 'cli', or 'root'" >&2
         exit 1
         ;;
 esac

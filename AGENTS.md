@@ -10,6 +10,7 @@ This project follows the **Open Platform Model Constitution**.
 All agents MUST read and adhere to `opm/.specify/memory/constitution.md`.
 
 **Core Principles:**
+
 1. **Type Safety First**: All definitions in CUE. Validation at definition time.
 2. **Separation of Concerns**: ModuleDefinition (Dev) -> Module (Platform) -> ModuleRelease (Consumer).
 3. **Policy Built-In**: Policies and Scopes are first-class; enforcement at definition time.
@@ -52,6 +53,26 @@ All agents MUST read and adhere to `opm/.specify/memory/constitution.md`.
 - **Project Structure Tree**: Update the tree above when adding new specs or directories.
 
 ## Build/Test Commands
+
+### Spec Creation Scripts
+
+#### create-new-feature.sh
+
+Creates a new feature branch and spec directory. Use `--category` to organize specs:
+
+- `--category application` → Places spec in `specs/application-model/`
+- `--category platform` → Places spec in `specs/platform-model/`
+- `--category root` (default) → Places spec in `specs/` (root level)
+
+Examples:
+
+```bash
+.specify/scripts/bash/create-new-feature.sh "Add bundle definitions" --category application
+.specify/scripts/bash/create-new-feature.sh "Add runtime API" --category platform
+.specify/scripts/bash/create-new-feature.sh "Update taskfile" --category root
+```
+
+### Task Commands
 
 - Format: `task fmt` or `task module:fmt:all`
 - Validate: `task vet` or `task module:vet MODULE=core`

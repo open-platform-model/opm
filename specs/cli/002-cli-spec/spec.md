@@ -21,6 +21,21 @@
 - Q: How does OPM_REGISTRY integrate with the CUE toolchain? → A: Environment passthrough — set `CUE_REGISTRY` env var when invoking `cue` binary.
 - Q: What happens when configured registry is unreachable? → A: Fail fast — exit with error code and clear message about registry connectivity.
 
+### Session 2026-01-28 (Experiment 004 Findings)
+
+- Q: What format should config use? → A: CUE (not YAML) to enable type-safe provider references via imports.
+- Q: How is config.registry extracted without causing bootstrap issues? → A: Simple CUE parsing extracts `config.registry` value without resolving imports. The resolved registry (from precedence chain) is then used to load full config with provider imports.
+- Q: What is the complete registry precedence? → A: `--registry` flag > `OPM_REGISTRY` env > `config.registry` value. CUE_REGISTRY is not supported.
+- Q: Where are providers configured? → A: Only in `~/.opm/config.cue`. Modules MUST NOT declare or reference providers.
+
+### Session 2026-01-28
+
+- Q: What is the target time for OCI publish/get round-trip? → A: 30 seconds (assumes local or low-latency registry).
+- Q: How should the CLI handle Kubernetes API rate limiting? → A: Use client-go's built-in rate limiter with defaults.
+- Q: How should the CLI handle server-side apply field ownership conflicts? → A: Warn and proceed (take ownership), matching kubectl default behavior.
+- Q: Should the CLI display progress indicators during long operations? → A: No progress indicators; silent until completion or timeout.
+- Q: Should the CLI enforce resource count limits per module? → A: No limits; rely on timeouts and system resources.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - First-Time Module Authoring and Deployment (Priority: P1)
@@ -56,39 +71,24 @@ A module author needs to make a change to an existing module (e.g., update a con
 
 ---
 
-### User Story 3 - Distributing and Consuming a Module (Priority: P3)
+### User Story 3 - Platform Provider Configuration (Priority: P2)
 
-A platform team has created a standardized module and wants to publish it to an OCI registry so that other developers can download and use it.
+A platform operator needs to configure which providers are available for rendering modules, enabling developers to render without provider knowledge.
 
-**Why this priority**: This workflow enables reusability and sharing, which is a core promise of OPM. It's lower priority than the initial authoring experience but crucial for team-based and enterprise adoption.
+**Why this priority**: Providers are essential for the render pipeline. Platform operators must be able to configure providers before developers can successfully render modules.
 
-**Independent Test**: This can be tested with a local OCI registry. A user should be able to `publish` a module, delete it locally, and then `get` it back from the registry.
-
-**Acceptance Scenarios**:
-
-1. **Given** a developer has a valid module, **When** they run `opm mod publish <oci-url>`, **Then** the module is successfully pushed to the OCI registry.
-2. **Given** a module exists in an OCI registry, **When** a user runs `opm mod get <oci-url>`, **Then** the module is downloaded to the local OPM cache.
-
----
-
-### User Story 4 - Multi-Module Platform Deployment (Priority: P4)
-
-A platform team wants to deploy a complete platform stack consisting of multiple modules as a single coordinated unit, ensuring consistent versions and proper dependency ordering across all modules.
-
-**Why this priority**: This workflow enables enterprise-scale deployments where multiple services must be deployed together. It builds on the foundation of single-module operations established in US1-US3.
-
-**Independent Test**: This can be tested by creating a bundle with 2-3 modules, applying it to a cluster, and verifying all modules deploy correctly with `opm bundle status` showing aggregate health.
+**Independent Test**: Platform operator runs `opm config init`, adds kubernetes provider to config.cue, and developers can then render modules using that provider.
 
 **Acceptance Scenarios**:
 
-1. **Given** a bundle definition with multiple modules, **When** the user runs `opm bundle apply`, **Then** all modules are deployed in correct weighted order with proper labeling.
-2. **Given** a deployed bundle, **When** the user runs `opm bundle status`, **Then** they see the aggregate health status of all modules in the bundle.
-3. **Given** a deployed bundle, **When** the user runs `opm bundle delete`, **Then** all resources from all modules are removed in reverse weighted order.
-4. **Given** a deployed bundle with local changes, **When** the user runs `opm bundle diff`, **Then** they see a clear, colorized diff of pending changes across all modules.
+1. **Given** a fresh OPM installation, **When** the operator runs `opm config init`, **Then** a config.cue file is created at `~/.opm/config.cue` with the kubernetes provider configured by default.
+2. **Given** a valid config.cue with kubernetes provider, **When** a developer runs `opm mod build`, **Then** the module renders using kubernetes transformers from the configured provider.
+3. **Given** an unreachable registry, **When** config.cue references a provider module that cannot be fetched, **Then** the CLI fails fast with a clear error indicating registry connectivity failure and which provider module could not be loaded.
+4. **Given** an invalid provider configuration (malformed CUE), **When** the user runs `opm config vet`, **Then** validation errors are reported with field names and line numbers.
 
 ---
 
-### User Story 5 - CLI Configuration Setup (Priority: P5)
+### User Story 4 - CLI Configuration Setup (Priority: P5)
 
 A new user needs to configure the OPM CLI with their preferred defaults (namespace, registry, kubeconfig path) before using it regularly.
 
@@ -98,8 +98,8 @@ A new user needs to configure the OPM CLI with their preferred defaults (namespa
 
 **Acceptance Scenarios**:
 
-1. **Given** a user has installed the OPM CLI, **When** they run `opm config init`, **Then** a config file is created at `~/.opm/config.yaml` with documented defaults.
-2. **Given** a user has modified their config file, **When** they run `opm config vet`, **Then** validation errors are clearly reported with field names and expected formats.
+1. **Given** a user has installed the OPM CLI, **When** they run `opm config init`, **Then** a config file is created at `~/.opm/config.cue` with documented defaults and kubernetes provider configured.
+2. **Given** a user has modified their config file, **When** they run `opm config vet`, **Then** validation errors are clearly reported with field names, line numbers, and expected formats.
 
 ---
 
@@ -110,6 +110,8 @@ A new user needs to configure the OPM CLI with their preferred defaults (namespa
 - **Invalid Values**: How does the system handle an `apply` or `build` when the user provides a `--values` file that does not satisfy the module's schema? The operation should fail with a clear CUE validation error.
 - **Permissions**: What happens if the user tries to `apply` or `delete` resources in a namespace where they don't have sufficient RBAC permissions? The CLI should output the server-side error from the Kubernetes API.
 - **Registry Unreachable**: When `OPM_REGISTRY` is configured and the registry is unreachable during `mod tidy`, `mod vet`, or any command requiring CUE module resolution, the CLI fails fast with a clear error message (e.g., "Error: cannot connect to registry localhost:5000"). No silent fallback to original module domains occurs.
+- **Server-Side Apply Field Conflicts**: When another controller (e.g., HPA) owns a field that the module also specifies, the CLI warns to stderr and proceeds with the apply, taking ownership of the conflicting field. This matches kubectl's default SSA behavior.
+- **API Rate Limiting**: The CLI uses client-go's built-in rate limiter with defaults. When the Kubernetes API returns 429 (Too Many Requests), client-go handles exponential backoff automatically.
 
 ## Requirements *(mandatory)*
 
@@ -123,16 +125,19 @@ A new user needs to configure the OPM CLI with their preferred defaults (namespa
 - **FR-006**: The CLI MUST provide a `mod delete` command to remove all Kubernetes resources discovered via the `module.opmodel.dev/name` and `module.opmodel.dev/namespace` labels, deleting them in the reverse weighted order (see Section 6).
 - **FR-007**: The CLI MUST provide a `mod diff` command to show a diff between the local module definition and the live resources on the cluster.
 - **FR-008**: The CLI MUST provide a `mod status` command to report the readiness and health of a deployed module's Kubernetes resources, following the health evaluation logic in Section 6.3.
-- **FR-009**: The CLI MUST provide `mod publish` and `mod get` commands for distributing modules via an OCI registry, leveraging the user's standard `~/.docker/config.json` for authentication.
-- **FR-010**: All deployment-related commands (`build`, `apply`, `diff`, `delete`) MUST support multiple `--values` flags accepting CUE, YAML, or JSON files. These inputs MUST be unified with the module's CUE definitions to ensure schema compliance and produce the final configuration.
+- **FR-009**: All deployment-related commands (`build`, `apply`, `diff`, `delete`) MUST support multiple `--values` flags accepting CUE, YAML, or JSON files. These inputs MUST be unified with the module's CUE definitions to ensure schema compliance and produce the final configuration.
 - **FR-011**: All commands MUST be non-interactive.
-- **FR-012**: The CLI MUST use a YAML configuration file at `~/.opm/config.yaml`, validated against an internal CUE schema. The CLI MUST provide `config init` and `config vet` commands for configuration management.
-- **FR-013**: The CLI's `bundle` command group MUST mirror the functionality of the `mod` group, operating on bundles instead of modules.
-- **FR-014**: The CLI MUST apply and delete resources based on a predefined weighting system to ensure hard dependencies (e.g., CRDs, Namespaces) are managed correctly).
-- **FR-015**: The `OPM_REGISTRY` configuration (env var or `config.yaml`) MUST act as a global registry redirect for all CUE module resolution. When set (e.g., `localhost:5000`), all CUE imports (e.g., `opm.dev/core@v0`) MUST resolve from the configured registry. The CLI MUST pass this configuration to the `cue` binary via the `CUE_REGISTRY` environment variable when executing `mod tidy`, `mod vet`, `bundle tidy`, and `bundle vet` commands.
-- **FR-016**: When `OPM_REGISTRY` is configured and the registry is unreachable, commands that require module resolution MUST fail fast with a clear error message indicating registry connectivity failure. The CLI MUST NOT silently fall back to alternative registries.
-- **FR-017**: The CLI MUST provide structured, human-readable logging to `stderr`. Logs MUST use colors to distinguish categories (Info, Warning, Error, Debug). The `--verbose` flag MUST increase the detail of logs.
-- **FR-018**: The CLI MUST provide a global `--output-format` flag (alias `-o`) supporting `text` (default), `yaml`, and `json` values. The `text` format MUST provide the most appropriate human-readable output for the command (e.g., tables for status, YAML for manifests) on `stdout`.
+- **FR-012**: The CLI MUST use a CUE configuration file at `~/.opm/config.cue`, validated against an internal CUE schema. The CLI MUST provide `config init` and `config vet` commands for configuration management. The config file MUST be a valid CUE module that can import provider modules for type-safe provider configuration.
+- **FR-013**: The CLI MUST apply and delete resources based on a predefined weighting system to ensure hard dependencies (e.g., CRDs, Namespaces) are managed correctly).
+- **FR-014**: The CLI MUST resolve the registry URL using this precedence (highest to lowest): (1) `--registry` flag, (2) `OPM_REGISTRY` environment variable, (3) `config.registry` from `~/.opm/config.cue`. The `config.registry` value MUST be extractable via simple CUE parsing without requiring module/import resolution. The resolved registry URL MUST be used for all CUE module operations, including loading provider imports in config.cue itself. When set (e.g., `localhost:5000`), all CUE imports (e.g., `opm.dev/core@v0`) MUST resolve from the configured registry. The CLI MUST pass this configuration to the `cue` binary via the `CUE_REGISTRY` environment variable when executing `mod tidy` and `mod vet` commands.
+- **FR-015**: When `OPM_REGISTRY` is configured and the registry is unreachable, commands that require module resolution MUST fail fast with a clear error message indicating registry connectivity failure. The CLI MUST NOT silently fall back to alternative registries.
+- **FR-016**: The CLI MUST provide structured, human-readable logging to `stderr`. Logs MUST use colors to distinguish categories (Info, Warning, Error, Debug). The `--verbose` flag MUST increase the detail of logs.
+- **FR-017**: The CLI MUST provide a global `--output-format` flag (alias `-o`) supporting `text` (default), `yaml`, and `json` values. The `text` format MUST provide the most appropriate human-readable output for the command (e.g., tables for status, YAML for manifests) on `stdout`.
+- **FR-018**: The CLI MUST resolve configuration values using the following precedence (highest to lowest): (1) Command-line flags, (2) Environment variables (e.g., `OPM_NAMESPACE`), (3) Configuration file (`~/.opm/config.cue` or path specified by `--config`/`OPM_CONFIG`), (4) Built-in defaults. When a value is provided at multiple levels, the higher-precedence source MUST win. When `--verbose` is specified, the CLI MUST log each configuration value's resolution at DEBUG level, including which source provided the value and which lower-precedence sources were overridden.
+- **FR-019**: The CLI MUST use client-go's built-in rate limiter with default settings for all Kubernetes API operations. The CLI MUST NOT implement custom rate limiting or backoff logic.
+- **FR-020**: When server-side apply encounters field ownership conflicts, the CLI MUST log a warning to stderr identifying the conflicting fields and their current owners, then proceed with the apply (taking ownership). The CLI MUST NOT fail on field conflicts by default.
+- **FR-021**: Long-running operations (`apply --wait`, `delete`, `status --watch`) MUST NOT display progress indicators. Output is silent until completion, timeout, or error.
+- **FR-022**: The CLI MUST NOT enforce limits on module complexity (resource count, CUE evaluation depth). Natural limits are provided by operation timeouts and system resources.
 
 ### Key Entities
 
@@ -175,9 +180,9 @@ All resources generated or managed by the OPM CLI MUST include the following lab
   - *Measurement*: Time from `opm mod apply` completion to `opm mod status` reporting all workloads as Ready.
   - *Assumptions*: Standard workloads (Deployment, StatefulSet) with readiness probes responding within 30s.
 
-- **SC-005**: The `opm mod publish` and `opm mod get` commands successfully complete a round-trip within reasonable time: publishing a module to an OCI registry and retrieving it produces an identical module.
+- **SC-005**: The `opm mod publish` and `opm mod get` commands successfully complete a round-trip within 30 seconds: publishing a module to an OCI registry and retrieving it produces an identical module.
   - *Measurement*: Module published with `opm mod publish`, deleted locally, retrieved with `opm mod get`, and `opm mod vet` passes on retrieved module.
-  - *Assumptions*: OCI registry is accessible with valid credentials in `~/.docker/config.json`.
+  - *Assumptions*: Local or low-latency OCI registry, valid credentials in `~/.docker/config.json`, module size < 10MB.
 
 ## 6. Deployment Lifecycle & Resource Ordering
 

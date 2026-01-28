@@ -104,17 +104,23 @@ A Platform Operator wants to curate a catalog by consuming generic upstream modu
 - **FR-008**: The CLI MUST enforce Semantic Versioning (SemVer 2.0.0) for all module interactions. `opm mod get` MUST require an explicit version tag (e.g., `@v1.2.3`). The use of `@latest` or mutable tags is PROHIBITED to ensure reproducibility and CUE compatibility.
 - **FR-009**: The CLI MUST correctly handle the mapping between CUE import paths (containing Major version, e.g., `path/to/mod:v1`) and specific registry tags (e.g., `v1.2.3`).
 - **FR-011**: The CLI MUST store downloaded modules in the CUE cache directory.
-- **FR-012**: The CLI MUST support a `registries` field in `~/.opm/config.yaml` that defines a map of module prefixes to registry URLs (e.g., `"opmodel.dev": "registry.example.com"`). The CLI MUST translate this user-friendly map into standard CUE registry routing configuration (prefix-based routing) to correctly resolve module imports across multiple registries. Or in the config:
+- **FR-012**: The CLI MUST support a `registries` field in `~/.opm/config.cue` that defines a map of module prefixes to registry URLs (e.g., `"opmodel.dev": "registry.example.com"`). The CLI MUST translate this user-friendly map into standard CUE registry routing configuration (prefix-based routing) to correctly resolve module imports across multiple registries. Example config:
 
-    ```yaml
-    registries:
-        "opmodel.dev": 
+    ```cue
+    package opmconfig
+    
+    registries: {
+        "opmodel.dev": {
             url: "registry.opm.dev"
-        "company.internal":
+        }
+        "company.internal": {
             url: "harbor.internal/modules"
             insecure: true
-        "registry.cue.works":
+        }
+        "registry.cue.works": {
             url: "registry.cue.works"
+        }
+    }
     ```
 
 ### Key Entities

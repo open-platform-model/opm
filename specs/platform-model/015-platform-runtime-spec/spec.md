@@ -2,23 +2,26 @@
 
 **Feature Branch**: `015-platform-runtime-spec`  
 **Created**: 2026-01-28  
-**Status**: Draft
+**Status**: Draft  
+**Input**: User description: "Create specification for tiered values system with Module Author defaults, Platform Operator overrides, and End User values, inspired by Timoni"
 
 ## Overview
 
 This specification defines the OPM platform runtime system, focusing on how Platform Operators curate module catalogs and how values flow through a tiered overlay system from Module Author to Platform Operator to End User.
 
 **Key Capabilities:**
+
 - Platform Operators curate module catalogs with approved modules
 - Module customization via extend (import+unify) or fork (git) patterns
 - Tiered values system with overlay-based merging
 - Registry-centric deployment model (End Users deploy from catalog only)
 
 **Related Specifications:**
+
 - [001-application-definitions-spec](../application-model/001-application-definitions-spec/spec.md) - Core OPM application definitions
 - [016-platform-definitions-spec](./016-platform-definitions-spec/spec.md) - Platform definitions (Provider, Transformer)
-- [002-cli-spec](../application-model/002-cli-spec/spec.md) - CLI implementation
-- [011-distribution-spec](../application-model/011-distribution-spec/spec.md) - OCI distribution
+- [002-cli-spec](../cli/002-cli-spec/spec.md) - CLI implementation
+- [011-distribution-spec](../cli/011-distribution-spec/spec.md) - OCI distribution
 
 ## Design Principles
 
@@ -29,11 +32,13 @@ End Users can only deploy modules that exist in the `#ModuleCatalog`. This gives
 ### 2. Overlay-Based Values
 
 Values flow through tiers via overlay system (later layers win):
-```
+
+```text
 Module Author → Platform Operator → End User
 ```
 
 Platform Operators can:
+
 - Use `*` for default values (End User can override)
 - Use concrete values to lock configuration (End User cannot override)
 
@@ -46,7 +51,7 @@ Platform Operators have two customization approaches:
 | **Extend** | Import module + CUE unification | Add values/components, minor changes |
 | **Fork** | Git fork with direct edits | Structural changes, major customization |
 
-## User Scenarios
+## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Platform Operator Curates Module Catalog (Priority: P1)
 
@@ -149,6 +154,8 @@ A Platform Operator forks an upstream module for major customization.
 - **Overlay files**: Value customization files at each tier (author, platform, user)
 
 ## Success Criteria
+
+### Measurable Outcomes
 
 - **SC-015-001**: Platform Operator can create catalog and add modules in under 5 minutes
 - **SC-015-002**: End User attempting to override locked value receives actionable error message

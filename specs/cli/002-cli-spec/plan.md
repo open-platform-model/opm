@@ -4,7 +4,7 @@
 
 ## Summary
 
-Implement the OPM CLI v2 - a command-line tool for authoring, validating, building, and deploying OPM modules to Kubernetes clusters. The CLI provides module lifecycle management (`mod` commands), bundle orchestration (`bundle` commands), and configuration management (`config` commands).
+Implement the OPM CLI v2 - a command-line tool for authoring, validating, building, and deploying OPM modules to Kubernetes clusters. The CLI provides module lifecycle management (`mod` commands) and configuration management (`config` commands).
 
 ## Technical Context
 
@@ -16,7 +16,7 @@ Implement the OPM CLI v2 - a command-line tool for authoring, validating, buildi
 **Project Type**: CLI application  
 **Performance Goals**: Module validation <5s, apply operations <30s for typical modules  
 **Constraints**: Stateless operations, standard kubeconfig auth, OCI registry auth via ~/.docker/config.json  
-**Scale/Scope**: 5 user stories, 3 command groups (mod, bundle, config), ~15 subcommands
+**Scale/Scope**: 5 user stories, 2 command groups (mod, config), ~12 subcommands
 
 ## Constitution Check
 
@@ -24,7 +24,7 @@ Implement the OPM CLI v2 - a command-line tool for authoring, validating, buildi
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| Definition-First Architecture | ✅ | CLI operates on OPM definitions (modules, bundles) |
+| Definition-First Architecture | ✅ | CLI operates on OPM definitions (modules) |
 | Type Safety via CUE | ✅ | All validation uses CUE, compile-time checks |
 | Separation of Concerns | ✅ | CLI for users, definitions in core/catalog |
 | Portability by Design | ✅ | CLI is portable, modules remain provider-agnostic |
@@ -61,7 +61,6 @@ cli/
 │   ├── cmd/                 # Command implementations
 │   │   ├── root.go
 │   │   ├── mod/             # mod subcommands
-│   │   ├── bundle/          # bundle subcommands
 │   │   └── config/          # config subcommands
 │   ├── cue/                 # CUE integration
 │   ├── k8s/                 # Kubernetes client
@@ -69,7 +68,7 @@ cli/
 │   ├── output/              # Terminal output (charm)
 │   └── version/             # Version info
 ├── pkg/
-│   ├── loader/              # Module/bundle loading
+│   ├── loader/              # Module loading
 │   ├── flattener/           # Module flattening
 │   └── renderer/            # Manifest rendering
 ├── tests/
@@ -105,19 +104,8 @@ Documented in [research.md](./research.md):
 | `mod diff` | Show pending changes |
 | `mod status` | Show deployment status |
 | `mod delete` | Remove module from cluster |
-| `mod publish` | Push module to OCI registry |
-| `mod get` | Pull module from OCI registry |
 
-### bundle - Bundle Operations (US4)
-
-| Command | Description |
-|---------|-------------|
-| `bundle apply` | Deploy all modules in bundle |
-| `bundle diff` | Show pending changes for bundle |
-| `bundle status` | Show aggregate status |
-| `bundle delete` | Remove all bundle resources |
-
-### config - Configuration (US5)
+### config - Configuration (US3)
 
 | Command | Description |
 |---------|-------------|
@@ -144,15 +132,11 @@ See [tasks.md](./tasks.md) for detailed task breakdown.
 
 - `mod build`, `mod diff`
 
-### Phase 5: US3 - Distribution
+### Phase 5: US3 - Provider Configuration
 
-- `mod publish`, `mod get`
+- Provider support in config.cue
 
-### Phase 6: US4 - Bundles
-
-- `bundle apply`, `bundle diff`, `bundle status`, `bundle delete`
-
-### Phase 7: US5 - Configuration
+### Phase 6: US4 - Configuration
 
 - `config init`, `config vet`
 
@@ -162,8 +146,7 @@ See [tasks.md](./tasks.md) for detailed task breakdown.
 |-----------|---------------|
 | US1 complete | New user can init, apply, status, delete a module |
 | US2 complete | User can build, diff, and apply changes |
-| US3 complete | User can publish and get modules from OCI |
-| US4 complete | User can manage multi-module bundles |
-| US5 complete | User can configure CLI defaults |
+| US3 complete | User can configure providers |
+| US4 complete | User can configure CLI defaults |
 | Exit codes | All commands return documented exit codes |
 | Error messages | All errors include actionable guidance |

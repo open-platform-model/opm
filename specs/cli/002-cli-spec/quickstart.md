@@ -136,7 +136,7 @@ git checkout -b feat/mod-apply
 
 Follow the package conventions:
 
-- Commands in `internal/cmd/{mod,bundle}/`
+- Commands in `internal/cmd/mod/`
 - Core logic in `internal/{cue,kubernetes,oci}/`
 - Use interfaces for testability
 

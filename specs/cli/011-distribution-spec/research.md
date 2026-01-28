@@ -82,18 +82,24 @@ We will adhere strictly to the CUE module OCI specification. This ensures `opm` 
 
 We adopt CUE's [standard registry configuration](https://cuelang.org/docs/reference/command/cue-help-registryconfig/) pattern.
 
-* **Prefix-Based Routing**: Users define a map of module prefixes to registry URLs in `~/.opm/config.yaml`.
+* **Prefix-Based Routing**: Users define a map of module prefixes to registry URLs in `~/.opm/config.cue`.
 * **Example**:
 
-    ```yaml
-    registries:
-        "opmodel.dev": 
+    ```cue
+    package opmconfig
+    
+    registries: {
+        "opmodel.dev": {
             url: "registry.opm.dev"
-        "company.internal":
+        }
+        "company.internal": {
             url: "oci://harbor.internal/modules"
             insecure: true
-        "corp.example":
+        }
+        "corp.example": {
             url: "registry.corp.example"
+        }
+    }
     ```
 
 * **Translation**: The CLI translates this user-friendly config into the standard CUE registry protocol (e.g., setting `CUE_REGISTRY` or configuring the module loader) to ensure `opm` and `cue` behavior is identical.

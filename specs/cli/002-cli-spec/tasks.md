@@ -185,71 +185,7 @@ Based on plan.md project structure:
 
 ---
 
-## Phase 5: User Story 3 - Distributing and Consuming a Module (Priority: P3)
-
-**Goal**: Platform team can publish modules to OCI registry, developers can download and use them
-
-**Independent Test**: With local OCI registry, publish a module, delete locally, get it back from registry
-
-### OCI Infrastructure for US3
-
-- [ ] T061 [US3] Create Artifact, PublishOptions, FetchOptions types per data-model.md in cli/internal/oci/types.go
-- [ ] T062 [US3] Implement oras-go client wrapper in cli/internal/oci/client.go
-- [ ] T063 [US3] Implement docker config auth integration (~/.docker/config.json) in cli/internal/oci/auth.go
-- [ ] T064 [US3] Implement module packaging for OCI artifact (tar.gz) in cli/internal/oci/package.go
-- [ ] T065 [US3] Implement publish (push to registry) in cli/internal/oci/publish.go
-- [ ] T066 [US3] Implement fetch (pull from registry) in cli/internal/oci/fetch.go
-
-### OCI Commands for US3
-
-- [ ] T067 [US3] Implement `opm mod publish <oci-url>` with --tag, --force in cli/internal/cmd/mod/publish.go
-- [ ] T068 [US3] Implement `opm mod get <oci-url>` with --version, --output-dir in cli/internal/cmd/mod/get.go
-
-### Integration Tests for US3
-
-- [ ] T070 [P] [US3] Integration test for publish/get with local registry in cli/tests/integration/oci_test.go
-
-**Checkpoint**: User Story 3 complete - user can publish to and get from OCI registries
-
----
-
-## Phase 6: User Story 4 - Multi-Module Platform Deployment (Priority: P4)
-
-**Goal**: Bundle support for deploying multiple modules as a coordinated unit
-
-**Independent Test**: Create a bundle with 2-3 modules, apply it to cluster, verify all modules deploy correctly with `opm bundle status`
-
-### Bundle Types for US4
-
-- [ ] T071 [US4] Create Bundle and BundleMetadata types per data-model.md in cli/internal/cue/bundle.go
-- [ ] T072 [US4] Implement bundle loader (bundle.cue + modules.cue) in cli/internal/cue/bundle_loader.go
-- [ ] T073 [US4] Implement bundle renderer (all modules -> combined ManifestSet) in cli/internal/cue/bundle_renderer.go
-
-### Bundle Commands for US4
-
-- [ ] T074 [US4] Create bundle command group in cli/internal/cmd/bundle/bundle.go
-- [ ] T075 [P] [US4] Implement `opm bundle init` in cli/internal/cmd/bundle/init.go
-- [ ] T076 [P] [US4] Implement `opm bundle vet` in cli/internal/cmd/bundle/vet.go
-- [ ] T077 [P] [US4] Implement `opm bundle tidy` in cli/internal/cmd/bundle/tidy.go
-- [ ] T078 [P] [US4] Implement `opm bundle build` in cli/internal/cmd/bundle/build.go
-- [ ] T079 [US4] Implement `opm bundle apply` in cli/internal/cmd/bundle/apply.go
-- [ ] T080 [US4] Implement `opm bundle delete` in cli/internal/cmd/bundle/delete.go
-- [ ] T081 [P] [US4] Implement `opm bundle diff` in cli/internal/cmd/bundle/diff.go
-- [ ] T082 [P] [US4] Implement `opm bundle status` in cli/internal/cmd/bundle/status.go
-- [ ] T083 [P] [US4] Implement `opm bundle publish` in cli/internal/cmd/bundle/publish.go
-- [ ] T084 [P] [US4] Implement `opm bundle get` in cli/internal/cmd/bundle/get.go
-
-### Integration Tests for US4
-
-- [ ] T085 [US4] Create test fixtures (multi-component bundle) in cli/tests/fixtures/multi-component/
-- [ ] T086 [P] [US4] Integration tests for bundle apply/delete in cli/tests/integration/bundle_test.go
-- [ ] T087 [P] [US4] E2E tests for bundle workflow in cli/tests/e2e/bundle_test.go
-
-**Checkpoint**: User Story 4 complete - platform team can deploy multi-module bundles
-
----
-
-## Phase 7: Polish & Cross-Cutting Concerns
+## Phase 5: Polish & Cross-Cutting Concerns
 
 **Purpose**: Production readiness and developer experience
 
@@ -285,20 +221,17 @@ Based on plan.md project structure:
 ### Phase Dependencies
 
 - **Phase 1 (Setup)**: No dependencies - can start immediately
-- **Phase 2 (Foundational + US5)**: Depends on Phase 1 - BLOCKS all user stories
+- **Phase 2 (Foundational + US4)**: Depends on Phase 1 - BLOCKS all user stories
 - **Phase 3 (US1 - P1)**: Depends on Phase 2 completion
 - **Phase 4 (US2 - P2)**: Depends on Phase 2 completion; can run in parallel with US1 (different files)
-- **Phase 5 (US3 - P3)**: Depends on Phase 2 completion; can run in parallel with US1/US2
-- **Phase 6 (US4 - P4)**: Depends on US1 core infrastructure (loader, renderer, K8s client)
-- **Phase 7 (Polish)**: Depends on all user stories being complete
+- **Phase 5 (Polish)**: Depends on all user stories being complete
 
 ### User Story Dependencies
 
 - **User Story 1 (P1)**: Foundation only - establishes core CUE and K8s integration
 - **User Story 2 (P2)**: Foundation only - adds diff capability (builds on US1 infrastructure)
-- **User Story 3 (P3)**: Foundation only - adds OCI distribution (independent of US1/US2)
-- **User Story 4 (P4)**: Depends on US1 core infrastructure (loader, renderer, K8s client)
-- **User Story 5 (P5)**: Foundation only - config commands (can be done early in Phase 2)
+- **User Story 3 (P2)**: Foundation only - provider config commands (can be done early in Phase 2)
+- **User Story 4 (P5)**: Foundation only - config commands (can be done early in Phase 2)
 
 ### Within Each User Story
 
@@ -337,18 +270,12 @@ T049, T050, T051 can run in parallel
 T058, T059 can run in parallel
 ```
 
-**Phase 5 (US3)**:
+**Phase 5 (Polish)**:
 
 ```
-T070 independent of other US3 implementation tasks (write test first)
-```
-
-**Phase 6 (Bundle)**:
-
-```
-T075, T076, T077, T078 can run in parallel
-T081, T082, T083, T084 can run in parallel
-T086, T087 can run in parallel
+T088, T089 can run in parallel
+T090, T091 can run in parallel
+T092, T093 can run in parallel
 ```
 
 ---
@@ -400,9 +327,7 @@ Task: T013e "Implement opm config vet in cli/internal/cmd/config/vet.go"
 
 1. **MVP (Phase 1-3)**: First module authoring and deployment
 2. **+Diff (Phase 4)**: Module update workflow with preview
-3. **+Distribution (Phase 5)**: OCI registry publish/get
-4. **+Bundles (Phase 6)**: Multi-module deployments
-5. **+Polish (Phase 7)**: Production readiness
+3. **+Polish (Phase 5)**: Production readiness
 
 ### Success Criteria Mapping
 
@@ -412,7 +337,6 @@ Task: T013e "Implement opm config vet in cli/internal/cmd/config/vet.go"
 | SC-002: Diff accuracy 100% | T054, T055, T056 | Integration test T060 |
 | SC-003: Apply idempotency | T035 | Integration test T049 |
 | SC-004: Status convergence < 60s | T039, T046, T093 | Integration test T051 |
-| SC-005: OCI round-trip success | T067, T068 | Integration test T070 |
 
 ---
 

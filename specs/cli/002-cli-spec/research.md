@@ -34,7 +34,7 @@ var rootCmd = &cobra.Command{
     Use:   "opm",
     Short: "Open Platform Model CLI",
     PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-        // Initialize logging, load config
+        // Initialize logging, load config, resolve settings (FR-019)
         return initializeGlobals(cmd)
     },
 }
@@ -48,6 +48,38 @@ var modCmd = &cobra.Command{
 func init() {
     rootCmd.AddCommand(modCmd)
     modCmd.AddCommand(modApplyCmd, modBuildCmd, modDeleteCmd, ...)
+}
+
+// Configuration resolution with viper (FR-019)
+// Precedence: flags > env > config file > defaults
+func initializeConfig(cmd *cobra.Command) (*config.Config, error) {
+    viper.SetConfigFile(configPath)
+    viper.SetEnvPrefix("OPM")
+    viper.AutomaticEnv()
+    
+    // Bind flags (highest precedence)
+    viper.BindPFlag("kubeconfig", cmd.Flags().Lookup("kubeconfig"))
+    viper.BindPFlag("namespace", cmd.Flags().Lookup("namespace"))
+    // ... bind other flags
+    
+    // Load config file
+    if err := viper.ReadInConfig(); err != nil {
+        if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+            return nil, err
+        }
+    }
+    
+    // Resolve each key with logging (if --verbose)
+    resolver := config.NewResolver(viper.GetViper(), cmd.Flags())
+    cfg := &config.Config{}
+    
+    for _, key := range []string{"kubeconfig", "namespace", "registry", "cacheDir"} {
+        resolved := resolver.Resolve(key)
+        resolver.LogResolution(resolved) // DEBUG level
+        // Set cfg field from resolved.Value
+    }
+    
+    return cfg, nil
 }
 ```
 

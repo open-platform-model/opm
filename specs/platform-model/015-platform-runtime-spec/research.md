@@ -11,7 +11,7 @@ This document captures the analysis of Timoni's values and configuration system 
 
 ### Module Structure
 
-```
+```text
 module/
 ├── values.cue           # User-supplied values (placeholder, concrete values)
 ├── timoni.cue           # Main workflow: schema binding + instance definition
@@ -23,6 +23,7 @@ module/
 ### Key Files
 
 **templates/config.cue** - Schema definition with defaults:
+
 ```cue
 #Config: {
   metadata: {
@@ -35,6 +36,7 @@ module/
 ```
 
 **values.cue** - Placeholder for user-supplied concrete values:
+
 ```cue
 package main
 values: {
@@ -43,6 +45,7 @@ values: {
 ```
 
 **timoni.cue** - Binds values to schema and defines instance:
+
 ```cue
 values: templates.#Config   // Schema constraint on values
 
@@ -111,6 +114,7 @@ func mergeValue(overlay, base cue.Value) (cue.Value, bool) {
 ### Example from Testdata
 
 **base.cue:**
+
 ```cue
 values: {
   resources: {
@@ -125,6 +129,7 @@ values: {
 ```
 
 **overlay-1.cue:**
+
 ```cue
 values: {
   resources: limits: { cpu: "1000m", memory: "1Gi" }
@@ -136,6 +141,7 @@ values: {
 ```
 
 **Merged Result:**
+
 ```cue
 values: {
   resources: {
@@ -244,6 +250,7 @@ This enables tooling to extract specific subtrees without full AST manipulation.
 **Choice**: Adopt Timoni-style overlay system with deep merge semantics.
 
 **Rationale**:
+
 - More intuitive for operators coming from Helm/Kustomize
 - Predictable behavior: later layer wins
 - Allows gradual refinement of values across tiers
@@ -255,6 +262,7 @@ This enables tooling to extract specific subtrees without full AST manipulation.
 **Choice**: Platform Operator concrete values (no `*`) are automatically locked.
 
 **Rationale**:
+
 - No special syntax required
 - Natural CUE semantics: concrete values cannot be overridden
 - Platform Operator uses `*` when they want to allow overrides
@@ -266,6 +274,7 @@ This enables tooling to extract specific subtrees without full AST manipulation.
 **Choice**: Accept CUE, YAML, JSON value files.
 
 **Rationale**:
+
 - Reduces migration friction from Helm/Kustomize
 - YAML is more familiar to many operators
 - Conversion to CUE is straightforward (Timoni proves this)
@@ -277,6 +286,7 @@ This enables tooling to extract specific subtrees without full AST manipulation.
 **Choice**: End Users can only deploy modules from `#ModuleCatalog`.
 
 **Rationale**:
+
 - Gives Platform Operators control over approved modules
 - Natural place to apply platform overlays
 - Aligns with enterprise governance requirements

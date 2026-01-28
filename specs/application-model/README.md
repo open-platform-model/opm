@@ -7,11 +7,12 @@ This directory contains specifications for the **Application Model** of the Open
 The application model describes **deployable units** and models the complete lifecycle of an application—from definition through compilation to release.
 
 It enables developers and platform teams to **describe applications once and deploy anywhere**, separating:
+
 - **What** an application is (resources, traits, policies)
 - **How** it gets configured (values)
 - **Where** it gets deployed (releases)
 
-The application model contains the **CLI** as the primary authoring and deployment tool.
+The application model is complemented by the [CLI](../cli/README.md) as the primary authoring and deployment tool.
 
 ## Core Concepts
 
@@ -41,23 +42,29 @@ The application model contains the **CLI** as the primary authoring and deployme
 | Spec | Description |
 |------|-------------|
 | [001-application-definitions-spec](./001-application-definitions-spec/spec.md) | Core application definitions (Resource, Trait, Component, Module, etc.) |
-| [002-cli-spec](./002-cli-spec/spec.md) | CLI v2 implementation for authoring and deploying modules |
 | [009-definition-interface-spec](./009-definition-interface-spec/spec.md) | Module interface contracts *(archived)* |
 | [010-definition-lifecycle-spec](./010-definition-lifecycle-spec/spec.md) | Lifecycle management for components and modules *(archived)* |
-| [011-distribution-spec](./011-distribution-spec/spec.md) | OCI-based module distribution and versioning |
-| [012-cli-module-template-spec](./012-cli-module-template-spec/spec.md) | CLI module templates for initialization |
-| [013-cli-render-spec](./013-cli-render-spec/spec.md) | CLI render system for transforming modules to platform resources |
+| [017-bundle-spec](./017-bundle-spec/spec.md) | Bundle definitions for module collections *(draft)* |
 
-## Relationship to Platform Model
+For CLI-related specifications, see [CLI Specifications](../cli/README.md).
+
+## Relationship to Other Models
+
+### Platform Model
 
 The application model is **platform-agnostic**. Applications defined here can be deployed to any platform that implements the [Platform Model](../platform-model/README.md).
 
 The platform model provides:
+
 - **`#Provider`**: Platform adapters (e.g., Kubernetes)
 - **`#Transformer`**: Conversion logic from OPM components to platform resources
 - **`#PlatformRegistry`**: Curated module catalogs
 
 See [016-platform-definitions-spec](../platform-model/016-platform-definitions-spec/spec.md) for platform-side definitions.
+
+### CLI
+
+The [CLI](../cli/README.md) operates on application model definitions, providing commands for validation, rendering, distribution, and deployment.
 
 ## Key Principles
 
@@ -73,5 +80,5 @@ To create a new application-model spec:
 
 ```bash
 cd opm/.specify/scripts/bash
-./create-new-feature.sh "Your spec description" --model application
+./create-new-feature.sh "Your spec description" --category application
 ```

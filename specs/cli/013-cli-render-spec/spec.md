@@ -28,13 +28,20 @@ The rendering pipeline consists of three key concepts:
 
 ### Session 2026-01-25
 
-- Q: How are providers resolved? → A: CLI resolves provider names to CUE modules (e.g., `kubernetes` -> `opm.dev/providers/kubernetes`) fetched via `OPM_REGISTRY`.
+- Q: How are providers resolved? → A: Providers are defined in `~/.opm/config.cue` by importing provider modules (e.g., `import k8s "opm.dev/providers/kubernetes@v0"`). The `--provider` flag selects which configured provider to use for rendering. Modules MUST NOT declare or reference providers.
 - Q: How are render errors handled during parallel processing? → A: Fail on End. The CLI renders all components, collecting errors (unmatched components, transformation failures), and exits with a non-zero status and full error list only after all components are processed.
 - Q: What formats does verbose output support? → A: Both human-readable (default `--verbose`) and structured JSON (`--verbose=json`) for machine parsing.
 - Q: What fields are in the TransformerContext? → A: Extended context: `name`, `namespace`, `version`, `provider`, `timestamp` (RFC3339), `strict` (bool), and `labels` (module metadata labels).
 - Q: How are files named with `--split`? → A: Using the pattern `<lowercase-kind>-<resource-name>.yaml` (e.g., `deployment-api.yaml`).
 - Q: How should the render pipeline handle sensitive data (e.g., secrets from environment variables) to prevent exposure in logs or verbose output? → A: Redact Secrets in Logs. The CLI should not write logs that could even contain secrets to begin with, but if that happens we should redact it.
 - Q: What are the expected scalability limits for the render pipeline? (e.g., how many components/transformers) → A: No Defined Limits
+
+### Session 2026-01-28 (Experiment 004 Findings)
+
+- Q: Where are providers configured and how are they loaded? → A: Providers are ONLY configured in `~/.opm/config.cue` via CUE imports. The config is a valid CUE module that imports provider modules (e.g., `opm.dev/providers/kubernetes@v0`). Modules never declare providers.
+- Q: How does provider validation work? → A: Provider validation is shallow - only structural validation (metadata exists, transformers map exists). Abstract transformer definitions are not validated until render time when unified with actual components.
+- Q: Can users extend providers? → A: Yes, via CUE unification. Users can add custom transformers to providers in their config.cue by unifying with the imported provider definition.
+- Q: How many providers can be used per render? → A: Only one provider per render operation. The `--provider` flag selects from configured providers.
 
 ---
 
@@ -148,15 +155,30 @@ The render pipeline is the core execution flow of the `opm mod build` command. I
 
 ### Phase 1: Module Loading & Validation
 
-- **Initialization**: Load CLI config, set up context.
-- **Resolution**: Resolve CUE dependencies (via `OPM_REGISTRY`).
+- **Initialization**: Load CLI config from `~/.opm/config.cue`. This includes:
+  - Extracting `config.registry` via simple parsing (without resolving imports)
+  - Resolving final registry URL: `--registry` flag > `OPM_REGISTRY` env > `config.registry`
+  - Loading full config with provider imports using the resolved registry
+  - Validating provider structure (shallow validation)
+- **Resolution**: Resolve application module's CUE dependencies using the resolved registry URL.
 - **Unification**: Unify `module.cue` and user values into a single instance.
 - **Validation**: Verify schema against `ModuleDefinition`. Ensure the module is ready for processing.
 
 ### Phase 2: Provider Loading
 
-- **Load Provider**: Resolve and load the configured provider (e.g., `kubernetes`).
-- **Index Transformers**: Build an in-memory registry of available transformers from the provider.
+- **Determine Provider Source**:
+  - Check `--provider` flag for explicit provider selection
+  - Otherwise use the default provider from config.providers (typically `kubernetes`)
+- **Load Provider from Config**: Access the provider definition from the loaded config.cue. The provider is already loaded as part of config loading (imported via `import k8s "opm.dev/providers/kubernetes@v0"`).
+- **Validate Provider Structure**: Verify the provider has required fields:
+  - `metadata` (name, version, description)
+  - `transformers` map (registry of transformer definitions)
+  - Note: Validation is shallow - only checks existence, not concrete values
+- **Index Transformers**: Build an in-memory registry mapping transformer IDs to their CUE definitions. Each transformer in the `provider.transformers` map becomes available for matching.
+- **Error Handling**: If provider is not found in config, if validation fails, or if transformers map is empty, exit with a clear error message including:
+  - Which provider was requested
+  - Available providers in config
+  - Validation failure details (if applicable)
 
 ### Phase 3: Component Matching (The "Matched" Map)
 
@@ -266,10 +288,11 @@ A transformer matches if and only if **ALL** conditions are met:
 
 #### Provider System
 
-- **FR-001**: Provider MUST contain a `transformers` map registry.
+- **FR-001**: Provider MUST contain a `transformers` map registry. Provider validation MUST verify structural correctness (metadata exists, transformers map exists, transformer entries have required fields) but MUST NOT require concrete values for all fields. Abstract transformer definitions (e.g., `#transform` functions) are validated at render time when unified with actual components.
 - **FR-002**: Provider MUST aggregate declared resources/traits/policies.
-- **FR-003**: Provider MUST include metadata.
-- **FR-004**: Support `--provider` flag.
+- **FR-003**: Provider MUST include metadata (name, version, description).
+- **FR-004**: Support `--provider` flag to select from providers configured in `~/.opm/config.cue`.
+- **FR-028**: Providers MUST be configured in `~/.opm/config.cue` by importing provider modules. Modules MUST NOT declare or reference providers. The config file imports providers (e.g., `import k8s "opm.dev/providers/kubernetes@v0"`) and registers them in `config.providers` map.
 
 #### Transformer System
 
