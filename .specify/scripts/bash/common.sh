@@ -24,6 +24,28 @@ get_specs_dir() {
     echo "$(get_specify_root)/specs"
 }
 
+# Get all directories that can contain specs (root + model subdirs)
+get_all_specs_dirs() {
+    local specs_root="$(get_specify_root)/specs"
+    local dirs=()
+    
+    # Add root for root-level specs (like 003-taskfile-spec)
+    dirs+=("$specs_root")
+    
+    # Add model subdirectories if they exist
+    for subdir in "$specs_root"/*/; do
+        if [[ -d "$subdir" ]]; then
+            local dirname=$(basename "$subdir")
+            # Only add directories ending with -model
+            if [[ "$dirname" == *-model ]]; then
+                dirs+=("${subdir%/}")
+            fi
+        fi
+    done
+    
+    printf '%s\n' "${dirs[@]}"
+}
+
 # Get current branch, with fallback for non-git repositories
 get_current_branch() {
     # First check if SPECIFY_FEATURE environment variable is set
@@ -96,41 +118,41 @@ get_feature_dir() { echo "$(get_specs_dir)/$1"; }
 
 # Find feature directory by numeric prefix instead of exact branch match
 # This allows multiple branches to work on the same spec (e.g., 004-fix-bug, 004-add-feature)
+# Now searches across ALL specs directories (root + model subdirs)
 find_feature_dir_by_prefix() {
     local branch_name="$1"
-    local specs_dir=$(get_specs_dir)
-
+    
     # Extract numeric prefix from branch (e.g., "004" from "004-whatever")
     if [[ ! "$branch_name" =~ ^([0-9]{3})- ]]; then
-        # If branch doesn't have numeric prefix, fall back to exact match
-        echo "$specs_dir/$branch_name"
+        # If branch doesn't have numeric prefix, fall back to exact match at root
+        echo "$(get_specs_dir)/$branch_name"
         return
     fi
-
+    
     local prefix="${BASH_REMATCH[1]}"
-
-    # Search for directories in specs/ that start with this prefix
     local matches=()
-    if [[ -d "$specs_dir" ]]; then
-        for dir in "$specs_dir"/"$prefix"-*; do
+    
+    # Search ALL specs directories (including model subdirs)
+    while IFS= read -r specs_dir; do
+        for dir in "$specs_dir"/"$prefix"-*/; do
             if [[ -d "$dir" ]]; then
-                matches+=("$(basename "$dir")")
+                matches+=("${dir%/}")
             fi
         done
-    fi
-
+    done < <(get_all_specs_dirs)
+    
     # Handle results
     if [[ ${#matches[@]} -eq 0 ]]; then
         # No match found - return the branch name path (will fail later with clear error)
-        echo "$specs_dir/$branch_name"
+        echo "$(get_specs_dir)/$branch_name"
     elif [[ ${#matches[@]} -eq 1 ]]; then
         # Exactly one match - perfect!
-        echo "$specs_dir/${matches[0]}"
+        echo "${matches[0]}"
     else
         # Multiple matches - this shouldn't happen with proper naming convention
         echo "ERROR: Multiple spec directories found with prefix '$prefix': ${matches[*]}" >&2
         echo "Please ensure only one spec directory exists per numeric prefix." >&2
-        echo "$specs_dir/$branch_name"  # Return something to avoid breaking the script
+        echo "${matches[0]}"  # Return first match to avoid breaking the script
     fi
 }
 

@@ -3,7 +3,7 @@
 **Status**: Draft (Archived)
 **Last Updated**: 2026-01-21
 
-> **Moved**: This specification has been migrated into the core definitions spec as a subspec. See [Interface Definition](../001-core-definitions-spec/subspecs/interface.md).
+> **Moved**: This specification has been migrated into the application definitions spec as a subspec. See [Interface Definition](../001-application-definitions-spec/subspecs/interface.md).
 
 ## Overview
 

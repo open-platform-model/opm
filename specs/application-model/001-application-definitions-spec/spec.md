@@ -1,13 +1,21 @@
-# Feature Specification: OPM Core CUE Definition
+# Feature Specification: OPM Application Definitions
 
-**Feature Branch**: `001-core-definitions-spec`  
+**Feature Branch**: `001-application-definitions-spec`  
 **Created**: 2025-12-09  
-**Updated**: 2026-01-22  
+**Updated**: 2026-01-28  
 **Status**: Draft
 
 ## Overview
 
-This specification defines the core CUE schema for Open Platform Model (OPM). OPM uses typed definitions to express application structure, behavior, and governance in a portable, composable way.
+This specification defines the application-side definitions for Open Platform Model (OPM). These definitions enable developers and platform teams to describe applications once and deploy anywhere, separating what an application is (resources, traits, policies) from how it gets configured (values) and deployed (releases).
+
+The application model encompasses:
+- **Component definitions**: Resources, Traits, Blueprints, Policies
+- **Composition**: Components, Scopes
+- **Modules**: Module, CompiledModule, ModuleRelease
+- **Distribution**: Bundles and multi-module stacks
+
+For platform-specific transformation definitions (Provider, Transformer), see [016-platform-definitions-spec](../../platform-model/016-platform-definitions-spec/spec.md).
 
 For details on lifecycle management, see the [OPM Lifecycle Specification](../010-definition-lifecycle-spec/spec.md).
 
@@ -254,14 +262,11 @@ See [Bundle Definition Subspec](./subspecs/bundle-definition.md) for details.
 | `#CompiledBundle` | Compiled bundle |
 | `#BundleRelease` | Bundle deployment |
 
-### Platform Types
+### Template Types
 
 | Entity | Purpose | Key Fields |
 |--------|---------|------------|
-| `#Provider` | Platform adapter with transformer registry | `transformers`, `#declaredResources`, `#declaredTraits`, `#declaredDefinitions` |
-| `#Transformer` | Converts components to platform resources | `requiredLabels`, `requiredResources`, `optionalResources`, `requiredTraits`, `optionalTraits`, `#transform` |
 | `#Template` | Module initialization template | `category`, `level` |
-| `#MatchTransformers` | Computes component matching plan | `provider`, `module`, `out` |
 
 ## Schema References
 
@@ -281,10 +286,10 @@ All schemas are the authoritative specification:
 | Trait | `core/v0/trait.cue` |
 | Policy | `core/v0/policy.cue` |
 | Blueprint | `core/v0/blueprint.cue` |
-| Provider | `core/v0/provider.cue` |
-| Transformer | `core/v0/transformer.cue` |
 | Template | `core/v0/template.cue` |
 | Common Types | `core/v0/common.cue` |
+
+**Note**: Platform-specific definitions (Provider, Transformer) are defined in [016-platform-definitions-spec](../../platform-model/016-platform-definitions-spec/spec.md).
 
 ## Subspec Index
 
@@ -301,5 +306,8 @@ All schemas are the authoritative specification:
 | 10 | Status | [Status Definition](./subspecs/status.md) | FR-10-001 to FR-10-007 | Computed status from module configuration |
 | 11 | Lifecycle System | [lifecycle.md](./subspecs/lifecycle.md) | FR-4-001 to FR-11-007 | Lifecycle overview and subsystem context |
 | 12 | Bundle Definition | [bundle-definition.md](./subspecs/bundle-definition.md) | FR-12-001 to FR-12-004 | Aggregation of modules into bundles |
-| 13 | Platform Provider | [platform-provider.md](./subspecs/platform-provider.md) | FR-13-001 to FR-13-005 | Provider and Transformer structure |
-| 14 | Transformer | [transformer.md](./subspecs/transformer.md) | FR-14-001 to FR-14-007 | Label-based matching algorithm for transformers |
+
+## Related Specifications
+
+- [016-platform-definitions-spec](../../platform-model/016-platform-definitions-spec/spec.md) - Platform Provider and Transformer definitions
+- [013-cli-render-spec](../013-cli-render-spec/spec.md) - CLI render system using these definitions

@@ -3,7 +3,7 @@
 **Status**: Draft  
 **Last Updated**: 2026-01-22
 
-> **Moved**: This specification has been migrated into the core definitions spec as subspecs. See [Lifecycle System](../001-core-definitions-spec/subspecs/lifecycle.md), [Component Lifecycle](../001-core-definitions-spec/subspecs/component-lifecycle.md), and [Module Lifecycle](../001-core-definitions-spec/subspecs/module-lifecycle.md).
+> **Moved**: This specification has been migrated into the application definitions spec as subspecs. See [Lifecycle System](../001-application-definitions-spec/subspecs/lifecycle.md).
 
 ## 1. Overview
 

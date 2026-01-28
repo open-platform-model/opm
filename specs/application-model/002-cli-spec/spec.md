@@ -115,7 +115,7 @@ A new user needs to configure the OPM CLI with their preferred defaults (namespa
 
 ### Functional Requirements
 
-- **FR-001**: The CLI MUST provide a `mod init` command to create a new module from a template.
+- **FR-001**: The CLI MUST provide a `mod init` command to create a new module from a template. The command MUST display a file tree with descriptions aligned at column 30 showing the created module structure.
 - **FR-002**: The CLI MUST provide `mod vet` and `mod tidy` commands for module validation and dependency management.
 - **FR-003**: The CLI MUST provide a `mod build` command that renders a module's CUE definition into Kubernetes manifests in YAML, JSON, or a directory structure.
 - **FR-004**: The CLI MUST provide a `mod apply` command to idempotently create or update a module's resources on a Kubernetes cluster, applying them in a weighted order to respect hard dependencies (see Section 6).

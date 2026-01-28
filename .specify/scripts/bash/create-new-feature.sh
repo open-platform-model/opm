@@ -5,6 +5,7 @@ set -e
 JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
+MODEL=""
 ARGS=()
 i=1
 while [ $i -le $# ]; do
@@ -40,18 +41,33 @@ while [ $i -le $# ]; do
             fi
             BRANCH_NUMBER="$next_arg"
             ;;
+        --model)
+            if [ $((i + 1)) -gt $# ]; then
+                echo 'Error: --model requires a value (application, platform, or root)' >&2
+                exit 1
+            fi
+            i=$((i + 1))
+            next_arg="${!i}"
+            if [[ "$next_arg" == --* ]]; then
+                echo 'Error: --model requires a value (application, platform, or root)' >&2
+                exit 1
+            fi
+            MODEL="$next_arg"
+            ;;
         --help|-h) 
-            echo "Usage: $0 [--json] [--short-name <name>] [--number N] <feature_description>"
+            echo "Usage: $0 [--json] [--short-name <name>] [--number N] [--model <type>] <feature_description>"
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
+            echo "  --model <type>      Specify model type: application, platform, or root (default: root)"
             echo "  --help, -h          Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0 'Add user authentication system' --short-name 'user-auth'"
-            echo "  $0 'Implement OAuth2 integration for API' --number 5"
+            echo "  $0 'Add user authentication system' --short-name 'user-auth' --model application"
+            echo "  $0 'Implement OAuth2 integration for API' --number 5 --model platform"
+            echo "  $0 'Update build system' --model root"
             exit 0
             ;;
         *) 
@@ -80,13 +96,30 @@ find_repo_root() {
     return 1
 }
 
-# Function to get highest number from specs directory
+# Function to get highest number from specs directory (searches recursively including model subdirs)
 get_highest_from_specs() {
-    local specs_dir="$1"
+    local specs_root="$1"
     local highest=0
     
-    if [ -d "$specs_dir" ]; then
-        for dir in "$specs_dir"/*; do
+    # Search root level specs
+    if [ -d "$specs_root" ]; then
+        for dir in "$specs_root"/*; do
+            [ -d "$dir" ] || continue
+            dirname=$(basename "$dir")
+            # Skip model directories themselves (application-model, platform-model)
+            [[ "$dirname" == *-model ]] && continue
+            number=$(echo "$dirname" | grep -o '^[0-9]\+' || echo "0")
+            number=$((10#$number))
+            if [ "$number" -gt "$highest" ]; then
+                highest=$number
+            fi
+        done
+    fi
+    
+    # Search model subdirectories
+    for model_dir in "$specs_root"/*/; do
+        [ -d "$model_dir" ] || continue
+        for dir in "$model_dir"/*; do
             [ -d "$dir" ] || continue
             dirname=$(basename "$dir")
             number=$(echo "$dirname" | grep -o '^[0-9]\+' || echo "0")
@@ -95,7 +128,7 @@ get_highest_from_specs() {
                 highest=$number
             fi
         done
-    fi
+    done
     
     echo "$highest"
 }
@@ -277,7 +310,23 @@ else
     >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
 fi
 
-FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
+# Determine feature directory based on model parameter
+case "$MODEL" in
+    application)
+        FEATURE_DIR="$SPECS_DIR/application-model/$BRANCH_NAME"
+        ;;
+    platform)
+        FEATURE_DIR="$SPECS_DIR/platform-model/$BRANCH_NAME"
+        ;;
+    root|"")
+        FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
+        ;;
+    *)
+        echo "Error: --model must be 'application', 'platform', or 'root'" >&2
+        exit 1
+        ;;
+esac
+
 mkdir -p "$FEATURE_DIR"
 
 TEMPLATE="$REPO_ROOT/.specify/templates/spec-template.md"
