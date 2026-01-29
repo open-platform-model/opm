@@ -246,75 +246,7 @@ func applyResource(ctx context.Context, client dynamic.Interface, obj *unstructu
 
 ---
 
-## 5. Resource Health Evaluation
-
-### Decision
-
-Implement custom health checking based on spec Section 6.3 rules.
-
-### Rationale
-
-- **Spec compliance**: Must follow exact rules defined in spec
-- **Simplicity**: Only need to check specific condition types
-- **No external dependency**: Avoid pulling in large health-checking libraries
-
-### Health Rules (from spec)
-
-| Resource Type | Health Check |
-|---------------|--------------|
-| Deployment, StatefulSet, DaemonSet | `status.conditions` contains `Ready=True` |
-| Job | `status.conditions` contains `Complete=True` |
-| CronJob | Always healthy (trigger-based) |
-| ConfigMap, Secret, Service, Namespace, RBAC | Healthy on successful create/update |
-| Custom Resources | Check for `Ready` condition if present, else passive |
-
-### Implementation Pattern
-
-```go
-type HealthStatus string
-
-const (
-    HealthReady       HealthStatus = "Ready"
-    HealthNotReady    HealthStatus = "NotReady"
-    HealthProgressing HealthStatus = "Progressing"
-    HealthFailed      HealthStatus = "Failed"
-)
-
-func evaluateHealth(obj *unstructured.Unstructured) (HealthStatus, string) {
-    kind := obj.GetKind()
-    
-    switch kind {
-    case "Deployment", "StatefulSet", "DaemonSet":
-        return evaluateWorkloadHealth(obj)
-    case "Job":
-        return evaluateJobHealth(obj)
-    case "ConfigMap", "Secret", "Service", "Namespace":
-        return HealthReady, "Created"
-    default:
-        // Check for Ready condition on CRs
-        return evaluateGenericHealth(obj)
-    }
-}
-
-func evaluateWorkloadHealth(obj *unstructured.Unstructured) (HealthStatus, string) {
-    conditions, found, _ := unstructured.NestedSlice(obj.Object, "status", "conditions")
-    if !found {
-        return HealthProgressing, "Waiting for conditions"
-    }
-    
-    for _, c := range conditions {
-        cond := c.(map[string]interface{})
-        if cond["type"] == "Available" && cond["status"] == "True" {
-            return HealthReady, cond["message"].(string)
-        }
-    }
-    return HealthNotReady, "Not available"
-}
-```
-
----
-
-## 6. Charm Libraries Integration
+## 5. Charm Libraries Integration
 
 ### Decision
 
@@ -383,7 +315,7 @@ func waitWithSpinner(ctx context.Context, action func() error) error {
 
 ---
 
-## 7. CUE SDK Integration
+## 6. CUE SDK Integration
 
 ### Decision
 
@@ -464,7 +396,7 @@ func checkCueVersion() error {
 
 ---
 
-## 8. Testing Strategy
+## 7. Testing Strategy
 
 ### Decision
 
@@ -512,7 +444,6 @@ All technology decisions have been validated through research:
 | homeport/dyff for diff | Validated | High |
 | oras-go v2 for OCI | Validated | High |
 | Server-side apply | Validated | High |
-| Custom health checking | Validated | High |
 | Charm libs for UX | Validated | High |
 | CUE SDK + binary delegation | Validated | High |
 | testify + envtest | Validated | High |

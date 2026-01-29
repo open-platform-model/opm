@@ -304,6 +304,11 @@ Matching happens in two logical stages:
 +-------------+-------------------+
               |
               v
++-------------------------+      No
+|   Required Labels Met?  |------------> (Continue to next Transformer)
++-------------+-----------+
+              | Yes
+              v
 +---------------------------+    No
 | Required Resources Met? |------------> (Continue to next Transformer)
 +-------------+-------------+
@@ -311,11 +316,6 @@ Matching happens in two logical stages:
               v
 +-------------------------+      No
 |   Required Traits Met?  |------------> (Continue to next Transformer)
-+-------------+-----------+
-              | Yes
-              v
-+-------------------------+      No
-|   Required Labels Met?  |------------> (Continue to next Transformer)
 +-------------+-----------+
               | Yes
               v
