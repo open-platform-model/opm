@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document defines the mandatory project structure, directory layout, and protected filenames for OPM Module projects. Adhering to these standards ensures portability, predictability, and compatibility with the OPM CLI and OCI registry distribution.
+This document defines the mandatory project structure, directory layout, and protected filenames for OPM Module projects. Adhering to these standards ensures portability, predictability, and compatibility with the OPM CLI.
 
 ## 1. Module Project Structure
 
@@ -198,4 +198,3 @@ values: {
 
 - **Package Naming**: All CUE files at the root of a Module SHOULD belong to the same package (typically the module name or `module`).
 - **Internal Directories**: Users ARE encouraged to use subdirectories for complex logic (e.g., `templates/`, `schemas/`), provided they are correctly imported or included in the root files.
-- **OCI Artifacts**: When `opm mod publish` is called, the CLI packs all files in the directory, respecting the project structure defined here.

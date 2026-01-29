@@ -10,7 +10,6 @@ The Open Platform Model (OPM) needs a standard way to distribute and version art
 
 1. **Core Definitions**: `#Module`, `#Resource`, `#Trait` (owned by OPM maintainers).
 2. **User Modules**: Implementations of `#Module` (owned by users/Module Authors).
-3. **Bundles**: Collections of Modules.
 
 We evaluated two primary architecture options for handling this distribution.
 

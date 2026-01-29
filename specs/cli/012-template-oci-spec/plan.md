@@ -11,7 +11,7 @@ Implement OCI-based template distribution for OPM. Templates are published to OC
 
 | Aspect | Decision | Source |
 |--------|----------|--------|
-| **Language** | Go 1.22+ | 002-cli-spec |
+| **Language** | Go 1.25+ | 002-cli-spec |
 | **CLI Framework** | spf13/cobra | 002-cli-spec |
 | **OCI Client** | oras.land/oras-go/v2 | 011-oci-distribution-spec |
 | **Template Rendering** | Go `text/template` | research.md |

@@ -24,7 +24,7 @@ get_specs_dir() {
     echo "$(get_specify_root)/specs"
 }
 
-# Get all directories that can contain specs (root + model subdirs)
+# Get all directories that can contain specs (root + category subdirs)
 get_all_specs_dirs() {
     local specs_root="$(get_specify_root)/specs"
     local dirs=()
@@ -32,12 +32,12 @@ get_all_specs_dirs() {
     # Add root for root-level specs (like 003-taskfile-spec)
     dirs+=("$specs_root")
     
-    # Add model subdirectories if they exist
+    # Add category subdirectories (any subdir that isn't a feature spec)
     for subdir in "$specs_root"/*/; do
         if [[ -d "$subdir" ]]; then
             local dirname=$(basename "$subdir")
-            # Only add directories ending with -model
-            if [[ "$dirname" == *-model ]]; then
+            # Add subdirectories that don't match feature pattern (NNN-*)
+            if [[ ! "$dirname" =~ ^[0-9]{3}- ]]; then
                 dirs+=("${subdir%/}")
             fi
         fi

@@ -24,8 +24,6 @@ This document defines the exit code contract for OPM distribution commands.
 | `opm mod get` | 0, 1, 3, 4, 5 |
 | `opm mod update` | 0, 1, 3, 4 |
 | `opm mod tidy` | 0, 1 |
-| `opm bundle publish` | 0, 1, 2, 3, 4 |
-| `opm bundle get` | 0, 1, 3, 4, 5 |
 
 ## Error Examples
 

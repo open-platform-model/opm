@@ -136,68 +136,7 @@ func diffManifests(live, desired []byte) (string, error) {
 
 ---
 
-## 3. OCI Library: oras-go v2
-
-### Decision
-
-Use `oras.land/oras-go/v2` v2.5+ for OCI registry operations.
-
-### Rationale
-
-- **CNCF project**: Well-maintained, vendor-neutral
-- **Purpose-built**: Designed specifically for OCI artifacts (not just container images)
-- **Used by Helm/Flux**: Proven for distributing Helm charts and Flux artifacts
-- **Clean API**: v2 has improved ergonomics over v1
-- **Auth integration**: Supports docker config.json credentials
-
-### Alternatives Considered
-
-| Alternative | Why Rejected |
-|-------------|--------------|
-| google/go-containerregistry | More focused on container images, less artifact-friendly |
-| fluxcd/pkg/oci | Built on go-containerregistry, adds unnecessary dependency |
-| containerd | Too low-level for our needs |
-
-### Integration Notes
-
-```go
-import (
-    "oras.land/oras-go/v2"
-    "oras.land/oras-go/v2/registry/remote"
-    "oras.land/oras-go/v2/registry/remote/auth"
-)
-
-func pushModule(ctx context.Context, ref string, moduleDir string) error {
-    // Create repository reference
-    repo, err := remote.NewRepository(ref)
-    if err != nil {
-        return err
-    }
-    
-    // Configure auth from docker config
-    repo.Client = &auth.Client{
-        Client: http.DefaultClient,
-        Credential: auth.CredentialFunc(func(ctx context.Context, hostport string) (auth.Credential, error) {
-            return auth.Credential{}, nil // Load from ~/.docker/config.json
-        }),
-    }
-    
-    // Pack and push
-    // ... artifact packaging logic
-    return oras.Copy(ctx, store, ref, repo, ref, oras.DefaultCopyOptions)
-}
-```
-
-### Artifact Format
-
-OPM modules will be packaged as OCI artifacts with:
-- **Media type**: `application/vnd.opm.module.v1+tar+gzip`
-- **Layers**: Single layer containing tar.gz of module directory
-- **Annotations**: Module name, version, description
-
----
-
-## 4. Kubernetes Server-Side Apply
+## 3. Kubernetes Server-Side Apply
 
 ### Decision
 
@@ -246,7 +185,7 @@ func applyResource(ctx context.Context, client dynamic.Interface, obj *unstructu
 
 ---
 
-## 5. Charm Libraries Integration
+## 4. Charm Libraries Integration
 
 ### Decision
 
@@ -315,7 +254,7 @@ func waitWithSpinner(ctx context.Context, action func() error) error {
 
 ---
 
-## 6. CUE SDK Integration
+## 5. CUE SDK Integration
 
 ### Decision
 
@@ -396,7 +335,7 @@ func checkCueVersion() error {
 
 ---
 
-## 7. Testing Strategy
+## 6. Testing Strategy
 
 ### Decision
 
@@ -442,7 +381,6 @@ All technology decisions have been validated through research:
 |----------|--------|------------|
 | spf13/cobra for CLI | Validated | High |
 | homeport/dyff for diff | Validated | High |
-| oras-go v2 for OCI | Validated | High |
 | Server-side apply | Validated | High |
 | Charm libs for UX | Validated | High |
 | CUE SDK + binary delegation | Validated | High |

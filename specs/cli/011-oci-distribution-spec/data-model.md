@@ -14,7 +14,6 @@ Types for OCI registry interactions.
 // ArtifactMediaType defines OCI media types for OPM artifacts
 const (
     ModuleMediaType = "application/vnd.opm.module.v1+tar+gzip"
-    BundleMediaType = "application/vnd.opm.bundle.v1+tar+gzip"
 )
 
 // Artifact represents an OCI artifact

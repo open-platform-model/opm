@@ -10,9 +10,9 @@
 ### Session 2026-01-22
 
 - Q: How does the CLI uniquely identify and track Kubernetes resources belonging to a module? → A: Using labels: `app.kubernetes.io/managed-by: open-platform-model`, `module.opmodel.dev/name`, `module.opmodel.dev/namespace`, `module.opmodel.dev/version`, and `component.opmodel.dev/name`.
-- Q: How should the CLI handle multiple `--values` flags? → A: Support multiple CUE, YAML, and JSON files. Convert all to CUE and rely on CUE unification for merging and schema validation (Timoni-style).
+- Q: How should the CLI handle multiple `--values` flags? → A: Support multiple CUE, YAML, and JSON files. Convert all to CUE and rely on CUE unification for merging and schema validation (CUE-style).
 - Q: How should the CLI handle secrets? → A: Delegate to standard patterns (ExternalSecrets/SOPS). Users can include secret values in `values.yaml` (or CUE/JSON), which are unified like other values.
-- Q: How should the CLI handle OCI registry authentication? → A: Leverage standard `~/.docker/config.json` (OCI standard).
+- Q: How should the CLI authenticate to CUE module registries? → A: CUE registry access uses standard `~/.docker/config.json` credentials (registries use OCI transport). This is handled by the CUE binary, not the OPM CLI directly.
 
 ### Session 2026-01-24
 
@@ -29,7 +29,7 @@
 
 ### Session 2026-01-28 (Performance & Behavior)
 
-- Q: What is the target time for OCI publish/get round-trip? → A: 30 seconds (assumes local or low-latency registry).
+- Q: What is the target time for CUE module fetch operations? → A: Under 5 seconds on first use (warm cache: under 1 second). This is handled by the CUE binary during `mod tidy`.
 - Q: How should the CLI handle Kubernetes API rate limiting? → A: Use client-go's built-in rate limiter with defaults.
 - Q: How should the CLI handle server-side apply field ownership conflicts? → A: Warn and proceed (take ownership), matching kubectl default behavior.
 - Q: Should the CLI display progress indicators during long operations? → A: No progress indicators; silent until completion or timeout.
@@ -59,6 +59,8 @@ A new OPM user wants to create their first module and validate it locally. This 
 
 ---
 
+### User Story 2 - First-Time Configuration Initialization (Priority: P1)
+
 A platform operator setting up OPM for the first time needs to initialize the CLI configuration with default settings and the kubernetes provider. This enables developers on the team to immediately start rendering modules.
 
 **Why this priority**: Without configuration, the CLI cannot resolve providers needed for module rendering. This is the foundational setup step.
@@ -73,6 +75,8 @@ A platform operator setting up OPM for the first time needs to initialize the CL
 4. **Given** a fresh installation, **When** the operator runs `opm config init --force`, **Then** any existing config is overwritten with defaults.
 
 ---
+
+### User Story 3 - Runtime Configuration Resolution (Priority: P1)
 
 When a developer runs any module command (e.g., `opm mod vet`), the CLI must load the configuration, resolve the registry, and fetch provider modules.
 
@@ -91,6 +95,8 @@ When a developer runs any module command (e.g., `opm mod vet`), the CLI must loa
 
 ---
 
+### User Story 4 - Configuration Validation (Priority: P2)
+
 A developer who has modified their configuration needs to validate it before running module commands to catch errors early.
 
 **Why this priority**: Validation provides fast feedback on configuration errors, improving developer experience and reducing debugging time.
@@ -105,6 +111,8 @@ A developer who has modified their configuration needs to validate it before run
 4. **Given** a config.cue referencing a non-existent provider, **When** the user runs `opm config vet`, **Then** validation fails with a message about the missing provider.
 
 ---
+
+### User Story 5 - Advanced Provider Configuration (Priority: P3)
 
 An advanced platform operator wants to extend or customize provider configuration, such as adding custom transformers or configuring multiple providers.
 
@@ -151,7 +159,7 @@ An advanced platform operator wants to extend or customize provider configuratio
 - **FR-008**: The CLI MUST use a CUE module at `~/.opm/` as the configuration directory, containing `config.cue` and `cue.mod/module.cue`. The config.cue file MUST define a `config` struct containing configuration fields. The config module MUST be able to import provider modules using standard CUE import syntax (e.g., `import providers "opmodel.dev/providers@v0"`). Providers MUST be referenced using the registry lookup pattern: `providers.#Registry["<provider-name>"]`. The CLI MUST provide `config init` and `config vet` commands for configuration management. The `config init` command MUST include the kubernetes provider in the default configuration and MUST fail if config already exists unless `--force` flag is specified. The `config init` command MUST set secure file permissions: 0700 for `~/.opm/` directory, 0600 for `config.cue` and files under `cue.mod/`. The `config vet` command MUST report validation errors with file locations, line numbers, field names, and expected formats.
 - **FR-009**: The CLI MUST resolve the registry URL using this precedence (highest to lowest): (1) `--registry` flag, (2) `OPM_REGISTRY` environment variable, (3) `config.registry` from `~/.opm/config.cue`. The `config.registry` value MUST be extractable via simple CUE parsing without requiring module/import resolution. The resolved registry URL MUST be used for all CUE module operations, including loading provider imports in config.cue itself. When set (e.g., `localhost:5000`), all CUE imports (e.g., `opmodel.dev/core@v0`) MUST resolve from the configured registry. The CLI MUST pass this configuration to the `cue` binary via the `CUE_REGISTRY` environment variable when executing `mod tidy` and `mod vet` commands.
 - **FR-010**: When `OPM_REGISTRY` is configured and the registry is unreachable, commands that require module resolution MUST fail fast with a clear error message indicating registry connectivity failure. The CLI MUST NOT silently fall back to alternative registries.
-- **FR-011**: The config MUST support the following optional fields: `registry` (default OCI registry for module resolution), `kubeconfig` (path to kubeconfig file, default: `~/.kube/config`), `context` (Kubernetes context to use, default: current-context), `namespace` (default namespace for operations, default: `default`), `cacheDir` (local cache directory path, default: `~/.opm/cache`).
+- **FR-011**: The config MUST support the following optional fields: `registry` (default registry for CUE module resolution), `kubeconfig` (path to kubeconfig file, default: `~/.kube/config`), `context` (Kubernetes context to use, default: current-context), `namespace` (default namespace for operations, default: `default`), `cacheDir` (local cache directory path, default: `~/.opm/cache`).
 - **FR-012**: The `config.providers` field MUST be a map of provider aliases to provider definitions loaded via CUE imports.
 - **FR-013**: The CLI MUST implement a two-phase config loading process: (1) **Phase 1 (Bootstrap)**: Extract `config.registry` via simple CUE parsing without import resolution; (2) **Phase 2 (Full Load)**: Use resolved registry to load config.cue with all imports resolved.
 - **FR-014**: When providers are configured but no registry is resolvable (no flag, no env, no config.registry), the CLI MUST fail fast with a clear error message. When the registry is unreachable during provider fetch, the CLI MUST fail with a specific error indicating registry connectivity failure and which provider module could not be loaded.
@@ -162,6 +170,7 @@ An advanced platform operator wants to extend or customize provider configuratio
 - **FR-016**: The CLI MUST provide structured, human-readable logging to `stderr`. Logs MUST use colors to distinguish categories (Info, Warning, Error, Debug). The `--verbose` flag MUST increase the detail of logs.
 - **FR-017**: The CLI MUST provide a global `--output-format` flag (alias `-o`) supporting `text` (default), `yaml`, and `json` values. The `text` format MUST provide the most appropriate human-readable output for the command (e.g., tables for status, YAML for manifests) on `stdout`.
 - **FR-018**: The CLI MUST resolve configuration values using the following precedence (highest to lowest): (1) Command-line flags, (2) Environment variables (e.g., `OPM_NAMESPACE`), (3) Configuration file (`~/.opm/config.cue` or path specified by `--config`/`OPM_CONFIG`), (4) Built-in defaults. When a value is provided at multiple levels, the higher-precedence source MUST win. When `--verbose` is specified, the CLI MUST log each configuration value's resolution at DEBUG level, including which source provided the value and which lower-precedence sources were overridden.
+- **FR-019**: The CLI SHOULD provide shell completion generation for bash, zsh, fish, and powershell via a `completion` subcommand.
 
 ### Key Entities
 
@@ -199,10 +208,11 @@ An advanced platform operator wants to extend or customize provider configuratio
 
 ## Assumptions
 
-- Provider modules are published to OCI registries following CUE module conventions.
+- Provider modules are published to CUE module registries following CUE v0.15+ module conventions.
 - The `opmodel.dev/providers@v0` module exports a `#Registry` definition mapping provider names to definitions.
-- Users have network access to configured registries (or use local registries for air-gapped environments).
-- CUE SDK v0.14+ is used, supporting the module system and registry features.
+- Users have network access to configured CUE module registries (or use local registries for air-gapped environments).
+- CUE SDK v0.15.0+ is used, supporting the module system and registry features.
+- OPM module distribution (push/pull) is out of scope for this spec (see [011-oci-distribution-spec](../011-oci-distribution-spec/spec.md)).
 
 ## Out of Scope
 
@@ -224,7 +234,7 @@ import (
 )
 
 config: {
-    // registry is the default OCI registry for module resolution.
+    // registry is the default registry for CUE module resolution.
     // Override with --registry flag or OPM_REGISTRY env var.
     registry: "registry.opmodel.dev"
     

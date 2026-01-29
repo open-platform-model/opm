@@ -31,19 +31,21 @@ All agents MUST read and adhere to `opm/.specify/memory/constitution.md`.
 │   └── rendering/     # Module rendering benchmarks
 ├── docs/              # End-user documentation
 ├── specs/             # Specifications
-│   ├── 001-core-definitions-spec/
-│   ├── 002-cli-spec/
-│   ├── 003-taskfile-spec/
-│   ├── 004-definition-resource/
-│   ├── 005-definition-trait/
-│   ├── 006-definition-policy-spec/
-│   ├── 007-definition-blueprint-spec/
-│   ├── 008-definition-status-spec/
-│   ├── 009-definition-interface-spec/
-│   ├── 010-definition-lifecycle-spec/
-│   ├── 011-oci-distribution-spec/
-│   ├── 012-template-oci-spec/
-│   └── 004-render-and-lifecycle-spec/
+│   ├── 003-taskfile-spec/              # Taskfile specification (root-level)
+│   ├── cli/                            # CLI specifications
+│   │   ├── 002-cli-spec/               # CLI v2 specification (includes configuration)
+│   │   ├── 004-render-and-lifecycle-spec/  # CLI render system specification
+│   │   ├── 005-module-validation/      # Module validation with Go CUE SDK
+│   │   ├── 011-oci-distribution-spec/  # Distribution & Versioning
+│   │   └── 012-template-oci-spec/      # CLI module template specification
+│   ├── application-model/              # Application Model specifications
+│   │   ├── 001-application-definitions-spec/  # Core application definitions
+│   │   ├── 009-definition-interface-spec/     # Interface Definition Specification (archived)
+│   │   ├── 010-definition-lifecycle-spec/     # Lifecycle Definition Specification (archived)
+│   │   └── 017-bundle-spec/            # Bundle definitions (draft)
+│   └── platform-model/                 # Platform Model specifications
+│       ├── 015-platform-runtime-spec/  # Platform runtime & module catalog specification
+│       └── 016-platform-definitions-spec/  # Platform definitions (Provider, Transformer)
 ├── README.md
 └── Taskfile.yml
 ```
@@ -113,3 +115,14 @@ See [full glossary](docs/glossary.md) for detailed definitions.
 - **Module Author** - Develops and maintains ModuleDefinitions with sane defaults
 - **Platform Operator** - Curates module catalog, bridges infrastructure and end-users
 - **End-user** - Consumes modules via ModuleRelease with concrete values
+
+## Active Technologies
+
+- YAML (Taskfile v3) + `go-task/task` v3.x, `cue` v0.15.0+, `go` 1.21+, `golangci-lint`, `watchexec` (003-taskfile-spec)
+- Go 1.25+ (002-cli-spec)
+- Local filesystem (~/.opm/), OCI registries (002-cli-spec)
+
+## Recent Changes
+
+- 005-module-validation: Added specification for `opm mod vet` command using Go CUE SDK for native module validation
+- 003-taskfile-spec: Added YAML (Taskfile v3) + `go-task/task` v3.x, `cue` v0.15.0+, `go` 1.21+, `golangci-lint`, `watchexec`

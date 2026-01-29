@@ -15,29 +15,35 @@ Configuration loaded from `~/.opm/config.cue` and environment variables. The CUE
 ```go
 // Package: internal/config
 
-// Config represents the OPM CLI configuration
-// Loaded from ~/.opm/config.cue, validated against embedded CUE schema
-type Config struct {
+// KubernetesConfig contains Kubernetes-specific settings
+type KubernetesConfig struct {
     // Kubeconfig is the path to the kubeconfig file
     // Env: OPM_KUBECONFIG, Default: ~/.kube/config
-    Kubeconfig string `yaml:"kubeconfig,omitempty" json:"kubeconfig,omitempty"`
+    Kubeconfig string `json:"kubeconfig,omitempty"`
     
     // Context is the Kubernetes context to use
     // Env: OPM_CONTEXT, Default: current-context from kubeconfig
-    Context string `yaml:"context,omitempty" json:"context,omitempty"`
+    Context string `json:"context,omitempty"`
     
     // Namespace is the default namespace for operations
     // Env: OPM_NAMESPACE, Default: "default"
-    Namespace string `yaml:"namespace,omitempty" json:"namespace,omitempty"`
-    
+    Namespace string `json:"namespace,omitempty"`
+}
+
+// Config represents the OPM CLI configuration
+// Loaded from ~/.opm/config.cue, validated against embedded CUE schema
+type Config struct {
     // Registry is the default registry for all CUE module resolution.
     // When set, all CUE imports resolve from this registry (passed to CUE via CUE_REGISTRY).
     // Env: OPM_REGISTRY
-    Registry string `yaml:"registry,omitempty" json:"registry,omitempty"`
+    Registry string `json:"registry,omitempty"`
+    
+    // Kubernetes contains Kubernetes-specific settings
+    Kubernetes KubernetesConfig `json:"kubernetes,omitempty"`
     
     // CacheDir is the local cache directory
     // Env: OPM_CACHE_DIR, Default: ~/.opm/cache
-    CacheDir string `yaml:"cacheDir,omitempty" json:"cacheDir,omitempty"`
+    CacheDir string `json:"cacheDir,omitempty"`
 }
 
 // Paths contains standard filesystem paths
@@ -51,9 +57,11 @@ type Paths struct {
 // Used by `opm config init` to generate initial config file
 func DefaultConfig() *Config {
     return &Config{
-        Kubeconfig: "~/.kube/config",
-        Namespace:  "default",
-        CacheDir:   "~/.opm/cache",
+        Kubernetes: KubernetesConfig{
+            Kubeconfig: "~/.kube/config",
+            Namespace:  "default",
+        },
+        CacheDir: "~/.opm/cache",
     }
 }
 
@@ -98,22 +106,9 @@ import (
 )
 
 config: {
-    // registry is the default OCI registry for module resolution.
+    // registry is the default registry for CUE module resolution.
     // Override with --registry flag or OPM_REGISTRY env var.
     registry: "registry.opmodel.dev"
-    
-    // kubeconfig is the path to the kubeconfig file.
-    // Override with --kubeconfig flag or OPM_KUBECONFIG env var.
-    kubeconfig: "~/.kube/config"
-    
-    // context is the Kubernetes context to use.
-    // Override with --context flag or OPM_CONTEXT env var.
-    // Default: current-context from kubeconfig
-    context?: string
-    
-    // namespace is the default namespace for operations.
-    // Override with --namespace flag or OPM_NAMESPACE env var.
-    namespace: "default"
     
     // cacheDir is the local cache directory path.
     // Override with OPM_CACHE_DIR env var.
@@ -123,6 +118,21 @@ config: {
     // Providers are loaded from the registry via CUE imports.
     providers: {
         kubernetes: providers.#Registry["kubernetes"]
+    }
+    
+    kubernetes: {
+        // kubeconfig is the path to the kubeconfig file.
+        // Override with --kubeconfig flag or OPM_KUBECONFIG env var.
+        kubeconfig: "~/.kube/config"
+
+        // context is the Kubernetes context to use.
+        // Override with --context flag or OPM_CONTEXT env var.
+        // Default: current-context from kubeconfig
+        context?: string
+
+        // namespace is the default namespace for operations.
+        // Override with --namespace flag or OPM_NAMESPACE env var.
+        namespace: "default"
     }
 }
 ```

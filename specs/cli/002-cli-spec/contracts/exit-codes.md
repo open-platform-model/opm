@@ -14,7 +14,7 @@ This document defines the exit code contract for the OPM CLI. All commands MUST 
 | `2` | Validation Error | CUE schema validation failed | Invalid module.cue, values don't satisfy schema, missing required fields |
 | `3` | Connectivity Error | Cannot reach Kubernetes cluster | No kubeconfig, cluster unreachable, connection timeout |
 | `4` | Permission Denied | Insufficient RBAC permissions | Cannot create/delete resources, namespace access denied |
-| `5` | Not Found | Resource, module, or artifact not found | Module directory doesn't exist, OCI artifact not in registry |
+| `5` | Not Found | Resource, module, or CUE module not found | Module directory doesn't exist, CUE module not in registry |
 | `6` | Version Mismatch | CUE binary version incompatible | CUE binary 0.12.x with SDK 0.11.x |
 
 ## Exit Code Constants

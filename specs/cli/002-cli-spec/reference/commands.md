@@ -28,7 +28,7 @@ opm <group> <command> [arguments] [flags]
 | `2` | Validation Error | CUE schema validation failed, invalid values file |
 | `3` | Connectivity Error | Cannot reach Kubernetes cluster |
 | `4` | Permission Denied | Insufficient RBAC permissions on cluster |
-| `5` | Not Found | Resource, module, or OCI artifact not found |
+| `5` | Not Found | Resource, module, or CUE module not found |
 | `6` | Version Mismatch | CUE binary version incompatible with CLI |
 
 ---
@@ -129,8 +129,8 @@ CUE:
 | `OPM_KUBECONFIG` | Path to kubeconfig file | `~/.kube/config` |
 | `OPM_CONTEXT` | Kubernetes context to use | Current context |
 | `OPM_NAMESPACE` | Default namespace for operations | `default` |
-| `OPM_CONFIG` | Path to OPM config file | `~/.opm/config.yaml` |
-| `OPM_REGISTRY` | Default registry for all CUE module resolution and OCI operations. When set, all CUE imports resolve from this registry (e.g., `localhost:5000` redirects `opmodel.dev/core@v0` lookups). Passed to CUE binary as `CUE_REGISTRY`. | — |
+| `OPM_CONFIG` | Path to OPM config file | `~/.opm/config.cue` |
+| `OPM_REGISTRY` | Default registry for all CUE module resolution. When set, all CUE imports resolve from this registry (e.g., `localhost:5000` redirects `opmodel.dev/core@v0` lookups). Passed to CUE binary as `CUE_REGISTRY`. | — |
 | `OPM_CACHE_DIR` | Local cache directory | `~/.opm/cache` |
 | `NO_COLOR` | Disable colored output when set | — |
 
@@ -535,7 +535,7 @@ opm config init [flags]
 **Examples:**
 
 ```sh
-# Create default config file at ~/.opm/config.yaml
+# Create default config file at ~/.opm/config.cue
 opm config init
 
 # Overwrite existing config
@@ -544,7 +544,7 @@ opm config init -f
 
 **Notes:**
 
-- Creates `~/.opm/config.yaml` with all default values populated
+- Creates `~/.opm/config.cue` with all default values populated
 - Creates `~/.opm/` directory if it doesn't exist
 - Exits with code `1` if config file exists and `--force` not specified
 
@@ -573,23 +573,22 @@ opm config vet [flags]
 opm config vet
 
 # Validate specific config file
-opm config vet --config ./my-config.yaml
+opm config vet --config ./my-config.cue
 ```
 
 **Output (valid):**
 
 ```text
-Config file is valid: /home/user/.opm/config.yaml
+Config file is valid: /home/user/.opm/config.cue
 ```
 
 **Output (invalid):**
 
 ```text
 Error: config validation failed
-  File: /home/user/.opm/config.yaml
+  File: /home/user/.opm/config.cue
   
   namespace: invalid value "123-invalid" (must be valid Kubernetes namespace)
-  registry: missing required field
   
 Exit code: 2
 ```
