@@ -24,7 +24,7 @@ This is the primary authoring definition for an application or service.
 
 ```cue
 #Module: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "Module"
     
     metadata: {
@@ -157,7 +157,7 @@ This is an intermediate representation (IR), not typically authored by users. It
 
 ```cue
 #CompiledModule: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "CompiledModule"
     
     metadata: #Module.metadata
@@ -189,7 +189,7 @@ This is the final, concrete object that a deployment system would create.
 
 ```cue
 #ModuleRelease: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "ModuleRelease"
     
     metadata: {
@@ -246,7 +246,7 @@ This is the final, concrete object that a deployment system would create.
 ```cue
 package myapp
 
-import "opm.dev/core@v0"
+import "opmodel.dev/core@v0"
 
 #MyModule: core.#Module & {
     metadata: {
@@ -277,7 +277,7 @@ import "opm.dev/core@v0"
 package main
 
 import (
-    "opm.dev/core@v0"
+    "opmodel.dev/core@v0"
     "example.com/modules@v0"
 )
 

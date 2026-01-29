@@ -1,17 +1,17 @@
 package large
 
 import (
-	core "opm.dev/core@v1"
-	workload_resources "opm.dev/resources/workload@v1"
-	workload_traits "opm.dev/traits/workload@v1"
-	storage_resources "opm.dev/resources/storage@v1"
+	core "opmodel.dev/core@v1"
+	workload_resources "opmodel.dev/resources/workload@v1"
+	workload_traits "opmodel.dev/traits/workload@v1"
+	storage_resources "opmodel.dev/resources/storage@v1"
 )
 
 // Large 12-component e-commerce platform with blueprints expanded
 // This represents a Module where blueprints have been flattened into resources + traits
 largeModule: core.#Module & {
 	metadata: {
-		apiVersion:       "opm.dev/benchmarks/large@v0"
+		apiVersion:       "opmodel.dev/benchmarks/large@v0"
 		name:             "ECommercePlatform"
 		version:          "1.0.0"
 		description:      "Complete e-commerce platform with microservices architecture (compiled/flattened)"
@@ -24,8 +24,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "web-frontend"
 				labels: {
-					"app.opm.dev/tier":      "frontend"
-					"app.opm.dev/component": "ui"
+					"app.opmodel.dev/tier":      "frontend"
+					"app.opmodel.dev/component": "ui"
 				}
 			}
 
@@ -82,8 +82,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "api-gateway"
 				labels: {
-					"app.opm.dev/tier":      "gateway"
-					"app.opm.dev/component": "api-gateway"
+					"app.opmodel.dev/tier":      "gateway"
+					"app.opmodel.dev/component": "api-gateway"
 				}
 			}
 
@@ -163,8 +163,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "auth-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "auth"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "auth"
 				}
 			}
 
@@ -232,8 +232,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "user-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "user"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "user"
 				}
 			}
 
@@ -297,8 +297,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "product-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "product"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "product"
 				}
 			}
 
@@ -362,8 +362,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "order-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "order"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "order"
 				}
 			}
 
@@ -431,8 +431,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "payment-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "payment"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "payment"
 				}
 			}
 
@@ -496,8 +496,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "notification-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "notification"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "notification"
 				}
 			}
 
@@ -565,8 +565,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "postgres-database"
 				labels: {
-					"app.opm.dev/tier":      "data"
-					"app.opm.dev/component": "database"
+					"app.opmodel.dev/tier":      "data"
+					"app.opmodel.dev/component": "database"
 				}
 			}
 
@@ -650,8 +650,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "redis-cache"
 				labels: {
-					"app.opm.dev/tier":      "data"
-					"app.opm.dev/component": "cache"
+					"app.opmodel.dev/tier":      "data"
+					"app.opmodel.dev/component": "cache"
 				}
 			}
 
@@ -717,8 +717,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "mongodb-database"
 				labels: {
-					"app.opm.dev/tier":      "data"
-					"app.opm.dev/component": "nosql-database"
+					"app.opmodel.dev/tier":      "data"
+					"app.opmodel.dev/component": "nosql-database"
 				}
 			}
 
@@ -798,8 +798,8 @@ largeModule: core.#Module & {
 			metadata: {
 				name: "mq-worker"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "worker"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "worker"
 				}
 			}
 

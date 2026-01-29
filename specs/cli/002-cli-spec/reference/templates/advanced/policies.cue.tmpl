@@ -1,0 +1,18 @@
+// Policies defines the policy constraints for this module.
+package main
+
+// _policies contains policy definitions.
+// Policies are evaluated during module validation.
+_policies: {
+	// Example: Require minimum replicas for production
+	minReplicas: {
+		description: "Production workloads must have at least 2 replicas"
+		// rule: values.web.replicas >= 2 && values.api.replicas >= 2
+	}
+
+	// Example: Resource limits policy
+	resourceLimits: {
+		description: "All containers must have resource limits defined"
+		// Implemented at the component level
+	}
+}

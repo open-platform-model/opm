@@ -1,0 +1,63 @@
+// Package main defines the {{.ModuleName}} module.
+// This is an advanced multi-package module with:
+// - module.cue: metadata and schema
+// - components.cue: component composition
+// - scopes.cue: scope definitions
+// - policies.cue: policy definitions
+// - values.cue: default values
+// - debug_values.cue: comprehensive values for validation
+// - components/: component templates (subpackage)
+// - scopes/: scope templates (subpackage)
+package main
+
+import "opmodel.dev/core@v0"
+
+// Module definition
+core.#Module
+
+// Module metadata
+metadata: {
+	apiVersion:  "{{.ModulePath}}@v0"
+	name:        "{{.ModuleName}}"
+	version:     "{{.Version}}"
+	description: string | *"An advanced OPM module with multi-package architecture"
+}
+
+// Components from components.cue
+#components: _components
+
+// Scopes from scopes.cue
+#scopes: _scopes
+
+// Policies from policies.cue
+#policies: _policies
+
+// Spec defines the configuration schema for this module.
+#spec: {
+	// Web frontend configuration
+	web: {
+		image!:    string
+		replicas?: int & >=1 | *2
+		port?:     int & >0 & <=65535 | *8080
+	}
+
+	// API backend configuration
+	api: {
+		image!:    string
+		replicas?: int & >=1 | *3
+		port?:     int & >0 & <=65535 | *3000
+	}
+
+	// Worker configuration
+	worker: {
+		image!:    string
+		replicas?: int & >=1 | *2
+	}
+
+	// Database configuration
+	db: {
+		image!:       string
+		storageSize?: string | *"10Gi"
+		port?:        int & >0 & <=65535 | *5432
+	}
+}

@@ -21,7 +21,7 @@ A **Module Author** needs to define a new Trait (e.g., `Replicas` or `Ingress`) 
 
 **Acceptance Scenarios**:
 
-1. **Given** a new CUE file importing `opm.dev/core`, **When** the author defines a `#Trait` struct with valid metadata, `appliesTo` list, and `#spec`, **Then** it should validate successfully.
+1. **Given** a new CUE file importing `opmodel.dev/core`, **When** the author defines a `#Trait` struct with valid metadata, `appliesTo` list, and `#spec`, **Then** it should validate successfully.
 2. **Given** a Trait named "Replicas", **When** the `#spec` defines a field named "replicas", **Then** validation succeeds.
 3. **Given** a Trait named "Replicas", **When** the `#spec` defines a field named "wrongName", **Then** validation fails (key mismatch).
 4. **Given** a Trait with an empty `appliesTo` list, **When** validating, **Then** validation fails (Traits MUST declare applicability).

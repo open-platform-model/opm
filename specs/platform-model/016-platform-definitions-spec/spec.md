@@ -59,5 +59,5 @@ Transformers match against these application-level abstractions and produce plat
 ## Related Specifications
 
 - [001-application-definitions-spec](../../application-model/001-application-definitions-spec/spec.md) - Core OPM application definitions
-- [013-cli-render-spec](../../cli/013-cli-render-spec/spec.md) - CLI render pipeline using these definitions
+- [004-render-and-lifecycle-spec](../../cli/004-render-and-lifecycle-spec/spec.md) - CLI render pipeline using these definitions
 - [015-platform-runtime-spec](./015-platform-runtime-spec/spec.md) - Platform runtime and module catalog

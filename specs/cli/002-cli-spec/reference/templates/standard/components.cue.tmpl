@@ -1,0 +1,33 @@
+// Components defines the workloads for this module.
+// Separated from module.cue for better maintainability.
+package main
+
+import "opmodel.dev/core@v0"
+
+// _components is a hidden field containing component definitions.
+// It's referenced by #components in module.cue.
+_components: {
+	// Web frontend component
+	web: core.#Component & {
+		metadata: name: "web"
+		spec: {
+			container: {
+				image: values.web.image
+				ports: [{containerPort: values.web.port}]
+			}
+			replicas: values.web.replicas
+		}
+	}
+
+	// API backend component
+	api: core.#Component & {
+		metadata: name: "api"
+		spec: {
+			container: {
+				image: values.api.image
+				ports: [{containerPort: values.api.port}]
+			}
+			replicas: values.api.replicas
+		}
+	}
+}

@@ -21,7 +21,7 @@ This specification defines the OPM platform runtime system, focusing on how Plat
 - [001-application-definitions-spec](../application-model/001-application-definitions-spec/spec.md) - Core OPM application definitions
 - [016-platform-definitions-spec](./016-platform-definitions-spec/spec.md) - Platform definitions (Provider, Transformer)
 - [002-cli-spec](../cli/002-cli-spec/spec.md) - CLI implementation
-- [011-distribution-spec](../cli/011-distribution-spec/spec.md) - OCI distribution
+- [011-oci-distribution-spec](../cli/011-oci-distribution-spec/spec.md) - OCI distribution
 
 ## Design Principles
 

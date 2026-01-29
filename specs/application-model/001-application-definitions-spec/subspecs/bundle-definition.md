@@ -28,7 +28,7 @@ The `#Bundle` definition is the blueprint for the collection.
 
 ```cue
 #Bundle: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "Bundle"
 
     metadata: {
@@ -58,7 +58,7 @@ The compiled form where all included modules are fully evaluated and flattened (
 
 ```cue
 #CompiledBundle: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "Bundle"  // Note: same kind as #Bundle
     
     metadata: {
@@ -87,7 +87,7 @@ The deployment artifact that binds a `#CompiledBundle` (or `#Bundle`) to specifi
 
 ```cue
 #BundleRelease: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "BundleRelease"
 
     metadata: {
@@ -122,7 +122,7 @@ The deployment artifact that binds a `#CompiledBundle` (or `#Bundle`) to specifi
 package mybundle
 
 import (
-    "opm.dev/core@v0"
+    "opmodel.dev/core@v0"
     "example.com/frontend@v1"
     "example.com/backend@v1"
 )

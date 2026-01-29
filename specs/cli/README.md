@@ -38,11 +38,10 @@ The CLI bridges the **Application Model** and **Platform Model**, orchestrating 
 
 | Spec | Description |
 |------|-------------|
-| [002-cli-spec](./002-cli-spec/spec.md) | CLI v2 implementation (commands, UX, architecture) |
-| [011-distribution-spec](./011-distribution-spec/spec.md) | OCI-based module distribution and versioning |
-| [012-cli-module-template-spec](./012-cli-module-template-spec/spec.md) | CLI module templates for initialization |
-| [013-cli-render-spec](./013-cli-render-spec/spec.md) | CLI render system for transforming modules to platform resources |
-| [018-cli-config-spec](./018-cli-config-spec/spec.md) | CLI configuration (`.opm/config.cue`) specification |
+| [002-cli-spec](./002-cli-spec/spec.md) | CLI v2 implementation (commands, UX, architecture, configuration) |
+| [011-oci-distribution-spec](./011-oci-distribution-spec/spec.md) | OCI-based module distribution and versioning |
+| [012-template-oci-spec](./012-template-oci-spec/spec.md) | CLI module templates for initialization |
+| [004-render-and-lifecycle-spec](./004-render-and-lifecycle-spec/spec.md) | CLI render system for transforming modules to platform resources |
 
 ## Relationship to Application Model
 
@@ -62,7 +61,7 @@ The CLI **integrates with** the [Platform Model](../platform-model/README.md):
 - Queries `#ModuleCatalog` for curated modules
 - Applies platform-specific values overlays
 
-See [013-cli-render-spec](./013-cli-render-spec/spec.md) for the render pipeline implementation.
+See [004-render-and-lifecycle-spec](./004-render-and-lifecycle-spec/spec.md) for the render pipeline implementation.
 
 ## Key Principles
 

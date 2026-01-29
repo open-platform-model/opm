@@ -243,11 +243,11 @@ As a developer with unique health requirements, I want to define custom probe lo
 
 ```cue
 #StatusProbe: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "StatusProbe"
 
     metadata: {
-        apiVersion!:  #NameType                        // e.g., "opm.dev/statusprobes/workload@v0"
+        apiVersion!:  #NameType                        // e.g., "opmodel.dev/statusprobes/workload@v0"
         name!:        #NameType                        // e.g., "WorkloadReady"
         fqn:          #FQNType & "\(apiVersion)#\(name)"
         description?: string
@@ -282,7 +282,7 @@ As a developer with unique health requirements, I want to define custom probe lo
 
 ```cue
 import (
-    probes "opm.dev/catalog/statusprobes/workload"
+    probes "opmodel.dev/catalog/statusprobes/workload"
 )
 
 myModule: #Module & {

@@ -1,0 +1,27 @@
+// Frontend scope for public-facing components.
+package scopes
+
+import "opmodel.dev/core@v0"
+
+// _frontend is a scope for public-facing components.
+_frontend: core.#Scope & {
+	metadata: {
+		name:        "frontend"
+		description: "Frontend scope for public-facing components"
+	}
+	spec: {
+		// Components in this scope are exposed externally
+		exposure: "public"
+
+		// Network policies for frontend tier
+		network: {
+			ingress: [{
+				from: "external"
+				ports: [8080]
+			}]
+			egress: [{
+				to: "backend"
+			}]
+		}
+	}
+}

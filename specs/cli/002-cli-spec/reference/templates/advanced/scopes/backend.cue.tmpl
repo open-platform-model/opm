@@ -1,0 +1,30 @@
+// Backend scope for internal services.
+package scopes
+
+import "opmodel.dev/core@v0"
+
+// _backend is a scope for internal backend services.
+_backend: core.#Scope & {
+	metadata: {
+		name:        "backend"
+		description: "Backend scope for internal services"
+	}
+	spec: {
+		// Components in this scope are internal only
+		exposure: "internal"
+
+		// Network policies for backend tier
+		network: {
+			ingress: [{
+				from: "frontend"
+			}, {
+				from: "backend"
+			}]
+			egress: [{
+				to: "backend"
+			}, {
+				to: "database"
+			}]
+		}
+	}
+}

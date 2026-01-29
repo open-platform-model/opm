@@ -180,7 +180,7 @@ myModule: #Module & {
             #lifecycle: {
                 install: {
                     after: [
-                        {fqn: "opm.dev/lifecycle/health@v0#WaitForHealthy"}
+                        {fqn: "opmodel.dev/lifecycle/health@v0#WaitForHealthy"}
                     ]
                 }
             }
@@ -191,12 +191,12 @@ myModule: #Module & {
             #lifecycle: {
                 install: {
                     after: [
-                        {fqn: "opm.dev/lifecycle/data@v0#ApplySchema"}
+                        {fqn: "opmodel.dev/lifecycle/data@v0#ApplySchema"}
                     ]
                 }
                 upgrade: {
                     before: [
-                        {fqn: "opm.dev/lifecycle/data@v0#RunMigrations"}
+                        {fqn: "opmodel.dev/lifecycle/data@v0#RunMigrations"}
                     ]
                 }
             }
@@ -213,7 +213,7 @@ myModule: #Module & {
         install: {
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/test@v0#RunIntegrationTests"
+                    fqn: "opmodel.dev/lifecycle/test@v0#RunIntegrationTests"
                     description: "Verify all components work together"
                     timeout: "10m"
                     onFailure: "abort"
@@ -223,7 +223,7 @@ myModule: #Module & {
                     }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/notify@v0#SendSlackNotification"
+                    fqn: "opmodel.dev/lifecycle/notify@v0#SendSlackNotification"
                     description: "Notify team of successful deployment"
                     timeout: "1m"
                     onFailure: "continue"
@@ -238,7 +238,7 @@ myModule: #Module & {
         upgrade: {
             before: [
                 {
-                    fqn: "opm.dev/lifecycle/notify@v0#SendSlackNotification"
+                    fqn: "opmodel.dev/lifecycle/notify@v0#SendSlackNotification"
                     description: "Notify team of upgrade start"
                     timeout: "1m"
                     onFailure: "continue"
@@ -251,12 +251,12 @@ myModule: #Module & {
             
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/test@v0#RunIntegrationTests"
+                    fqn: "opmodel.dev/lifecycle/test@v0#RunIntegrationTests"
                     timeout: "10m"
                     onFailure: "rollback"
                 },
                 {
-                    fqn: "opm.dev/lifecycle/test@v0#RunE2ETests"
+                    fqn: "opmodel.dev/lifecycle/test@v0#RunE2ETests"
                     description: "Full end-to-end test suite"
                     timeout: "30m"
                     onFailure: "rollback"
@@ -266,7 +266,7 @@ myModule: #Module & {
                     }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/notify@v0#SendSlackNotification"
+                    fqn: "opmodel.dev/lifecycle/notify@v0#SendSlackNotification"
                     timeout: "1m"
                     onFailure: "continue"
                     config: {
@@ -280,7 +280,7 @@ myModule: #Module & {
         delete: {
             before: [
                 {
-                    fqn: "opm.dev/lifecycle/notify@v0#SendSlackNotification"
+                    fqn: "opmodel.dev/lifecycle/notify@v0#SendSlackNotification"
                     description: "Notify team of module deletion"
                     timeout: "1m"
                     onFailure: "continue"
@@ -290,7 +290,7 @@ myModule: #Module & {
                     }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/registry@v0#DeregisterService"
+                    fqn: "opmodel.dev/lifecycle/registry@v0#DeregisterService"
                     description: "Remove from service registry"
                     timeout: "2m"
                     onFailure: "continue"
@@ -317,7 +317,7 @@ apiGatewayModule: #Module & {
     #components: {
         gateway: #Component & {
             #traits: {
-                "opm.dev/traits/network@v0#Expose": #Expose
+                "opmodel.dev/traits/network@v0#Expose": #Expose
             }
             // ...
         }
@@ -327,7 +327,7 @@ apiGatewayModule: #Module & {
         install: {
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/dns@v0#RegisterDNS"
+                    fqn: "opmodel.dev/lifecycle/dns@v0#RegisterDNS"
                     description: "Register external DNS"
                     timeout: "5m"
                     onFailure: "abort"
@@ -338,7 +338,7 @@ apiGatewayModule: #Module & {
                     }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/cert@v0#ProvisionCertificate"
+                    fqn: "opmodel.dev/lifecycle/cert@v0#ProvisionCertificate"
                     description: "Provision TLS certificate"
                     timeout: "10m"
                     onFailure: "abort"
@@ -348,7 +348,7 @@ apiGatewayModule: #Module & {
                     }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/mesh@v0#RegisterWithMesh"
+                    fqn: "opmodel.dev/lifecycle/mesh@v0#RegisterWithMesh"
                     description: "Register with service mesh"
                     timeout: "2m"
                     onFailure: "abort"
@@ -363,12 +363,12 @@ apiGatewayModule: #Module & {
         delete: {
             before: [
                 {
-                    fqn: "opm.dev/lifecycle/mesh@v0#DeregisterFromMesh"
+                    fqn: "opmodel.dev/lifecycle/mesh@v0#DeregisterFromMesh"
                     timeout: "2m"
                     onFailure: "continue"
                 },
                 {
-                    fqn: "opm.dev/lifecycle/dns@v0#DeregisterDNS"
+                    fqn: "opmodel.dev/lifecycle/dns@v0#DeregisterDNS"
                     timeout: "5m"
                     onFailure: "continue"
                     config: {
@@ -401,7 +401,7 @@ financialModule: #Module & {
         install: {
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/compliance@v0#RunPCIDSSAudit"
+                    fqn: "opmodel.dev/lifecycle/compliance@v0#RunPCIDSSAudit"
                     description: "Verify PCI-DSS compliance"
                     timeout: "15m"
                     onFailure: "abort"
@@ -411,7 +411,7 @@ financialModule: #Module & {
                     }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/compliance@v0#RegisterAuditTrail"
+                    fqn: "opmodel.dev/lifecycle/compliance@v0#RegisterAuditTrail"
                     description: "Register with audit system"
                     timeout: "2m"
                     onFailure: "abort"
@@ -426,12 +426,12 @@ financialModule: #Module & {
         upgrade: {
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/compliance@v0#RunPCIDSSAudit"
+                    fqn: "opmodel.dev/lifecycle/compliance@v0#RunPCIDSSAudit"
                     timeout: "15m"
                     onFailure: "rollback"
                 },
                 {
-                    fqn: "opm.dev/lifecycle/compliance@v0#GenerateChangeReport"
+                    fqn: "opmodel.dev/lifecycle/compliance@v0#GenerateChangeReport"
                     description: "Generate compliance change report"
                     timeout: "5m"
                     onFailure: "continue"

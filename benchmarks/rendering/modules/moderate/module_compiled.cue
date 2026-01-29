@@ -1,17 +1,17 @@
 package moderate
 
 import (
-	core "opm.dev/core@v1"
-	workload_resources "opm.dev/resources/workload@v1"
-	workload_traits "opm.dev/traits/workload@v1"
-	storage_resources "opm.dev/resources/storage@v1"
+	core "opmodel.dev/core@v1"
+	workload_resources "opmodel.dev/resources/workload@v1"
+	workload_traits "opmodel.dev/traits/workload@v1"
+	storage_resources "opmodel.dev/resources/storage@v1"
 )
 
 // Moderate 4-component web application with blueprints expanded
 // This represents a Module where blueprints have been flattened into resources + traits
 moderateModule: core.#Module & {
 	metadata: {
-		apiVersion:  "opm.dev/benchmarks/moderate@v0"
+		apiVersion:  "opmodel.dev/benchmarks/moderate@v0"
 		name:        "ModerateWebApp"
 		version:     "1.0.0"
 		
@@ -23,8 +23,8 @@ moderateModule: core.#Module & {
 				name:        "web-frontend"
 				
 				labels: {
-					"app.opm.dev/tier":      "frontend"
-					"app.opm.dev/component": "ui"
+					"app.opmodel.dev/tier":      "frontend"
+					"app.opmodel.dev/component": "ui"
 				}
 			}
 
@@ -81,8 +81,8 @@ moderateModule: core.#Module & {
 				name:        "api-backend"
 				
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "api"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "api"
 				}
 			}
 
@@ -168,8 +168,8 @@ moderateModule: core.#Module & {
 				name:        "postgres-database"
 				
 				labels: {
-					"app.opm.dev/tier":      "data"
-					"app.opm.dev/component": "database"
+					"app.opmodel.dev/tier":      "data"
+					"app.opmodel.dev/component": "database"
 				}
 			}
 
@@ -260,8 +260,8 @@ moderateModule: core.#Module & {
 				name:        "background-worker"
 				
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "worker"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "worker"
 				}
 			}
 

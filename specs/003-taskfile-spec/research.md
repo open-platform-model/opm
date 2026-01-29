@@ -167,7 +167,7 @@ cue mod publish v0.1.0
 #### Module Requirements
 
 - `cue.mod/module.cue` must have `source: kind: "self"` or `source: kind: "git"`
-- Module path must match major version: `opm.dev/core@v0` for v0.x.x
+- Module path must match major version: `opmodel.dev/core@v0` for v0.x.x
 - Language version pinned: `language: version: "v0.15.0"`
 
 ---

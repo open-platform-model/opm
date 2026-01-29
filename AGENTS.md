@@ -41,9 +41,9 @@ All agents MUST read and adhere to `opm/.specify/memory/constitution.md`.
 │   ├── 008-definition-status-spec/
 │   ├── 009-definition-interface-spec/
 │   ├── 010-definition-lifecycle-spec/
-│   ├── 011-distribution-spec/
-│   ├── 012-cli-module-template-spec/
-│   └── 013-cli-render-spec/
+│   ├── 011-oci-distribution-spec/
+│   ├── 012-template-oci-spec/
+│   └── 004-render-and-lifecycle-spec/
 ├── README.md
 └── Taskfile.yml
 ```

@@ -38,7 +38,7 @@ Platform Operators can pin exact versions or specify ranges:
 
 ```cue
 #ModuleCatalog: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "ModuleCatalog"
     
     metadata: {
@@ -144,7 +144,7 @@ Platform Operators can pin exact versions or specify ranges:
 ```cue
 package main
 
-import "opm.dev/core@v0"
+import "opmodel.dev/core@v0"
 
 catalog: core.#ModuleCatalog & {
     metadata: {

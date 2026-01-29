@@ -142,7 +142,7 @@ Transformers must adhere to the following interface, supporting optional inputs 
 
 ```cue
 #Transformer: {
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "Transformer"
 
     metadata: {
@@ -220,10 +220,10 @@ Transformers must adhere to the following interface, supporting optional inputs 
 ```cue
 #DeploymentTransformer: #Transformer & {
     requiredResources: {
-        "opm.dev/resources/workload@v0#Container": #ContainerResource
+        "opmodel.dev/resources/workload@v0#Container": #ContainerResource
     }
     requiredLabels: {
-        "core.opm.dev/workload-type": "stateless"
+        "core.opmodel.dev/workload-type": "stateless"
     }
 
     #transform: {
@@ -243,10 +243,10 @@ Transformers must adhere to the following interface, supporting optional inputs 
 ```cue
 #ServiceTransformer: #Transformer & {
     requiredResources: {
-        "opm.dev/resources/workload@v0#Container": #ContainerResource
+        "opmodel.dev/resources/workload@v0#Container": #ContainerResource
     }
     requiredTraits: {
-        "opm.dev/traits/network@v0#Expose": #ExposeTrait
+        "opmodel.dev/traits/network@v0#Expose": #ExposeTrait
     }
     // No requiredLabels - matches any component with Expose trait
 

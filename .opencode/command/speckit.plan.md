@@ -20,7 +20,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Setup**: If the user provides a feature name (e.g., `013-cli-render-spec`), export it as the `SPECIFY_FEATURE` environment variable. This will be used by the prerequisite check. Then, run `opm/.specify/scripts/bash/setup-plan.sh --json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: If the user provides a feature name (e.g., `004-render-and-lifecycle-spec`), export it as the `SPECIFY_FEATURE` environment variable. This will be used by the prerequisite check. Then, run `opm/.specify/scripts/bash/setup-plan.sh --json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Load context**: Read FEATURE_SPEC and `opm/.specify/memory/constitution.md`. Load IMPL_PLAN template (already copied).
 

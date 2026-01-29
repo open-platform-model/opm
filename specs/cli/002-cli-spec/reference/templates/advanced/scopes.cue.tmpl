@@ -1,0 +1,15 @@
+// Scopes composes the scope templates from the scopes/ subpackage.
+package main
+
+import (
+	scopes "{{.ModulePath}}/scopes"
+)
+
+// _scopes defines which components belong to which scope.
+_scopes: {
+	// Frontend scope for public-facing components
+	frontend: scopes._frontend
+
+	// Backend scope for internal services
+	backend: scopes._backend
+}

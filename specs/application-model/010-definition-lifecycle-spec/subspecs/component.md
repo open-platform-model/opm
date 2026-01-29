@@ -112,9 +112,9 @@ Steps within a phase execute sequentially in array order:
 #lifecycle: {
     upgrade: {
         before: [
-            {fqn: "opm.dev/lifecycle/data@v0#BackupDatabase"},   // 1st
-            {fqn: "opm.dev/lifecycle/data@v0#RunMigrations"},    // 2nd
-            {fqn: "opm.dev/lifecycle/data@v0#ValidateSchema"},   // 3rd
+            {fqn: "opmodel.dev/lifecycle/data@v0#BackupDatabase"},   // 1st
+            {fqn: "opmodel.dev/lifecycle/data@v0#RunMigrations"},    // 2nd
+            {fqn: "opmodel.dev/lifecycle/data@v0#ValidateSchema"},   // 3rd
         ]
     }
 }
@@ -136,7 +136,7 @@ Steps can be conditionally executed:
 
 ```cue
 {
-    fqn: "opm.dev/lifecycle/data@v0#RunMigrations"
+    fqn: "opmodel.dev/lifecycle/data@v0#RunMigrations"
     condition: "values.database.runMigrations == true"
     timeout: "10m"
     onFailure: "abort"
@@ -152,15 +152,15 @@ The `condition` is a CUE expression evaluated against the component context.
 ```cue
 database: #Component & {
     #resources: {
-        "opm.dev/resources/workload@v0#Container": #Container
-        "opm.dev/resources/storage@v0#Volume": #Volume
+        "opmodel.dev/resources/workload@v0#Container": #Container
+        "opmodel.dev/resources/storage@v0#Volume": #Volume
     }
     
     #lifecycle: {
         install: {
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/data@v0#ApplySchema"
+                    fqn: "opmodel.dev/lifecycle/data@v0#ApplySchema"
                     description: "Apply initial database schema"
                     timeout: "5m"
                     onFailure: "abort"
@@ -174,7 +174,7 @@ database: #Component & {
         upgrade: {
             before: [
                 {
-                    fqn: "opm.dev/lifecycle/data@v0#BackupDatabase"
+                    fqn: "opmodel.dev/lifecycle/data@v0#BackupDatabase"
                     description: "Backup before migration"
                     timeout: "30m"
                     onFailure: "abort"
@@ -183,7 +183,7 @@ database: #Component & {
                     }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/data@v0#RunMigrations"
+                    fqn: "opmodel.dev/lifecycle/data@v0#RunMigrations"
                     description: "Run schema migrations"
                     condition: "values.database.autoMigrate"
                     timeout: "15m"
@@ -196,7 +196,7 @@ database: #Component & {
             
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/data@v0#ValidateSchema"
+                    fqn: "opmodel.dev/lifecycle/data@v0#ValidateSchema"
                     description: "Verify schema integrity"
                     timeout: "2m"
                     onFailure: "abort"
@@ -207,7 +207,7 @@ database: #Component & {
         delete: {
             before: [
                 {
-                    fqn: "opm.dev/lifecycle/data@v0#ExportData"
+                    fqn: "opmodel.dev/lifecycle/data@v0#ExportData"
                     description: "Export data before deletion"
                     condition: "values.database.exportOnDelete"
                     timeout: "1h"
@@ -237,14 +237,14 @@ database: #Component & {
 ```cue
 cache: #Component & {
     #resources: {
-        "opm.dev/resources/workload@v0#Container": #Container
+        "opmodel.dev/resources/workload@v0#Container": #Container
     }
     
     #lifecycle: {
         install: {
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/cache@v0#WarmCache"
+                    fqn: "opmodel.dev/lifecycle/cache@v0#WarmCache"
                     description: "Pre-populate cache with common queries"
                     timeout: "10m"
                     onFailure: "continue"  // Cache warming is optional
@@ -258,7 +258,7 @@ cache: #Component & {
         upgrade: {
             before: [
                 {
-                    fqn: "opm.dev/lifecycle/cache@v0#FlushCache"
+                    fqn: "opmodel.dev/lifecycle/cache@v0#FlushCache"
                     description: "Flush cache before upgrade"
                     timeout: "5m"
                     onFailure: "continue"
@@ -267,7 +267,7 @@ cache: #Component & {
             
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/cache@v0#WarmCache"
+                    fqn: "opmodel.dev/lifecycle/cache@v0#WarmCache"
                     description: "Re-warm cache after upgrade"
                     timeout: "10m"
                     onFailure: "continue"
@@ -289,19 +289,19 @@ cache: #Component & {
 ```cue
 api: #Component & {
     #resources: {
-        "opm.dev/resources/workload@v0#Container": #Container
+        "opmodel.dev/resources/workload@v0#Container": #Container
     }
     
     #traits: {
-        "opm.dev/traits/network@v0#Expose": #Expose
-        "opm.dev/traits/observability@v0#HealthCheck": #HealthCheck
+        "opmodel.dev/traits/network@v0#Expose": #Expose
+        "opmodel.dev/traits/observability@v0#HealthCheck": #HealthCheck
     }
     
     #lifecycle: {
         install: {
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/health@v0#WaitForHealthy"
+                    fqn: "opmodel.dev/lifecycle/health@v0#WaitForHealthy"
                     description: "Wait for API to be healthy"
                     timeout: "5m"
                     onFailure: "abort"
@@ -312,7 +312,7 @@ api: #Component & {
                     }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/test@v0#RunSmokeTests"
+                    fqn: "opmodel.dev/lifecycle/test@v0#RunSmokeTests"
                     description: "Run basic smoke tests"
                     timeout: "2m"
                     onFailure: "abort"
@@ -326,12 +326,12 @@ api: #Component & {
         upgrade: {
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/health@v0#WaitForHealthy"
+                    fqn: "opmodel.dev/lifecycle/health@v0#WaitForHealthy"
                     timeout: "5m"
                     onFailure: "rollback"
                 },
                 {
-                    fqn: "opm.dev/lifecycle/test@v0#RunSmokeTests"
+                    fqn: "opmodel.dev/lifecycle/test@v0#RunSmokeTests"
                     timeout: "2m"
                     onFailure: "rollback"
                 }

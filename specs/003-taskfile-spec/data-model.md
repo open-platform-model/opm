@@ -182,7 +182,7 @@ statusprobes: v0.1.0
 
 ### Module Path Format
 
-- Must include major version suffix: `opm.dev/core@v0`
+- Must include major version suffix: `opmodel.dev/core@v0`
 - Path components: lowercase, alphanumeric, hyphens allowed
 
 ### Environment Variables

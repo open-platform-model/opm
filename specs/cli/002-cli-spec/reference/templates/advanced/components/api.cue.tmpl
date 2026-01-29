@@ -1,0 +1,29 @@
+// API component template for backend services.
+package components
+
+import "opmodel.dev/core@v0"
+
+// _api is a reusable API server component template.
+_api: core.#Component & {
+	metadata: {
+		name:        "api"
+		description: "API backend component"
+	}
+	spec: {
+		container: {
+			image: string
+			ports: [{containerPort: 3000}]
+			resources: {
+				requests: {
+					cpu:    "200m"
+					memory: "256Mi"
+				}
+				limits: {
+					cpu:    "1000m"
+					memory: "1Gi"
+				}
+			}
+		}
+		replicas: int | *3
+	}
+}

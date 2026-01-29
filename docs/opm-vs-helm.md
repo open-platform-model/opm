@@ -211,11 +211,11 @@ Platform requirements require chart forking or complex umbrella charts.
         database: {
             // Using Blueprint (recommended V1 approach)
             #blueprints: {
-                "opm.dev/blueprints/core@v1#StatefulWorkload": {}
+                "opmodel.dev/blueprints/core@v1#StatefulWorkload": {}
             }
             // Components can also have Policies directly attached
             #policies: {
-                "opm.dev/policies/workload@v1#ResourceLimit": {}
+                "opmodel.dev/policies/workload@v1#ResourceLimit": {}
             }
 
             #StatefulWorkload
@@ -272,15 +272,15 @@ Platform requirements require chart forking or complex umbrella charts.
         database: {
             // Blueprint expanded into Resources and Traits
             #units: {
-                "opm.dev/resources/workload@v1#Container": {}
-                "opm.dev/resources/storage@v1#Volumes": {}
+                "opmodel.dev/resources/workload@v1#Container": {}
+                "opmodel.dev/resources/storage@v1#Volumes": {}
             }
             #traits: {
-                "opm.dev/traits/scaling@v1#Replicas": {}
+                "opmodel.dev/traits/scaling@v1#Replicas": {}
             }
             // Component Policies preserved from ModuleDefinition
             #policies: {
-                "opm.dev/policies/workload@v1#ResourceLimit": {}
+                "opmodel.dev/policies/workload@v1#ResourceLimit": {}
             }
 
             #Container

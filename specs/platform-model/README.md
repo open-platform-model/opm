@@ -69,7 +69,7 @@ The CLI (`opm mod build`) orchestrates this transformation using:
 3. **Transformers**: Label-based matching and conversion functions
 4. **Output**: Platform-specific manifests
 
-See [013-cli-render-spec](../cli/013-cli-render-spec/spec.md) for the render pipeline implementation.
+See [004-render-and-lifecycle-spec](../cli/004-render-and-lifecycle-spec/spec.md) for the render pipeline implementation.
 
 ## Getting Started
 

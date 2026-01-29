@@ -46,7 +46,7 @@ Scopes are the sole attachment point for policies, allowing platform teams to ap
 
 ```cue
 #Scope: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "Scope"
 
     metadata: {
@@ -91,7 +91,7 @@ Selects components whose labels match the specified criteria:
 #scopes: {
     backendNetwork: {
         #policies: {
-            "opm.dev/policies/network@v0#InternalOnly": #InternalOnlyPolicy
+            "opmodel.dev/policies/network@v0#InternalOnly": #InternalOnlyPolicy
         }
         
         appliesTo: {
@@ -119,7 +119,7 @@ Selects specific components by direct reference:
 #scopes: {
     criticalServices: {
         #policies: {
-            "opm.dev/policies/reliability@v0#HighAvailability": #HAPolicy
+            "opmodel.dev/policies/reliability@v0#HighAvailability": #HAPolicy
         }
         
         appliesTo: {
@@ -153,7 +153,7 @@ myModule: #Module & {
     #scopes: {
         globalSecurity: {
             #policies: {
-                "opm.dev/policies/security@v0#mTLS": #mTLSPolicy
+                "opmodel.dev/policies/security@v0#mTLS": #mTLSPolicy
             }
             
             appliesTo: {
@@ -222,9 +222,9 @@ myModule: #Module & {
             metadata: name: "database-isolation"
             
             #policies: {
-                "opm.dev/policies/network@v0#NetworkPolicy": {
+                "opmodel.dev/policies/network@v0#NetworkPolicy": {
                     metadata: {
-                        apiVersion: "opm.dev/policies/network@v0"
+                        apiVersion: "opmodel.dev/policies/network@v0"
                         name:       "NetworkPolicy"
                         target:     "scope"
                     }
@@ -278,7 +278,7 @@ myModule: #Module & {
             metadata: name: "production-security"
             
             #policies: {
-                "opm.dev/policies/security@v0#StrictMode": #StrictModePolicy
+                "opmodel.dev/policies/security@v0#StrictMode": #StrictModePolicy
             }
             
             appliesTo: {
@@ -313,8 +313,8 @@ myModule: #Module & {
             metadata: name: "global-observability"
             
             #policies: {
-                "opm.dev/policies/observability@v0#Tracing": #TracingPolicy
-                "opm.dev/policies/observability@v0#Metrics": #MetricsPolicy
+                "opmodel.dev/policies/observability@v0#Tracing": #TracingPolicy
+                "opmodel.dev/policies/observability@v0#Metrics": #MetricsPolicy
             }
             
             appliesTo: {

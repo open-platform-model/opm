@@ -279,10 +279,10 @@ Here's a complete example:
 package myapp
 
 import (
-    opm "opm.dev/core@v0"
-    workload "opm.dev/blueprints/workload@v0"
-    security "opm.dev/policies/security@v0"
-    network "opm.dev/policies/network@v0"
+    opm "opmodel.dev/core@v0"
+    workload "opmodel.dev/blueprints/workload@v0"
+    security "opmodel.dev/policies/security@v0"
+    network "opmodel.dev/policies/network@v0"
 )
 
 #MyApp: opm.#Module & {

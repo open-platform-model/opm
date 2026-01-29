@@ -125,12 +125,12 @@ database: #Component & {
         upgrade: {
             before: [
                 {
-                    fqn: "opm.dev/lifecycle/data@v0#Backup"
+                    fqn: "opmodel.dev/lifecycle/data@v0#Backup"
                     description: "Backup before schema change"
                     config: { target: "s3://backups" }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/data@v0#Migrate"
+                    fqn: "opmodel.dev/lifecycle/data@v0#Migrate"
                     description: "Run schema migrations"
                     onFailure: "rollback"
                 }
@@ -153,14 +153,14 @@ myModule: #Module & {
         install: {
             after: [
                 {
-                    fqn: "opm.dev/lifecycle/test@v0#IntegrationTest"
+                    fqn: "opmodel.dev/lifecycle/test@v0#IntegrationTest"
                     description: "Verify API can talk to DB"
                     config: {
                         endpoints: ["http://api", "postgres://db"]
                     }
                 },
                 {
-                    fqn: "opm.dev/lifecycle/notify@v0#Slack"
+                    fqn: "opmodel.dev/lifecycle/notify@v0#Slack"
                     description: "Notify team of success"
                     onFailure: "continue"
                 }

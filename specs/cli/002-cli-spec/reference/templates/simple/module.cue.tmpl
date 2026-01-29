@@ -1,0 +1,42 @@
+// Package main defines the {{.ModuleName}} module.
+// This is a simple single-file module with inline components.
+package main
+
+import "opmodel.dev/core@v0"
+
+// Module definition
+core.#Module
+
+// Module metadata
+metadata: {
+	apiVersion:  "{{.ModulePath}}@v0"
+	name:        "{{.ModuleName}}"
+	version:     "{{.Version}}"
+	description: string | *"A simple OPM module"
+}
+
+// Components define the workloads for this module.
+// In a simple template, components are defined inline.
+#components: {
+	// Example: web server component
+	app: core.#Component & {
+		metadata: name: "app"
+		spec: {
+			container: {
+				image: values.image
+				ports: [{containerPort: 8080}]
+			}
+			replicas: values.replicas
+		}
+	}
+}
+
+// Spec defines the configuration schema for this module.
+// Users provide values that conform to this schema.
+#spec: {
+	// Container image to deploy (required)
+	image!: string
+
+	// Number of replicas (optional, defaults to 1)
+	replicas?: int & >=1 | *1
+}

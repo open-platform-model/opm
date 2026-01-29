@@ -76,7 +76,7 @@ A platform operator queries the Provider to understand which OPM features it sup
 
 **Acceptance Scenarios**:
 
-1. **Given** a Provider with a transformer requiring `opm.dev/traits/scaling@v0#Replicas`, **When** the Provider's `#declaredTraits` field is evaluated, **Then** the list includes the full FQN of the Replicas trait.
+1. **Given** a Provider with a transformer requiring `opmodel.dev/traits/scaling@v0#Replicas`, **When** the Provider's `#declaredTraits` field is evaluated, **Then** the list includes the full FQN of the Replicas trait.
 2. **Given** that the provider is loaded by the CLI, **When** a user asks for supported traits, **Then** the CLI displays this trait as "Supported".
 
 ### Edge Cases
@@ -93,7 +93,7 @@ The `#Provider` definition serves as the root of a platform adapter.
 
 ```cue
 #Provider: {
-    apiVersion: "core.opm.dev/v0"
+    apiVersion: "core.opmodel.dev/v0"
     kind:       "Provider"
     
     metadata: {
@@ -127,7 +127,7 @@ The `#Transformer` definition declares how to match and convert a component.
 
 ```cue
 #Transformer: {
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "Transformer"
     
     metadata: {
@@ -234,7 +234,7 @@ The `#MatchTransformers` function computes the matching plan for a render pipeli
 ```cue
 package k8s
 
-import "opm.dev/core@v0"
+import "opmodel.dev/core@v0"
 
 #KubernetesProvider: core.#Provider & {
     metadata: {
@@ -262,10 +262,10 @@ import "opm.dev/core@v0"
 
     // Matches components with Container resource and "stateless" label
     requiredLabels: {
-        "core.opm.dev/workload-type": "stateless"
+        "core.opmodel.dev/workload-type": "stateless"
     }
     requiredResources: {
-        "opm.dev/resources/workload@v0#Container": _
+        "opmodel.dev/resources/workload@v0#Container": _
     }
 
     #transform: {
@@ -296,7 +296,7 @@ import "opm.dev/core@v0"
 - **FR-13-002**: Provider MUST compute `#declaredResources` and `#declaredTraits` by aggregating FQNs from all registered transformers (both required and optional).
 - **FR-13-003**: Provider MUST compute `#declaredDefinitions` as the concatenation of `#declaredResources` and `#declaredTraits`.
 - **FR-13-004**: `#Provider` MUST be an open struct (not closed) to allow provider-specific extensions.
-- **FR-13-005**: `#Provider.apiVersion` MUST be `"core.opm.dev/v0"`.
+- **FR-13-005**: `#Provider.apiVersion` MUST be `"core.opmodel.dev/v0"`.
 - **FR-13-006**: `#Transformer` MUST have full metadata including `apiVersion`, `name`, `fqn`, and `description`.
 - **FR-13-007**: `#Transformer` MUST declare matching criteria (`requiredLabels`, `requiredResources`, etc.) and a `#transform` function.
 - **FR-13-008**: The `#transform.output` field MUST be a single resource (not a list). Multiple resources per component are achieved through multiple transformers matching.

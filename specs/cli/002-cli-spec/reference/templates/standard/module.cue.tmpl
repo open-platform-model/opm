@@ -1,0 +1,49 @@
+// Package main defines the {{.ModuleName}} module.
+// This is a standard module with separated concerns:
+// - module.cue: metadata and schema
+// - components.cue: component definitions
+// - values.cue: default values
+package main
+
+import "opmodel.dev/core@v0"
+
+// Module definition
+core.#Module
+
+// Module metadata
+metadata: {
+	apiVersion:  "{{.ModulePath}}@v0"
+	name:        "{{.ModuleName}}"
+	version:     "{{.Version}}"
+	description: string | *"A standard OPM module"
+}
+
+// Components are defined in components.cue
+#components: _components
+
+// Spec defines the configuration schema for this module.
+#spec: {
+	// Web component configuration
+	web: {
+		// Container image (required)
+		image!: string
+
+		// Number of replicas (defaults to 2 for production)
+		replicas?: int & >=1 | *2
+
+		// Port to expose (defaults to 8080)
+		port?: int & >0 & <=65535 | *8080
+	}
+
+	// API component configuration
+	api: {
+		// Container image (required)
+		image!: string
+
+		// Number of replicas (defaults to 2)
+		replicas?: int & >=1 | *2
+
+		// Port to expose (defaults to 3000)
+		port?: int & >0 & <=65535 | *3000
+	}
+}

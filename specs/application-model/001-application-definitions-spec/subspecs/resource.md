@@ -21,7 +21,7 @@ A **Module Author** needs to define a new Resource type (e.g., `PostgresDB`) so 
 
 **Acceptance Scenarios**:
 
-1. **Given** a new CUE file importing `opm.dev/core`, **When** the author defines a `#Resource` struct with valid metadata and `#spec`, **Then** it should validate successfully.
+1. **Given** a new CUE file importing `opmodel.dev/core`, **When** the author defines a `#Resource` struct with valid metadata and `#spec`, **Then** it should validate successfully.
 2. **Given** a Resource named "Container", **When** the `#spec` defines a field named "container", **Then** validation succeeds.
 3. **Given** a Resource named "Container", **When** the `#spec` defines a field named "wrongName", **Then** validation fails (key mismatch).
 
@@ -77,7 +77,7 @@ A **Module Author** needs to use a published Resource in a Component to define w
 
 - **FR-007**: Components consuming a Resource MUST inherit all `metadata.labels` defined in that Resource.
 - **FR-008**: A Component MUST be validated to contain at least one Resource in its `#resources` map (Existence Principle).
-- **FR-009**: The system MUST support label-based platform compatibility declarations (e.g., `core.opm.dev/platform: kubernetes`).
+- **FR-009**: The system MUST support label-based platform compatibility declarations (e.g., `core.opmodel.dev/platform: kubernetes`).
 
 #### CLI Interface
 
@@ -102,5 +102,5 @@ A **Module Author** needs to use a published Resource in a Component to define w
 
 ## Assumptions
 
-- The Core CUE module (`opm.dev/core`) is available and versioned.
+- The Core CUE module (`opmodel.dev/core`) is available and versioned.
 - OCI registry authentication is handled by the underlying CLI config.

@@ -85,7 +85,7 @@ Components are instantiated within modules via `#Module.#components`:
 
 ```cue
 #Component: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "Component"
 
     metadata: {
@@ -264,8 +264,8 @@ metadata: labels: "tier": "backend"
 ### Basic Component
 
 ```cue
-import "opm.dev/resources/workload@v0"
-import "opm.dev/traits/scaling@v0"
+import "opmodel.dev/resources/workload@v0"
+import "opmodel.dev/traits/scaling@v0"
 
 api: #Component & {
     workload.#Container
@@ -293,7 +293,7 @@ api: #Component & {
 ### Component with Blueprint
 
 ```cue
-import "opm.dev/blueprints/web@v0"
+import "opmodel.dev/blueprints/web@v0"
 
 frontend: #Component & {
     #blueprints: {

@@ -2,7 +2,7 @@
 
 **Specification**: [../spec.md](../spec.md)  
 **Version**: Draft  
-**Last Updated**: 2026-01-22
+**Last Updated**: 2026-01-29
 
 ## Overview
 
@@ -33,16 +33,57 @@ The following filenames are reserved for specific OPM conventions. If present, t
 | `policies.cue` | Extraction of policy definitions. |
 | `debug_values.cue` | A comprehensive set of values used for `opm mod vet` and debugging. |
 
-### 1.3. Example Layout (Standard)
+### 1.3. Template Layouts
+
+The `mod init` command creates modules from one of three templates. Each template produces a different file structure.
+
+#### Simple Template
+
+Minimal single-file structure for learning and prototypes.
 
 ```text
 my-app/
 ├── cue.mod/
-│   └── module.cue      # CUE module definition
-├── module.cue          # Main #Module definition
-├── values.cue          # Default values
-├── components.cue      # Components
-└── scopes.cue          # Scopes
+│   └── module.cue      # CUE module configuration
+├── module.cue          # Module definition with inline components
+└── values.cue          # Default values for deployment
+```
+
+#### Standard Template (Default)
+
+Separated concerns for team collaboration and production use.
+
+```text
+my-app/
+├── cue.mod/
+│   └── module.cue      # CUE module configuration
+├── module.cue          # Module metadata and settings
+├── components.cue      # Component definitions
+└── values.cue          # Default values for deployment
+```
+
+#### Advanced Template
+
+Multi-package architecture with subpackages for complex platforms.
+
+```text
+my-app/
+├── cue.mod/
+│   └── module.cue      # CUE module configuration
+├── components/
+│   ├── api.cue         # API component template
+│   ├── db.cue          # Database component template
+│   ├── web.cue         # Web component template
+│   └── worker.cue      # Worker component template
+├── scopes/
+│   ├── backend.cue     # Backend scope configuration
+│   └── frontend.cue    # Frontend scope configuration
+├── module.cue          # Module metadata and settings
+├── components.cue      # Component registry
+├── scopes.cue          # Scope definitions
+├── policies.cue        # Policy definitions
+├── values.cue          # Default values for deployment
+└── debug_values.cue    # Debug-specific values
 ```
 
 ---
@@ -55,10 +96,12 @@ The following table summarizes all protected filenames across the OPM ecosystem.
 | :--- | :--- | :--- | :--- |
 | `module.cue` | REQUIRED | Module | Entry point for Module definition. |
 | `values.cue` | REQUIRED | Module | Mandatory default values file. |
-| `components.cue` | RESERVED | Module | Component logic. |
-| `scopes.cue` | RESERVED | Module | Scope logic. |
-| `policies.cue` | RESERVED | Module | Policy logic. |
-| `debug_values.cue` | RESERVED | Module | Extended values for validation. |
+| `components.cue` | RESERVED | Module | Component definitions or registry. |
+| `scopes.cue` | RESERVED | Module | Scope definitions. |
+| `policies.cue` | RESERVED | Module | Policy definitions. |
+| `debug_values.cue` | RESERVED | Module | Extended values for validation and debugging. |
+| `components/` | RESERVED | Module | Component template subpackage (advanced). |
+| `scopes/` | RESERVED | Module | Scope template subpackage (advanced). |
 
 ---
 
@@ -94,7 +137,7 @@ The `module.cue` file binds metadata, components, and schema together.
 ```cue
 package main
 
-import "opm.dev/core@v0"
+import "opmodel.dev/core@v0"
 
 // The #Module definition is mandatory
 core.#Module
@@ -127,7 +170,7 @@ Conventional file for housing component logic.
 ```cue
 package main
 
-import "opm.dev/core@v0"
+import "opmodel.dev/core@v0"
 
 // Internal identifier used in module.cue
 _components: {

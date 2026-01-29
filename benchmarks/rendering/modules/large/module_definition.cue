@@ -1,17 +1,17 @@
 package large
 
 import (
-	workload_blueprints "opm.dev/blueprints/workload@v1"
+	workload_blueprints "opmodel.dev/blueprints/workload@v1"
 )
 
 // Large 12-component e-commerce platform using blueprints
 // This represents a ModuleDefinition where components reference blueprints
 largeModuleDefinition: {
-	apiVersion: "opm.dev/v1/core"
+	apiVersion: "opmodel.dev/v1/core"
 	kind:       "ModuleDefinition"
 
 	metadata: {
-		apiVersion:       "opm.dev/benchmarks/large@v0"
+		apiVersion:       "opmodel.dev/benchmarks/large@v0"
 		name:             "ECommercePlatform"
 		version:          "1.0.0"
 		description:      "Complete e-commerce platform with microservices architecture"
@@ -25,8 +25,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "web-frontend"
 				labels: {
-					"app.opm.dev/tier":      "frontend"
-					"app.opm.dev/component": "ui"
+					"app.opmodel.dev/tier":      "frontend"
+					"app.opmodel.dev/component": "ui"
 				}
 			}
 
@@ -79,8 +79,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "api-gateway"
 				labels: {
-					"app.opm.dev/tier":      "gateway"
-					"app.opm.dev/component": "api-gateway"
+					"app.opmodel.dev/tier":      "gateway"
+					"app.opmodel.dev/component": "api-gateway"
 				}
 			}
 
@@ -156,8 +156,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "auth-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "auth"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "auth"
 				}
 			}
 
@@ -221,8 +221,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "user-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "user"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "user"
 				}
 			}
 
@@ -282,8 +282,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "product-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "product"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "product"
 				}
 			}
 
@@ -343,8 +343,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "order-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "order"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "order"
 				}
 			}
 
@@ -408,8 +408,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "payment-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "payment"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "payment"
 				}
 			}
 
@@ -469,8 +469,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "notification-service"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "notification"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "notification"
 				}
 			}
 
@@ -534,8 +534,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "postgres-database"
 				labels: {
-					"app.opm.dev/tier":      "data"
-					"app.opm.dev/component": "database"
+					"app.opmodel.dev/tier":      "data"
+					"app.opmodel.dev/component": "database"
 				}
 			}
 
@@ -614,8 +614,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "redis-cache"
 				labels: {
-					"app.opm.dev/tier":      "data"
-					"app.opm.dev/component": "cache"
+					"app.opmodel.dev/tier":      "data"
+					"app.opmodel.dev/component": "cache"
 				}
 			}
 
@@ -676,8 +676,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "mongodb-database"
 				labels: {
-					"app.opm.dev/tier":      "data"
-					"app.opm.dev/component": "nosql-database"
+					"app.opmodel.dev/tier":      "data"
+					"app.opmodel.dev/component": "nosql-database"
 				}
 			}
 
@@ -752,8 +752,8 @@ largeModuleDefinition: {
 			metadata: {
 				name: "mq-worker"
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "worker"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "worker"
 				}
 			}
 

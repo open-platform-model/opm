@@ -2,7 +2,12 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-01-22
-**Feature**: [specs/002-cli-spec/spec.md](spec.md)
+**Updated**: 2026-01-29
+**Feature**: [spec.md](../spec.md)
+
+## Scope
+
+This specification covers CLI structure, configuration, and module scaffolding commands (init, vet, tidy). Render pipeline implementation (build, apply, diff, delete, status) is specified in [004-render-and-lifecycle-spec](../../004-render-and-lifecycle-spec/spec.md).
 
 ## Content Quality
 
@@ -31,4 +36,5 @@
 
 ## Notes
 
-The specification is complete and meets all quality criteria. It is based on the clear decisions provided during our conversation. No issues were found during the validation check.
+- 2026-01-29: Scope narrowed to CLI foundation. Render pipeline moved to 004-render-and-lifecycle-spec.
+- The specification is complete and meets all quality criteria for its defined scope.

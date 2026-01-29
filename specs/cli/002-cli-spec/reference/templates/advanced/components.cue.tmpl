@@ -1,0 +1,41 @@
+// Components composes the component templates from the components/ subpackage.
+package main
+
+import (
+	comps "{{.ModulePath}}/components"
+)
+
+// _components extends the component templates with module-specific configuration.
+_components: {
+	// Web frontend using the web component template
+	web: comps._web & {
+		spec: {
+			container: image: values.web.image
+			replicas: values.web.replicas
+		}
+	}
+
+	// API backend using the api component template
+	api: comps._api & {
+		spec: {
+			container: image: values.api.image
+			replicas: values.api.replicas
+		}
+	}
+
+	// Background worker using the worker component template
+	worker: comps._worker & {
+		spec: {
+			container: image: values.worker.image
+			replicas: values.worker.replicas
+		}
+	}
+
+	// Database using the db component template
+	db: comps._db & {
+		spec: {
+			container: image: values.db.image
+			storage: size: values.db.storageSize
+		}
+	}
+}

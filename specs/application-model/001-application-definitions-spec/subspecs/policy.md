@@ -123,11 +123,11 @@ This document defines the OPM policy system at the scope application level. Poli
 
 ```cue
 #Policy: close({
-    apiVersion: "opm.dev/core/v0"
+    apiVersion: "opmodel.dev/core/v0"
     kind:       "Policy"
 
     metadata: {
-        apiVersion!:  string  // e.g., "opm.dev/policies/security@v0"
+        apiVersion!:  string  // e.g., "opmodel.dev/policies/security@v0"
         name!:        string  // e.g., "SecurityContext"
         fqn:          string  // Computed: "{apiVersion}#{name}"
         description?: string
@@ -182,7 +182,7 @@ CUE enforces that policies are applied at the correct level. Attempting to apply
 ```cue
 #NetworkPolicy: #Policy & {
     metadata: {
-        apiVersion: "opm.dev/policies/network@v0"
+        apiVersion: "opmodel.dev/policies/network@v0"
         name:       "NetworkPolicy"
         target:     "scope"
     }

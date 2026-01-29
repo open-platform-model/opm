@@ -1,0 +1,28 @@
+// Worker component template for background jobs.
+package components
+
+import "opmodel.dev/core@v0"
+
+// _worker is a reusable background worker component template.
+_worker: core.#Component & {
+	metadata: {
+		name:        "worker"
+		description: "Background worker component"
+	}
+	spec: {
+		container: {
+			image: string
+			resources: {
+				requests: {
+					cpu:    "100m"
+					memory: "256Mi"
+				}
+				limits: {
+					cpu:    "500m"
+					memory: "512Mi"
+				}
+			}
+		}
+		replicas: int | *2
+	}
+}

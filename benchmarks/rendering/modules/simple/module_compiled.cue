@@ -1,16 +1,16 @@
 package simple
 
 import (
-	core "opm.dev/core@v1"
-	workload_resources "opm.dev/resources/workload@v1"
-	workload_traits "opm.dev/traits/workload@v1"
+	core "opmodel.dev/core@v1"
+	workload_resources "opmodel.dev/resources/workload@v1"
+	workload_traits "opmodel.dev/traits/workload@v1"
 )
 
 // Simple 2-component web application with blueprints expanded
 // This represents a Module where blueprints have been flattened into resources + traits
 simpleModule: core.#Module & {
 	metadata: {
-		apiVersion:  "opm.dev/benchmarks/simple@v0"
+		apiVersion:  "opmodel.dev/benchmarks/simple@v0"
 		name:        "SimpleWebApp"
 		version:     "1.0.0"
 		description: "Simple web application with frontend and API backend (compiled/flattened)"
@@ -21,7 +21,7 @@ simpleModule: core.#Module & {
 			metadata: {
 				name: "web-frontend"
 				labels: {
-					"app.opm.dev/tier": "frontend"
+					"app.opmodel.dev/tier": "frontend"
 				}
 			}
 
@@ -65,7 +65,7 @@ simpleModule: core.#Module & {
 			metadata: {
 				name: "api-backend"
 				labels: {
-					"app.opm.dev/tier": "backend"
+					"app.opmodel.dev/tier": "backend"
 				}
 			}
 

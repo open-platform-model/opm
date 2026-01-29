@@ -1,17 +1,17 @@
 package moderate
 
 import (
-	workload_blueprints "opm.dev/blueprints/workload@v1"
+	workload_blueprints "opmodel.dev/blueprints/workload@v1"
 )
 
 // Moderate 4-component web application using blueprints
 // This represents a ModuleDefinition where components reference blueprints
 moderateModuleDefinition: {
-	apiVersion: "opm.dev/v1/core"
+	apiVersion: "opmodel.dev/v1/core"
 	kind:       "ModuleDefinition"
 
 	metadata: {
-		apiVersion:  "opm.dev/benchmarks/moderate@v0"
+		apiVersion:  "opmodel.dev/benchmarks/moderate@v0"
 		name:        "ModerateWebApp"
 		version:     "1.0.0"
 		
@@ -23,8 +23,8 @@ moderateModuleDefinition: {
 				name:        "web-frontend"
 				
 				labels: {
-					"app.opm.dev/tier":      "frontend"
-					"app.opm.dev/component": "ui"
+					"app.opmodel.dev/tier":      "frontend"
+					"app.opmodel.dev/component": "ui"
 				}
 			}
 
@@ -79,8 +79,8 @@ moderateModuleDefinition: {
 				name:        "api-backend"
 				
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "api"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "api"
 				}
 			}
 
@@ -164,8 +164,8 @@ moderateModuleDefinition: {
 				name:        "postgres-database"
 				
 				labels: {
-					"app.opm.dev/tier":      "data"
-					"app.opm.dev/component": "database"
+					"app.opmodel.dev/tier":      "data"
+					"app.opmodel.dev/component": "database"
 				}
 			}
 
@@ -253,8 +253,8 @@ moderateModuleDefinition: {
 				name:        "background-worker"
 				
 				labels: {
-					"app.opm.dev/tier":      "backend"
-					"app.opm.dev/component": "worker"
+					"app.opmodel.dev/tier":      "backend"
+					"app.opmodel.dev/component": "worker"
 				}
 			}
 

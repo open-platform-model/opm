@@ -11,7 +11,6 @@
 
 - Q: How does the CLI uniquely identify and track Kubernetes resources belonging to a module? → A: Using labels: `app.kubernetes.io/managed-by: open-platform-model`, `module.opmodel.dev/name`, `module.opmodel.dev/namespace`, `module.opmodel.dev/version`, and `component.opmodel.dev/name`.
 - Q: How should the CLI handle multiple `--values` flags? → A: Support multiple CUE, YAML, and JSON files. Convert all to CUE and rely on CUE unification for merging and schema validation (Timoni-style).
-- Q: How should `opm mod status` determine resource health? → A: Success on creation for passive resources; wait for standard `Ready` conditions on workloads (`Deployment`, `StatefulSet`, etc.).
 - Q: How should the CLI handle secrets? → A: Delegate to standard patterns (ExternalSecrets/SOPS). Users can include secret values in `values.yaml` (or CUE/JSON), which are unified like other values.
 - Q: How should the CLI handle OCI registry authentication? → A: Leverage standard `~/.docker/config.json` (OCI standard).
 
@@ -28,7 +27,7 @@
 - Q: What is the complete registry precedence? → A: `--registry` flag > `OPM_REGISTRY` env > `config.registry` value. CUE_REGISTRY is not supported.
 - Q: Where are providers configured? → A: Only in `~/.opm/config.cue`. Modules MUST NOT declare or reference providers.
 
-### Session 2026-01-28
+### Session 2026-01-28 (Performance & Behavior)
 
 - Q: What is the target time for OCI publish/get round-trip? → A: 30 seconds (assumes local or low-latency registry).
 - Q: How should the CLI handle Kubernetes API rate limiting? → A: Use client-go's built-in rate limiter with defaults.
@@ -36,191 +35,272 @@
 - Q: Should the CLI display progress indicators during long operations? → A: No progress indicators; silent until completion or timeout.
 - Q: Should the CLI enforce resource count limits per module? → A: No limits; rely on timeouts and system resources.
 
+### Session 2026-01-29
+
+- Q: How should security/credentials be handled? → A: No secrets stored in config.cue; CLI sets secure file permissions (0700 dir, 0600 files) during init.
+- Q: What is explicitly out of scope? → A: GUI config editor, config sync, encrypted fields.
+
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - First-Time Module Authoring and Deployment (Priority: P1)
+### User Story 1 - First-Time Module Authoring (Priority: P1)
 
-A new OPM user wants to create their first module and deploy it to a Kubernetes cluster to see it running. This journey covers the "inner loop" of creation and the first deployment.
+A new OPM user wants to create their first module and validate it locally. This journey covers module scaffolding and validation.
 
-**Why this priority**: This is the most critical user journey as it represents the primary "getting started" experience for OPM. A smooth and successful first run is essential for user adoption.
+**Why this priority**: This is the most critical user journey as it represents the primary "getting started" experience for OPM. A smooth first experience with module creation is essential for user adoption.
 
-**Independent Test**: This can be tested by providing a user with the CLI and a Kubernetes cluster. They should be able to follow a quickstart guide, successfully deploy a simple "hello-world" module, and see it running via `kubectl`.
+**Independent Test**: A user with the CLI installed can create a module from a template and validate it passes CUE syntax and schema checks.
 
 **Acceptance Scenarios**:
 
-1. **Given** a developer has the OPM CLI installed and a valid kubeconfig, **When** they run `opm mod init my-app --template oci://registry.opm.dev/templates/standard:latest`, `cd my-app`, and then `opm mod apply`, **Then** the default application is deployed to their cluster.
-2. **Given** a module has been deployed, **When** the user runs `opm mod status`, **Then** they see a status summary of the Kubernetes resources that were created.
-3. **Given** a module has been deployed, **When** the user runs `opm mod delete`, **Then** all resources associated with that module are removed from the cluster.
+1. **Given** a developer has the OPM CLI installed, **When** they run `opm mod init my-app`, **Then** a new module directory is created with the standard template structure.
+2. **Given** a newly initialized module, **When** the user runs `opm mod vet`, **Then** validation passes with no errors.
+3. **Given** a module with missing CUE dependencies, **When** the user runs `opm mod tidy`, **Then** dependencies are resolved and `cue.mod/module.cue` is updated.
 4. **Given** a module with invalid CUE syntax or schema violations, **When** the user runs `opm mod vet --concrete`, **Then** they see clear error messages with file locations, line numbers, and suggestions for fixing the issues.
 
 ---
 
-### User Story 2 - Updating an Existing Module (Priority: P2)
+A platform operator setting up OPM for the first time needs to initialize the CLI configuration with default settings and the kubernetes provider. This enables developers on the team to immediately start rendering modules.
 
-A module author needs to make a change to an existing module (e.g., update a container image) and wants to safely preview and apply this change to the cluster.
+**Why this priority**: Without configuration, the CLI cannot resolve providers needed for module rendering. This is the foundational setup step.
 
-**Why this priority**: This represents the common day-to-day workflow of a module author. The ability to safely diff and apply changes is a core competency of the CLI.
-
-**Independent Test**: This can be tested by deploying a module, then making a local change to the `module.cue` file. The `diff` and `apply` commands should reflect and enact these changes on the cluster.
+**Independent Test**: Run `opm config init` on a fresh system and verify the config file is created with kubernetes provider configured.
 
 **Acceptance Scenarios**:
 
-1. **Given** a module is deployed and the local `module.cue` has been modified, **When** the user runs `opm mod diff`, **Then** they see a clear, colorized diff of the pending changes.
-2. **Given** `opm mod diff` shows pending changes, **When** the user runs `opm mod apply`, **Then** the changes are applied to the cluster and `opm mod diff` subsequently shows no differences.
-3. **Given** a developer wants to render the manifests locally without applying them, **When** they run `opm mod build -o yaml`, **Then** the full Kubernetes manifests are printed to standard output.
+1. **Given** a fresh OPM installation with no existing config, **When** the operator runs `opm config init`, **Then** a config directory is created at `~/.opm/` containing a valid CUE module with `config.cue` and `cue.mod/module.cue`, with secure permissions (0700 directory, 0600 files).
+2. **Given** a fresh installation, **When** the operator runs `opm config init`, **Then** the generated config includes the kubernetes provider configured by default.
+3. **Given** an existing config at `~/.opm/config.cue`, **When** the operator runs `opm config init`, **Then** the command fails with a clear error message unless `--force` is specified.
+4. **Given** a fresh installation, **When** the operator runs `opm config init --force`, **Then** any existing config is overwritten with defaults.
 
 ---
 
-### User Story 3 - Platform Provider Configuration (Priority: P2)
+When a developer runs any module command (e.g., `opm mod vet`), the CLI must load the configuration, resolve the registry, and fetch provider modules.
 
-A platform operator needs to configure which providers are available for rendering modules, enabling developers to render without provider knowledge.
+**Why this priority**: This is the core runtime behavior that enables all module operations. Without config loading, providers cannot be resolved and modules cannot be validated.
 
-**Why this priority**: Providers are essential for the render pipeline. Platform operators must be able to configure providers before developers can successfully render modules.
-
-**Independent Test**: Platform operator runs `opm config init`, adds kubernetes provider to config.cue, and developers can then render modules using that provider.
+**Independent Test**: With a valid config.cue containing a registry and kubernetes provider, run `opm mod vet` on a sample module and verify the provider is loaded.
 
 **Acceptance Scenarios**:
 
-1. **Given** a fresh OPM installation, **When** the operator runs `opm config init`, **Then** a config.cue file is created at `~/.opm/config.cue` with the kubernetes provider configured by default.
-2. **Given** a valid config.cue with kubernetes provider, **When** a developer runs `opm mod build`, **Then** the module renders using kubernetes transformers from the configured provider.
-3. **Given** an unreachable registry, **When** config.cue references a provider module that cannot be fetched, **Then** the CLI fails fast with a clear error indicating registry connectivity failure and which provider module could not be loaded.
-4. **Given** an invalid provider configuration (malformed CUE), **When** the user runs `opm config vet`, **Then** validation errors are reported with field names and line numbers.
+1. **Given** a valid `~/.opm/config.cue` with `registry: "localhost:5001"` and kubernetes provider, **When** the CLI loads configuration, **Then** it successfully fetches the provider module from the specified registry.
+2. **Given** a `--registry` flag is provided, **When** the CLI resolves the registry, **Then** the flag value takes precedence over `OPM_REGISTRY` env var and `config.registry`.
+3. **Given** `OPM_REGISTRY` is set and no `--registry` flag, **When** the CLI resolves the registry, **Then** the env var takes precedence over `config.registry`.
+4. **Given** only `config.registry` is set, **When** the CLI resolves the registry, **Then** the config value is used.
+5. **Given** providers are configured but no registry is resolvable, **When** the CLI attempts to load config, **Then** it fails fast with a clear error message.
+6. **Given** the registry is unreachable, **When** the CLI attempts to fetch provider modules, **Then** it fails with a specific error indicating which provider could not be loaded.
 
 ---
 
-### User Story 4 - CLI Configuration Setup (Priority: P5)
+A developer who has modified their configuration needs to validate it before running module commands to catch errors early.
 
-A new user needs to configure the OPM CLI with their preferred defaults (namespace, registry, kubeconfig path) before using it regularly.
+**Why this priority**: Validation provides fast feedback on configuration errors, improving developer experience and reducing debugging time.
 
-**Why this priority**: This is a one-time setup task that improves the ongoing user experience. Lower priority because CLI works with defaults and environment variables without explicit configuration.
-
-**Independent Test**: User runs `opm config init`, edits the generated file, then runs `opm config vet` to validate their changes.
+**Independent Test**: Create a config.cue with intentional errors and run `opm config vet` to verify errors are reported.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user has installed the OPM CLI, **When** they run `opm config init`, **Then** a config file is created at `~/.opm/config.cue` with documented defaults and kubernetes provider configured.
-2. **Given** a user has modified their config file, **When** they run `opm config vet`, **Then** validation errors are clearly reported with field names, line numbers, and expected formats.
+1. **Given** a valid `~/.opm/config.cue`, **When** the user runs `opm config vet`, **Then** validation succeeds with a confirmation message.
+2. **Given** a config.cue with invalid CUE syntax, **When** the user runs `opm config vet`, **Then** validation fails with file location and line numbers.
+3. **Given** a config.cue with invalid field values (e.g., invalid namespace pattern), **When** the user runs `opm config vet`, **Then** validation fails with specific field names and expected formats.
+4. **Given** a config.cue referencing a non-existent provider, **When** the user runs `opm config vet`, **Then** validation fails with a message about the missing provider.
+
+---
+
+An advanced platform operator wants to extend or customize provider configuration, such as adding custom transformers or configuring multiple providers.
+
+**Why this priority**: This supports advanced use cases but is not required for basic operation.
+
+**Independent Test**: Modify config.cue to add a custom transformer and verify it's available during rendering.
+
+**Acceptance Scenarios**:
+
+1. **Given** a config.cue with multiple providers configured, **When** the CLI loads configuration, **Then** all providers are available and selectable via `--provider` flag.
+2. **Given** a config.cue that extends a provider with custom transformers via CUE unification, **When** the CLI loads the provider, **Then** custom transformers are included alongside standard transformers.
 
 ---
 
 ### Edge Cases
 
-- **Secret Management**: When secrets are provided via `--values` files, they are unified into the CUE definition. It is the user's responsibility to manage the security of these files (e.g., using SOPS to decrypt before passing to OPM). Manifests rendered via `build` will contain these secrets in plaintext unless the module definition targets resources like `ExternalSecret`.
-- **Cluster Connectivity**: What happens when a user runs `apply`, `delete`, `diff`, or `status` without a valid or reachable Kubernetes cluster? The CLI should fail gracefully with a clear error message about cluster connectivity.
-- **Invalid Values**: How does the system handle an `apply` or `build` when the user provides a `--values` file that does not satisfy the module's schema? The operation should fail with a clear CUE validation error.
-- **Permissions**: What happens if the user tries to `apply` or `delete` resources in a namespace where they don't have sufficient RBAC permissions? The CLI should output the server-side error from the Kubernetes API.
 - **Registry Unreachable**: When `OPM_REGISTRY` is configured and the registry is unreachable during `mod tidy`, `mod vet`, or any command requiring CUE module resolution, the CLI fails fast with a clear error message (e.g., "Error: cannot connect to registry localhost:5000"). No silent fallback to original module domains occurs.
-- **Server-Side Apply Field Conflicts**: When another controller (e.g., HPA) owns a field that the module also specifies, the CLI warns to stderr and proceeds with the apply, taking ownership of the conflicting field. This matches kubectl's default SSA behavior.
-- **API Rate Limiting**: The CLI uses client-go's built-in rate limiter with defaults. When the Kubernetes API returns 429 (Too Many Requests), client-go handles exponential backoff automatically.
+- **Config directory does not exist**: `config init` creates `~/.opm/` directory structure.
+- **Config file exists but cue.mod is missing**: Treated as invalid config; suggest running `config init --force`.
+- **Registry in config but no providers**: Config loads successfully; providers map is empty.
+- **Circular import in config**: CUE loader reports circular dependency error with clear message.
+- **Provider module version mismatch**: CUE dependency resolution handles version constraints; report clear error on incompatibility.
+- **Network timeout during provider fetch**: Fail with timeout error specifying which module timed out.
+- **OPM_CONFIG environment variable**: Allows specifying alternate config path; full precedence is flag > env > default.
+
+> **Note**: Edge cases related to cluster operations (apply, delete, diff, status), secret management, RBAC permissions, and server-side apply are specified in [004-render-and-lifecycle-spec](../004-render-and-lifecycle-spec/spec.md).
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The CLI MUST provide a `mod init` command to create a new module from a template. The command MUST display a file tree with descriptions aligned at column 30 showing the created module structure.
+#### Module Commands
+
+- **FR-001**: The CLI MUST provide a `mod init` command to create a new module from a template. The command MUST support `--template` flag accepting `simple`, `standard` (default), or `advanced`. The command MUST display a file tree with descriptions aligned at column 30 showing the created module structure.
 - **FR-002**: The CLI MUST provide `mod vet` and `mod tidy` commands for module validation and dependency management.
-- **FR-003**: The CLI MUST provide a `mod build` command that renders a module's CUE definition into Kubernetes manifests in YAML, JSON, or a directory structure.
-- **FR-004**: The CLI MUST provide a `mod apply` command to idempotently create or update a module's resources on a Kubernetes cluster, applying them in a weighted order to respect hard dependencies (see Section 6).
-- **FR-005**: The `mod apply` command MUST support `--dry-run` and `--diff` flags to allow users to preview changes before they are made.
-- **FR-006**: The CLI MUST provide a `mod delete` command to remove all Kubernetes resources discovered via the `module.opmodel.dev/name` and `module.opmodel.dev/namespace` labels, deleting them in the reverse weighted order (see Section 6).
-- **FR-007**: The CLI MUST provide a `mod diff` command to show a diff between the local module definition and the live resources on the cluster.
-- **FR-008**: The CLI MUST provide a `mod status` command to report the readiness and health of a deployed module's Kubernetes resources, following the health evaluation logic in Section 6.3.
-- **FR-009**: All deployment-related commands (`build`, `apply`, `diff`, `delete`) MUST support multiple `--values` flags accepting CUE, YAML, or JSON files. These inputs MUST be unified with the module's CUE definitions to ensure schema compliance and produce the final configuration.
-- **FR-011**: All commands MUST be non-interactive.
-- **FR-012**: The CLI MUST use a CUE configuration file at `~/.opm/config.cue`, validated against an internal CUE schema. The CLI MUST provide `config init` and `config vet` commands for configuration management. The config file MUST be a valid CUE module that can import provider modules for type-safe provider configuration.
-- **FR-013**: The CLI MUST apply and delete resources based on a predefined weighting system to ensure hard dependencies (e.g., CRDs, Namespaces) are managed correctly).
-- **FR-014**: The CLI MUST resolve the registry URL using this precedence (highest to lowest): (1) `--registry` flag, (2) `OPM_REGISTRY` environment variable, (3) `config.registry` from `~/.opm/config.cue`. The `config.registry` value MUST be extractable via simple CUE parsing without requiring module/import resolution. The resolved registry URL MUST be used for all CUE module operations, including loading provider imports in config.cue itself. When set (e.g., `localhost:5000`), all CUE imports (e.g., `opm.dev/core@v0`) MUST resolve from the configured registry. The CLI MUST pass this configuration to the `cue` binary via the `CUE_REGISTRY` environment variable when executing `mod tidy` and `mod vet` commands.
-- **FR-015**: When `OPM_REGISTRY` is configured and the registry is unreachable, commands that require module resolution MUST fail fast with a clear error message indicating registry connectivity failure. The CLI MUST NOT silently fall back to alternative registries.
+- **FR-003**: The CLI MUST provide a `mod build` command. *(Implementation details in [004-render-and-lifecycle-spec](../004-render-and-lifecycle-spec/spec.md))*
+- **FR-004**: The CLI MUST provide a `mod apply` command. *(Implementation details in [004-render-and-lifecycle-spec](../004-render-and-lifecycle-spec/spec.md))*
+- **FR-005**: The CLI MUST provide a `mod delete` command. *(Implementation details in [004-render-and-lifecycle-spec](../004-render-and-lifecycle-spec/spec.md))*
+- **FR-006**: The CLI MUST provide a `mod diff` command. *(Implementation details in [004-render-and-lifecycle-spec](../004-render-and-lifecycle-spec/spec.md))*
+- **FR-007**: The CLI MUST provide a `mod status` command. *(Implementation details in [004-render-and-lifecycle-spec](../004-render-and-lifecycle-spec/spec.md))*
+
+#### Configuration
+
+- **FR-008**: The CLI MUST use a CUE module at `~/.opm/` as the configuration directory, containing `config.cue` and `cue.mod/module.cue`. The config.cue file MUST define a `config` struct containing configuration fields. The config module MUST be able to import provider modules using standard CUE import syntax (e.g., `import providers "opmodel.dev/providers@v0"`). Providers MUST be referenced using the registry lookup pattern: `providers.#Registry["<provider-name>"]`. The CLI MUST provide `config init` and `config vet` commands for configuration management. The `config init` command MUST include the kubernetes provider in the default configuration and MUST fail if config already exists unless `--force` flag is specified. The `config init` command MUST set secure file permissions: 0700 for `~/.opm/` directory, 0600 for `config.cue` and files under `cue.mod/`. The `config vet` command MUST report validation errors with file locations, line numbers, field names, and expected formats.
+- **FR-009**: The CLI MUST resolve the registry URL using this precedence (highest to lowest): (1) `--registry` flag, (2) `OPM_REGISTRY` environment variable, (3) `config.registry` from `~/.opm/config.cue`. The `config.registry` value MUST be extractable via simple CUE parsing without requiring module/import resolution. The resolved registry URL MUST be used for all CUE module operations, including loading provider imports in config.cue itself. When set (e.g., `localhost:5000`), all CUE imports (e.g., `opmodel.dev/core@v0`) MUST resolve from the configured registry. The CLI MUST pass this configuration to the `cue` binary via the `CUE_REGISTRY` environment variable when executing `mod tidy` and `mod vet` commands.
+- **FR-010**: When `OPM_REGISTRY` is configured and the registry is unreachable, commands that require module resolution MUST fail fast with a clear error message indicating registry connectivity failure. The CLI MUST NOT silently fall back to alternative registries.
+- **FR-011**: The config MUST support the following optional fields: `registry` (default OCI registry for module resolution), `kubeconfig` (path to kubeconfig file, default: `~/.kube/config`), `context` (Kubernetes context to use, default: current-context), `namespace` (default namespace for operations, default: `default`), `cacheDir` (local cache directory path, default: `~/.opm/cache`).
+- **FR-012**: The `config.providers` field MUST be a map of provider aliases to provider definitions loaded via CUE imports.
+- **FR-013**: The CLI MUST implement a two-phase config loading process: (1) **Phase 1 (Bootstrap)**: Extract `config.registry` via simple CUE parsing without import resolution; (2) **Phase 2 (Full Load)**: Use resolved registry to load config.cue with all imports resolved.
+- **FR-014**: When providers are configured but no registry is resolvable (no flag, no env, no config.registry), the CLI MUST fail fast with a clear error message. When the registry is unreachable during provider fetch, the CLI MUST fail with a specific error indicating registry connectivity failure and which provider module could not be loaded.
+
+#### CLI Behavior
+
+- **FR-015**: All commands MUST be non-interactive.
 - **FR-016**: The CLI MUST provide structured, human-readable logging to `stderr`. Logs MUST use colors to distinguish categories (Info, Warning, Error, Debug). The `--verbose` flag MUST increase the detail of logs.
 - **FR-017**: The CLI MUST provide a global `--output-format` flag (alias `-o`) supporting `text` (default), `yaml`, and `json` values. The `text` format MUST provide the most appropriate human-readable output for the command (e.g., tables for status, YAML for manifests) on `stdout`.
 - **FR-018**: The CLI MUST resolve configuration values using the following precedence (highest to lowest): (1) Command-line flags, (2) Environment variables (e.g., `OPM_NAMESPACE`), (3) Configuration file (`~/.opm/config.cue` or path specified by `--config`/`OPM_CONFIG`), (4) Built-in defaults. When a value is provided at multiple levels, the higher-precedence source MUST win. When `--verbose` is specified, the CLI MUST log each configuration value's resolution at DEBUG level, including which source provided the value and which lower-precedence sources were overridden.
-- **FR-019**: The CLI MUST use client-go's built-in rate limiter with default settings for all Kubernetes API operations. The CLI MUST NOT implement custom rate limiting or backoff logic.
-- **FR-020**: When server-side apply encounters field ownership conflicts, the CLI MUST log a warning to stderr identifying the conflicting fields and their current owners, then proceed with the apply (taking ownership). The CLI MUST NOT fail on field conflicts by default.
-- **FR-021**: Long-running operations (`apply --wait`, `delete`, `status --watch`) MUST NOT display progress indicators. Output is silent until completion, timeout, or error.
-- **FR-022**: The CLI MUST NOT enforce limits on module complexity (resource count, CUE evaluation depth). Natural limits are provided by operation timeouts and system resources.
 
 ### Key Entities
 
 - **ModuleDefinition**: The primary authoring artifact. A CUE file (`module.cue`) that defines the components, schemas, and logic of a reusable piece of infrastructure or application.
 - **Project Structure**: A strictly defined directory layout ensuring portability and compatibility (see [Reference: Project Structure](reference/project-structure.md)).
-- **Values File**: A user-provided CUE, YAML, or JSON file that supplies concrete configuration. Multiple files are unified using CUE semantics to validate against the `ModuleDefinition` and render resources.
+- **Config Module**: A CUE module at `~/.opm/` that defines CLI configuration. Contains `config.cue` (main config) and `cue.mod/module.cue` (module metadata and dependencies).
+- **Config Struct**: The `config` field in config.cue containing registry, kubeconfig, context, namespace, cacheDir, and providers.
+- **Provider Registry**: A CUE definition (`#Registry`) in the providers module that maps provider names to provider definitions.
+- **Provider Definition**: A CUE struct conforming to `core.#Provider` that defines transformers and metadata for a target platform.
 
-- **Kubernetes Resource**: The output of the `build` process. Standard Kubernetes manifests (e.g., Deployment, Service, ConfigMap) that are applied to a cluster.
-
-### Resource Labeling
-
-All resources generated or managed by the OPM CLI MUST include the following labels for identification and lifecycle management:
-
-| Label | Purpose |
-| :--- | :--- |
-| `app.kubernetes.io/managed-by` | Set to `open-platform-model`. |
-| `module.opmodel.dev/name` | The name of the module. |
-| `module.opmodel.dev/namespace` | The target namespace for the module. |
-| `module.opmodel.dev/version` | The version of the module being deployed. |
-| `component.opmodel.dev/name` | The name of the specific component within the module. |
+> **Note**: Render-related entities (Values Files, Kubernetes Resources, Manifests) are specified in [004-render-and-lifecycle-spec](../004-render-and-lifecycle-spec/spec.md).
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: A new user can successfully initialize, build, and apply a default "hello-world" module to a local Kubernetes cluster in under 3 minutes.
-  - *Measurement*: Timed from `opm mod init` to successful `opm mod apply` completion with resources visible in cluster.
-  - *Assumptions*: Warm local cache for CUE dependencies, local cluster (kind/k3d), network latency < 100ms.
-  - *Exclusions*: CUE dependency download time on first run, cluster provisioning time.
+- **SC-001**: A new user can initialize and validate a module with `opm mod init` and `opm mod vet` in under 30 seconds.
+  - *Measurement*: Timed from `opm mod init my-app` to successful `opm mod vet` completion.
+  - *Assumptions*: Warm local cache for CUE dependencies.
+  - *Exclusions*: CUE dependency download time on first run.
 
-- **SC-002**: The `opm mod diff` command accurately reflects the delta between a local configuration change and the live cluster state 100% of the time for supported Kubernetes resources.
-  - *Measurement*: Diff output MUST show all field changes in supported Kubernetes resource kinds.
-  - *Exclusions*: Server-managed fields (metadata.generation, metadata.resourceVersion, status.*) are excluded from diff comparison.
+- **SC-002**: Platform operators can create a valid configuration with `opm config init` in under 10 seconds.
 
-- **SC-003**: The `opm mod apply` command's server-side apply operation is fully idempotent; running it multiple times with the same inputs results in no changes after the first successful application.
-  - *Measurement*: Second consecutive `opm mod apply` with identical inputs MUST result in zero server-side changes.
-  - *Exclusions*: Server-managed timestamp fields (metadata.managedFields timestamps) are excluded from idempotency comparison.
+- **SC-003**: Configuration validation (`opm config vet`) completes in under 2 seconds for typical configurations.
 
-- **SC-004**: The `opm mod status` command correctly reports the `Ready` or `NotReady` status for all managed Kubernetes workloads (Deployments, StatefulSets) within 60 seconds of a change.
-  - *Measurement*: Time from `opm mod apply` completion to `opm mod status` reporting all workloads as Ready.
-  - *Assumptions*: Standard workloads (Deployment, StatefulSet) with readiness probes responding within 30s.
+- **SC-004**: Provider modules are fetched and loaded in under 5 seconds on first use (warm cache: under 1 second).
 
-- **SC-005**: The `opm mod publish` and `opm mod get` commands successfully complete a round-trip within 30 seconds: publishing a module to an OCI registry and retrieving it produces an identical module.
-  - *Measurement*: Module published with `opm mod publish`, deleted locally, retrieved with `opm mod get`, and `opm mod vet` passes on retrieved module.
-  - *Assumptions*: Local or low-latency OCI registry, valid credentials in `~/.docker/config.json`, module size < 10MB.
+- **SC-005**: 100% of configuration errors produce actionable error messages with file location and field name.
 
-## 6. Deployment Lifecycle & Resource Ordering
+- **SC-006**: Registry precedence chain works correctly: flag overrides env, env overrides config, for all tested scenarios.
 
-To ensure reliable and predictable deployments, the OPM CLI will use a weighted system to determine the order in which Kubernetes resources are applied and deleted. This approach correctly handles "hard dependencies" where applying a resource would fail if another resource (like a CRD or Namespace) does not yet exist.
+- **SC-007**: Configuration loading fails fast (under 5 seconds timeout) when registry is unreachable, with clear error message.
 
-### 6.1. Resource Weighting System
+> **Note**: Success criteria for build, apply, diff, delete, and status commands are specified in [004-render-and-lifecycle-spec](../004-render-and-lifecycle-spec/spec.md).
 
-The core mechanic is a predefined weight assigned to each Kubernetes resource Kind.
+## Assumptions
 
-- **Apply Order**: Resources are applied in **ascending** order of their weights (lower weights first).
-- **Delete Order**: Resources are deleted in **descending** order of their weights (higher weights first).
+- Provider modules are published to OCI registries following CUE module conventions.
+- The `opmodel.dev/providers@v0` module exports a `#Registry` definition mapping provider names to definitions.
+- Users have network access to configured registries (or use local registries for air-gapped environments).
+- CUE SDK v0.14+ is used, supporting the module system and registry features.
 
-This ensures that foundational resources are created before the workloads that depend on them, and that workloads are terminated before their foundational resources are removed.
+## Out of Scope
 
-### 6.2. Resource Weights
+- GUI config editor (CLI-only interface)
+- Config sync across machines
+- Encrypted config fields (no secrets stored in config.cue)
+- Windows registry integration
 
-| Resource Kind | Weight | Rationale |
+## Config Schema Reference
+
+### Default Config Template (generated by `config init`)
+
+```cue
+// ~/.opm/config.cue
+package config
+
+import (
+    providers "opmodel.dev/providers@v0"
+)
+
+config: {
+    // registry is the default OCI registry for module resolution.
+    // Override with --registry flag or OPM_REGISTRY env var.
+    registry: "registry.opmodel.dev"
+    
+    kubernetes: {
+        // kubeconfig is the path to the kubeconfig file.
+        // Override with --kubeconfig flag or OPM_KUBECONFIG env var.
+        kubeconfig: "~/.kube/config"
+        
+        // context is the Kubernetes context to use.
+        // Override with --context flag or OPM_CONTEXT env var.
+        // Default: current-context from kubeconfig
+        context?: string
+        
+        // namespace is the default namespace for operations.
+        // Override with --namespace flag or OPM_NAMESPACE env var.
+        namespace: "default"
+    }
+    
+    // cacheDir is the local cache directory path.
+    // Override with OPM_CACHE_DIR env var.
+    cacheDir: "~/.opm/cache"
+    
+    // providers maps provider aliases to their definitions.
+    // Providers are loaded from the registry via CUE imports.
+    providers: {
+        kubernetes: providers.#Registry["kubernetes"]
+    }
+}
+```
+
+### Module Metadata (generated by `config init`)
+
+```cue
+// ~/.opm/cue.mod/module.cue
+module: "opmodel.dev/config@v0"
+
+language: {
+    version: "v0.15.0"
+}
+
+deps: {
+    "opmodel.dev/providers@v0": {
+        v: "v0.1.0"
+    }
+}
+```
+
+## 6. Module Templates
+
+The `mod init` command supports three templates to scaffold new modules. Templates provide progressively more structure for different use cases.
+
+### 6.1. Available Templates
+
+| Template | Description | Use Case |
 | :--- | :--- | :--- |
-| `CustomResourceDefinition` | -100 | **Defines new APIs.** Must be created first so the Kubernetes API server can recognize custom resources. |
-| `Namespace` | 0 | **Creates boundaries.** Must exist before any namespaced resources can be created within it. |
-| `ClusterRole`, `ClusterRoleBinding` | 5 | **Cluster-wide permissions.** Applied early as they are fundamental to cluster operation. |
-| `ResourceQuota`, `LimitRange` | 5 | **Namespace policies.** Defines constraints within a namespace. |
-| `ServiceAccount` | 10 | **Identity.** Pods are rejected if their referenced `ServiceAccount` doesn't exist. |
-| `Role`, `RoleBinding` | 10 | **Namespaced permissions.** Depends on `Namespace` and `ServiceAccount`. |
-| `Secret`, `ConfigMap` | 15 | **Configuration.** Pods depend on these for configuration and secrets, so they must exist first. |
-| `StorageClass`, `PersistentVolume`, `PersistentVolumeClaim` | 20 | **Storage.** Workloads depend on `PersistentVolumeClaim`s to mount storage. |
-| `Service` | 50 | **Networking.** Creates a stable DNS endpoint that workloads can be configured to use upon startup. |
-| `DaemonSet`, `Deployment`, `StatefulSet`, `ReplicaSet` | 100 | **Core Workloads.** The primary applications and services that run on the cluster. |
-| `Job`, `CronJob` | 110 | **Tasks.** Applied just after core workloads, as they might depend on services being available. |
-| `Ingress` | 150 | **External Routing.** Depends on `Service`s being present to route traffic to them. |
-| `NetworkPolicy` | 150 | **Traffic Rules.** Applies policies to running pods, so it should be created after the pods are defined. |
-| `HorizontalPodAutoscaler` | 200 | **Autoscaling.** Acts upon running workloads like `Deployment`s, so it must be applied after them. |
-| `ValidatingWebhookConfiguration`, `MutatingWebhookConfiguration` | 500 | **Admission Control.** Applied last to ensure their backing services (which are `Deployment`s and `Service`s) are running and ready, preventing cluster-wide apply blockages. |
+| `simple` | Single-file inline | Learning OPM, prototypes, minimal projects |
+| `standard` | Separated components | Team projects, production modules |
+| `advanced` | Multi-package with subpackages | Complex platforms, enterprise deployments |
 
-### 6.3. Resource Health & Readiness
+### 6.2. Template Selection
 
-The `mod status` command evaluates resource health based on the following rules:
+- **Default**: `standard` is used when `--template` is omitted.
+- **Flag**: `opm mod init --template <name>` selects a specific template.
+- **Validation**: Unknown template names result in exit code `2` (Validation Error).
 
-1. **Workloads**: Resources of kind `Deployment`, `StatefulSet`, `DaemonSet`, `Job`, and `CronJob` are considered healthy only when their standard Kubernetes `Ready` or `Complete` conditions are met.
-2. **Passive Resources**: Resources like `ConfigMap`, `Secret`, `Service`, `Namespace`, and `RBAC` entities are considered healthy immediately upon successful creation or update in the cluster.
-3. **Custom Resources**: If a custom resource defines a `Ready` condition in its status, it is used; otherwise, it is treated as a passive resource.
+### 6.3. Template Data
+
+Templates are rendered with the following variables:
+
+| Variable | Source | Description |
+| :--- | :--- | :--- |
+| `ModuleName` | `--name` flag or directory name | Module metadata name |
+| `ModulePath` | `--module` flag or derived from name | CUE module path (e.g., `example.com/my-app`) |
+| `Version` | Hardcoded | Initial version (`0.1.0`) |
+| `PackageName` | Sanitized from `ModuleName` | CUE package name |
+
+### 6.4. Template Structures
+
+See [Reference: Project Structure](reference/project-structure.md) for detailed file layouts of each template.

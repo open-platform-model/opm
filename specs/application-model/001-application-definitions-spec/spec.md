@@ -215,7 +215,7 @@ See [Bundle Definition Subspec](./subspecs/bundle-definition.md) for details.
 
 ### Naming and Identification
 
-- **FR-026**: `#FQNType` format: `<repo-path>@v<major>#<Name>` (e.g., `opm.dev/resources/workload@v0#Container`).
+- **FR-026**: `#FQNType` format: `<repo-path>@v<major>#<Name>` (e.g., `opmodel.dev/resources/workload@v0#Container`).
 - **FR-027**: `#VersionType` validates semantic versioning (major.minor.patch with optional prerelease/build).
 - **FR-028**: `#NameType` is a string between 1-254 characters.
 - **FR-029**: All definitions MUST have a computed `fqn` field: `"\(metadata.apiVersion)#\(metadata.name)"`.
@@ -310,4 +310,4 @@ All schemas are the authoritative specification:
 ## Related Specifications
 
 - [016-platform-definitions-spec](../../platform-model/016-platform-definitions-spec/spec.md) - Platform Provider and Transformer definitions
-- [013-cli-render-spec](../013-cli-render-spec/spec.md) - CLI render system using these definitions
+- [004-render-and-lifecycle-spec](../004-render-and-lifecycle-spec/spec.md) - CLI render system using these definitions

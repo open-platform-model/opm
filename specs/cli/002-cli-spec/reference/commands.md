@@ -130,7 +130,7 @@ CUE:
 | `OPM_CONTEXT` | Kubernetes context to use | Current context |
 | `OPM_NAMESPACE` | Default namespace for operations | `default` |
 | `OPM_CONFIG` | Path to OPM config file | `~/.opm/config.yaml` |
-| `OPM_REGISTRY` | Default registry for all CUE module resolution and OCI operations. When set, all CUE imports resolve from this registry (e.g., `localhost:5000` redirects `opm.dev/core@v0` lookups). Passed to CUE binary as `CUE_REGISTRY`. | — |
+| `OPM_REGISTRY` | Default registry for all CUE module resolution and OCI operations. When set, all CUE imports resolve from this registry (e.g., `localhost:5000` redirects `opmodel.dev/core@v0` lookups). Passed to CUE binary as `CUE_REGISTRY`. | — |
 | `OPM_CACHE_DIR` | Local cache directory | `~/.opm/cache` |
 | `NO_COLOR` | Disable colored output when set | — |
 
@@ -175,17 +175,20 @@ opm mod init <name> [flags]
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
-| `--template` | `-t` | `string` | `oci://registry.opm.dev/templates/standard:latest` | OCI URL of template to use |
+| `--template` | `-t` | `string` | `standard` | Builtin template: `simple`, `standard`, `advanced` |
 | `--dir` | `-d` | `string` | `./<name>` | Directory to create module in |
 
 **Examples:**
 
 ```sh
-# Create module with default template
+# Create module with default template (standard)
 opm mod init my-app
 
-# Create module from specific template
-opm mod init my-app --template oci://registry.opm.dev/templates/microservice:v1
+# Create module with simple template (minimal, single-file)
+opm mod init my-app --template simple
+
+# Create module with advanced template (multi-package)
+opm mod init my-app --template advanced
 
 # Create module in specific directory
 opm mod init my-app --dir ./modules/my-app
@@ -275,6 +278,8 @@ opm mod tidy
 
 Render a module's CUE definition into Kubernetes manifests.
 
+> **Note**: Implementation details for this command are specified in [004-render-and-lifecycle-spec](../../004-render-and-lifecycle-spec/spec.md).
+
 **Synopsis:**
 
 ```text
@@ -287,7 +292,7 @@ opm mod build [flags]
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
-| `--values` | `-v` | `string[]` | | Values file(s) to supply concrete values (can be specified multiple times, in which case all are unified by CUE) |
+| `--values` | `-f` | `string[]` | | Values file(s) to supply concrete values (can be specified multiple times, in which case all are unified by CUE) |
 | `--output-format` | `-o` | `string` | `text` | Output format: `text` (default, equals `yaml`), `yaml`, `json`, or `dir` |
 | `--out-dir` | | `string` | `./manifests` | Output directory (only used with `--output-format dir`) |
 
@@ -302,7 +307,7 @@ opm mod build
 # Build with values file
 opm mod build -v values.cue
 
-# Build with multiple values files (all unified in CUE)
+# Build with multiple values files (all unified in CUE, meaning there is no hierarchy)
 opm mod build -v base.cue -v production.cue
 
 # Output as JSON
@@ -320,7 +325,7 @@ opm mod build -o dir --out-dir ./deploy/manifests
 
 Apply module resources to a Kubernetes cluster.
 
-Resources are applied in weighted order to respect hard dependencies (CRDs before custom resources, Namespaces before namespaced resources, etc.). See [spec.md Section 6](../spec.md#6-deployment-lifecycle--resource-ordering) for the weighting system.
+> **Note**: Implementation details for this command are specified in [004-render-and-lifecycle-spec](../../004-render-and-lifecycle-spec/spec.md).
 
 **Synopsis:**
 
@@ -334,7 +339,7 @@ opm mod apply [flags]
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
-| `--values` | `-v` | `string[]` | | Values file(s) to supply concrete values |
+| `--values` | `-f` | `string[]` | | Values file(s) to supply concrete values |
 | `--dry-run` | | `bool` | `false` | Server-side dry run without making changes |
 | `--diff` | | `bool` | `false` | Show diff of changes before applying |
 | `--wait` | `-w` | `bool` | `false` | Wait for resources to become ready |
@@ -372,7 +377,7 @@ opm mod apply --wait --timeout 10m
 
 Delete all Kubernetes resources associated with a module.
 
-Resources are deleted in reverse weighted order (workloads before namespaces, custom resources before CRDs).
+> **Note**: Implementation details for this command are specified in [004-render-and-lifecycle-spec](../../004-render-and-lifecycle-spec/spec.md).
 
 **Synopsis:**
 
@@ -386,9 +391,9 @@ opm mod delete [flags]
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
-| `--values` | `-v` | `string[]` | | Values file(s) to identify resources to delete |
+| `--values` | `-f` | `string[]` | | Values file(s) to identify resources to delete |
 | `--dry-run` | | `bool` | `false` | Show what would be deleted without deleting |
-| `--force` | `-f` | `bool` | `false` | Skip confirmation and force-delete stuck resources |
+| `--force` | | `bool` | `false` | Skip confirmation and force-delete stuck resources |
 | `--timeout` | | `duration` | `5m` | Timeout for the operation |
 
 **Examples:**
@@ -420,6 +425,8 @@ opm mod delete --force
 
 Show differences between local module definition and live cluster state.
 
+> **Note**: Implementation details for this command are specified in [004-render-and-lifecycle-spec](../../004-render-and-lifecycle-spec/spec.md).
+
 **Synopsis:**
 
 ```text
@@ -432,7 +439,7 @@ opm mod diff [flags]
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
-| `--values` | `-v` | `string[]` | | Values file(s) to supply concrete values |
+| `--values` | `-f` | `string[]` | | Values file(s) to supply concrete values |
 | `--no-color` | | `bool` | `false` | Disable colored diff output |
 
 **Examples:**
@@ -460,6 +467,8 @@ opm mod diff --no-color | less
 ### `opm mod status`
 
 Report the readiness and health of a deployed module's resources.
+
+> **Note**: Implementation details for this command are specified in [004-render-and-lifecycle-spec](../../004-render-and-lifecycle-spec/spec.md).
 
 **Synopsis:**
 
@@ -521,7 +530,7 @@ opm config init [flags]
 
 | Flag | Short | Type | Default | Description |
 |------|-------|------|---------|-------------|
-| `--force` | `-f` | `bool` | `false` | Overwrite existing config file |
+| `--force` | | `bool` | `false` | Overwrite existing config file |
 
 **Examples:**
 

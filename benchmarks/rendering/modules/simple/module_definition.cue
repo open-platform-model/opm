@@ -1,17 +1,17 @@
 package simple
 
 import (
-	workload_blueprints "opm.dev/blueprints/workload@v1"
+	workload_blueprints "opmodel.dev/blueprints/workload@v1"
 )
 
 // Simple 2-component web application using blueprints
 // This represents a ModuleDefinition where components reference blueprints
 simpleModuleDefinition: {
-	apiVersion: "opm.dev/v1/core"
+	apiVersion: "opmodel.dev/v1/core"
 	kind:       "ModuleDefinition"
 
 	metadata: {
-		apiVersion:       "opm.dev/benchmarks/simple@v0"
+		apiVersion:       "opmodel.dev/benchmarks/simple@v0"
 		name:             "SimpleWebApp"
 		version:          "1.0.0"
 		description:      "Simple web application with frontend and API backend (blueprint-based)"
@@ -24,7 +24,7 @@ simpleModuleDefinition: {
 			metadata: {
 				name: "web-frontend"
 				labels: {
-					"app.opm.dev/tier": "frontend"
+					"app.opmodel.dev/tier": "frontend"
 				}
 			}
 
@@ -65,7 +65,7 @@ simpleModuleDefinition: {
 			metadata: {
 				name: "api-backend"
 				labels: {
-					"app.opm.dev/tier": "backend"
+					"app.opmodel.dev/tier": "backend"
 				}
 			}
 
