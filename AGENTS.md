@@ -7,16 +7,17 @@ Landing project with docs, specs, benchmarks, and Taskfile automation.
 ## Constitution
 
 This project follows the **Open Platform Model Constitution**.
-All agents MUST read and adhere to `opm/.specify/memory/constitution.md`.
+All agents MUST read and adhere to `openspec/config.yaml`.
 
 **Core Principles:**
 
 1. **Type Safety First**: All definitions in CUE. Validation at definition time.
-2. **Separation of Concerns**: ModuleDefinition (Dev) -> Module (Platform) -> ModuleRelease (Consumer).
-3. **Policy Built-In**: Policies and Scopes are first-class; enforcement at definition time.
-4. **Portability by Design**: Definitions must be runtime-agnostic.
-5. **Semantic Versioning**: SemVer v2.0.0 and Conventional Commits v1 required.
-6. **Simplicity & YAGNI**: Justify complexity. Prefer explicit over implicit.
+2. **Separation of Concerns**: Module (Dev) -> ModuleRelease (Consumer). Clear ownership boundaries.
+3. **Composability**: Definitions compose without implicit coupling. Resources, Traits, Blueprints are independent.
+4. **Declarative Intent**: Express WHAT, not HOW. Provider-specific steps in ProviderDefinitions.
+5. **Portability by Design**: Definitions must be runtime-agnostic.
+6. **Semantic Versioning**: SemVer v2.0.0 and Conventional Commits v1 required.
+7. **Simplicity & YAGNI**: Justify complexity. Prefer explicit over implicit.
 
 **Governance**: The constitution supersedes this file in case of conflict.
 
@@ -31,21 +32,30 @@ All agents MUST read and adhere to `opm/.specify/memory/constitution.md`.
 │   └── rendering/     # Module rendering benchmarks
 ├── docs/              # End-user documentation
 ├── specs/             # Specifications
-│   ├── 003-taskfile-spec/              # Taskfile specification (root-level)
+│   ├── application-model/              # Application Model (index only, specs moved to core/)
 │   ├── cli/                            # CLI specifications
-│   │   ├── 002-cli-spec/               # CLI v2 specification (includes configuration)
-│   │   ├── 004-render-and-lifecycle-spec/  # CLI render system specification
-│   │   ├── 005-module-validation/      # Module validation with Go CUE SDK
-│   │   ├── 011-oci-distribution-spec/  # Distribution & Versioning
-│   │   └── 012-template-oci-spec/      # CLI module template specification
-│   ├── application-model/              # Application Model specifications
-│   │   ├── 001-application-definitions-spec/  # Core application definitions
-│   │   ├── 009-definition-interface-spec/     # Interface Definition Specification (archived)
-│   │   ├── 010-definition-lifecycle-spec/     # Lifecycle Definition Specification (archived)
-│   │   └── 017-bundle-spec/            # Bundle definitions (draft)
-│   └── platform-model/                 # Platform Model specifications
-│       ├── 015-platform-runtime-spec/  # Platform runtime & module catalog specification
-│       └── 016-platform-definitions-spec/  # Platform definitions (Provider, Transformer)
+│   │   ├── cli-core-spec/              # CLI configuration, initialization, project structure
+│   │   ├── cli-build-spec/             # Render pipeline and mod build
+│   │   ├── cli-deploy-spec/            # Deployment lifecycle (apply, delete, diff, status)
+│   │   └── cli-validation-spec/        # Module validation with Go CUE SDK
+│   ├── core/                           # Core type specifications
+│   │   ├── core-types-spec/            # Resource, Trait, Blueprint definitions
+│   │   └── module-composition-spec/    # Component, Module, ModuleRelease
+│   ├── deferred/                       # Deferred specifications
+│   │   ├── bundle-spec/                # Bundle definitions (deferred)
+│   │   ├── governance-spec/            # Policy, Scope definitions (deferred)
+│   │   ├── interface-spec/             # Interface definitions (deferred)
+│   │   ├── lifecycle-spec/             # Lifecycle definitions (deferred)
+│   │   └── status-spec/                # Status definitions (deferred)
+│   ├── development/                    # Development tooling specifications
+│   │   └── taskfile-spec/              # Development Taskfile specification
+│   ├── distribution/                   # Distribution specifications
+│   │   ├── distribution-spec/          # OCI-based module distribution
+│   │   └── template-spec/              # Module template distribution
+│   ├── platform/                       # Platform specifications
+│   │   ├── catalog-spec/               # Module catalog and tiered values
+│   │   └── platform-adapter-spec/      # Platform definitions (Provider, Transformer)
+│   └── platform-model/                 # Platform Model (index only, specs moved to platform/)
 ├── README.md
 └── Taskfile.yml
 ```
@@ -103,7 +113,7 @@ Examples:
 ## Patterns
 
 - Definition structure: `apiVersion`, `kind`, `metadata` (with `name!`, `fqn`), `#spec`.
-- Three-layer module: ModuleDefinition -> Module -> ModuleRelease.
+- Two-layer module: Module -> ModuleRelease.
 
 ## Glossary
 
@@ -124,5 +134,5 @@ See [full glossary](docs/glossary.md) for detailed definitions.
 
 ## Recent Changes
 
-- 005-module-validation: Added specification for `opm mod vet` command using Go CUE SDK for native module validation
+- 005-validation: Added specification for `opm mod vet` command using Go CUE SDK for native module validation
 - 003-taskfile-spec: Added YAML (Taskfile v3) + `go-task/task` v3.x, `cue` v0.15.0+, `go` 1.21+, `golangci-lint`, `watchexec`

@@ -10,7 +10,7 @@ Person or team operating the underlying infrastructure (Kubernetes clusters, clo
 
 ### Module Author
 
-Developer who creates and maintains OPM modules. Responsible for defining the ModuleDefinition, setting sane default values, and publishing updates. Module authors design for reusability and configurability.
+Developer who creates and maintains OPM modules. Responsible for defining the Module, setting sane default values, and publishing updates. Module authors design for reusability and configurability.
 
 ```cue
 // Module authors define the structure and defaults
@@ -24,7 +24,7 @@ Developer who creates and maintains OPM modules. Responsible for defining the Mo
 
 ### Platform Operator
 
-Person or team operating a platform and its catalog of Modules and Bundles. Consumes modules from authors, curates them for organizational use, and may apply additional policies or constraints. Bridges infrastructure and end-users.
+Person or team operating a platform and its catalog of Modules and Bundles. Consumes modules from authors, curates them for organizational use, and may apply additional constraints via CUE unification. Bridges infrastructure and end-users.
 
 ### End-user
 
