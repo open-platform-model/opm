@@ -1,0 +1,53 @@
+graph TB
+    subgraph Primitives[" "]
+        direction LR
+        PolicyRule:::primitive
+        StatusProbe:::primitive
+        Op:::primitive
+        Action:::primitive
+        Resource:::primitive
+        Trait:::primitive
+        Blueprint:::primitive
+    end
+
+    subgraph Composites[" "]
+        direction LR
+        Policy:::construct
+        Status:::construct
+        Lifecycle:::construct
+        Component:::construct
+    end
+
+    %% Primitives compose their direct constructs
+    PolicyRule -->|composes| Policy
+    StatusProbe -->|composes| Status
+    Op -->|composes| Action
+    Action -->|consumed by| Lifecycle
+
+    %% Primitives compose into Blueprint
+    Resource -->|composes| Blueprint
+    Trait -->|composes| Blueprint
+
+    %% Primitives compose Component
+    Resource -->|composes| Component
+    Trait -->|composes| Component
+    Blueprint -->|composes| Component
+
+    %% Operational declarations for downstream systems
+    Status -->|declares| Component
+    Status -->|declares| Module
+    Lifecycle -->|declares| Component
+    Lifecycle -->|declares| Module
+
+    %% Governance and containment
+    Policy -->|governs| Module:::construct
+    Policy -.->|governs| Component
+    Component -->|composes| Module
+
+    %% Instantiation
+    Module -->|instantiates| ModuleRelease:::construct
+    Module -->|grouped into| Bundle:::construct
+    Bundle -->|instantiates| BundleRelease:::construct
+
+    classDef primitive fill:#e8f4f8,stroke:#2196F3,color:#1565C0
+    classDef construct fill:#fff3e0,stroke:#FF9800,color:#E65100

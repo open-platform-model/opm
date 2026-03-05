@@ -1,0 +1,38 @@
+graph LR
+    subgraph P["Primitives"]
+        direction TB
+        Resource
+        Trait
+        Blueprint
+        PolicyRule
+    end
+
+    subgraph C["Constructs"]
+        direction TB
+        Component
+        Policy
+    end
+
+    subgraph M["Module"]
+        direction TB
+        Mod["Module"]
+        ModRelease["ModuleRelease"]
+    end
+
+    Resource  -->|composes| Blueprint
+    Trait     -->|composes| Blueprint
+    Resource  -->|composes| Component
+    Trait     -->|composes| Component
+    Blueprint -->|composes| Component
+    PolicyRule -->|composes| Policy
+
+    Component -->|composes| Mod
+    Policy    -->|governs| Mod
+
+    Mod -->|instantiates| ModRelease
+
+    class Resource,Trait,Blueprint,PolicyRule primitive
+    class Component,Policy,Mod,ModRelease construct
+
+    classDef primitive fill:#e8f4f8,stroke:#2196F3,color:#1565C0
+    classDef construct fill:#fff3e0,stroke:#FF9800,color:#E65100

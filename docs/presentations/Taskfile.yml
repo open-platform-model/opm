@@ -1,0 +1,65 @@
+version: "3"
+
+silent: true
+
+vars:
+  DECK: kickstart
+  OUT_DIR: dist
+  # Resolve DECK name to the subfolder containing deck.md
+  DECK_DIR:
+    sh: ls -1d *{{.DECK}} 2>/dev/null | head -1
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmd: task --list
+
+  preview:
+    desc: "Live preview (DECK={{.DECK}})"
+    preconditions:
+      - sh: test -n "{{.DECK_DIR}}"
+        msg: "Presentation '{{.DECK}}' not found. Run 'task list' to see available decks."
+    cmds:
+      - echo "Serving at http://localhost:8080/{{.DECK_DIR}}/deck.md"
+      - marp -s .
+
+  html:
+    desc: "Export to HTML (DECK={{.DECK}})"
+    preconditions:
+      - sh: test -n "{{.DECK_DIR}}"
+        msg: "Presentation '{{.DECK}}' not found. Run 'task list' to see available decks."
+    cmds:
+      - mkdir -p {{.OUT_DIR}}
+      - marp {{.DECK_DIR}}/deck.md -o {{.OUT_DIR}}/{{.DECK}}.html
+
+  pdf:
+    desc: "Export to PDF (DECK={{.DECK}})"
+    preconditions:
+      - sh: test -n "{{.DECK_DIR}}"
+        msg: "Presentation '{{.DECK}}' not found. Run 'task list' to see available decks."
+    cmds:
+      - mkdir -p {{.OUT_DIR}}
+      - marp --pdf {{.DECK_DIR}}/deck.md -o {{.OUT_DIR}}/{{.DECK}}.pdf
+
+  pptx:
+    desc: "Export to PPTX (DECK={{.DECK}})"
+    preconditions:
+      - sh: test -n "{{.DECK_DIR}}"
+        msg: "Presentation '{{.DECK}}' not found. Run 'task list' to see available decks."
+    cmds:
+      - mkdir -p {{.OUT_DIR}}
+      - marp --pptx {{.DECK_DIR}}/deck.md -o {{.OUT_DIR}}/{{.DECK}}.pptx
+
+  diagram:
+    desc: Re-render mermaid diagrams in assets/
+    cmds:
+      - npx -y @mermaid-js/mermaid-cli -i assets/opm-architecture.mmd -o assets/opm-architecture.png -b white -w 1200 -H 800
+      - npx -y @mermaid-js/mermaid-cli -i assets/opm-architecture-slide.mmd -o assets/opm-architecture-slide.png -b white -w 1400 -H 600
+
+  list:
+    desc: List available presentations
+    cmd: ls -1d */ 2>/dev/null | grep -E '^[0-9]{3}-' | sed 's|/$||'
+
+  clean:
+    desc: Remove build artifacts
+    cmd: rm -rf {{.OUT_DIR}}

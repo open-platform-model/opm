@@ -2,9 +2,11 @@
     "$schema": "https://opencode.ai/config.json",
     "permission": {
         "external_directory": {
+            "~/Dev/open-platform-model/local/**": "allow",
             "~/Dev/open-platform-model/catalog/**": "allow",
             "~/Dev/open-platform-model/cli/**": "allow",
             "~/Dev/open-platform-model/opmodel.dev/**": "allow",
+            "../local/**": "allow",
             "../catalog/**": "allow",
             "../cli/**": "allow",
             "../opmodel.dev/**": "allow"
