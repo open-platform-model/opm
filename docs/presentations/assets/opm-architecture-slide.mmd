@@ -1,38 +1,34 @@
-graph LR
+%%{init: {'flowchart': {'rankSpacing': 100, 'nodeSpacing': 40}}}%%
+flowchart LR
     subgraph P["Primitives"]
         direction TB
         Resource
         Trait
-        Blueprint
         PolicyRule
     end
+
+    Blueprint
 
     subgraph C["Constructs"]
         direction TB
         Component
         Policy
-    end
-
-    subgraph M["Module"]
-        direction TB
         Mod["Module"]
-        ModRelease["ModuleRelease"]
     end
 
-    Resource  -->|composes| Blueprint
-    Trait     -->|composes| Blueprint
-    Resource  -->|composes| Component
-    Trait     -->|composes| Component
-    Blueprint -->|composes| Component
+    Resource   -->|composes| Blueprint
+    Trait      -->|composes| Blueprint
+    Resource   -->|composes| Component
+    Trait      -->|composes| Component
+    Blueprint  -->|composes| Component
     PolicyRule -->|composes| Policy
 
     Component -->|composes| Mod
     Policy    -->|governs| Mod
-
-    Mod -->|instantiates| ModRelease
+    Policy    -.->|governs| Component
 
     class Resource,Trait,Blueprint,PolicyRule primitive
-    class Component,Policy,Mod,ModRelease construct
+    class Component,Policy,Mod construct
 
     classDef primitive fill:#e8f4f8,stroke:#2196F3,color:#1565C0
     classDef construct fill:#fff3e0,stroke:#FF9800,color:#E65100

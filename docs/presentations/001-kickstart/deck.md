@@ -2,7 +2,6 @@
 marp: true
 theme: gaia
 paginate: true
-transition: fade
 title: "OPM Kickstart"
 description: "OPM introduction for teams coming from Helm"
 author: Emil
@@ -280,24 +279,26 @@ image:
   repository: lscr.io/linuxserver/jellyfin
   tag: latest
 
-port: 8096
+port: -5
 puid: 1000
 pgid: 1000
 timezone: Etc/UTC
-configStorageSize: 15Gi
+configStoragSize: 15Gi
 
 media:
   tvshows:
+    type: pvc
     mountPath: /data/tvshows
     size: 10Gi
   movies:
+    type: pvc
     mountPath: /data/movies
     size: 10Gi
 ```
 
-- What type is `port`? String? Int? Both render.
+<!-- - What type is `port`? String? Int? Both render.
 - Typo `configStoragSize`? Silently ignored.
-- `port: -5`? Helm says nothing.
+- `port: -5`? Helm says nothing. -->
 
 <!--
 Pain: untyped values. Every Helm user has been bitten by this.
@@ -325,6 +326,7 @@ Pain: untyped values. Every Helm user has been bitten by this.
     configStorageSize: string | *"10Gi"
 
     media?: [Name=string]: {               // dynamic map, each entry typed
+        name: string | *Name
         mountPath: string
         type:      "pvc" | *"emptyDir"     // enum -- only two allowed
         size:      string
@@ -353,14 +355,14 @@ values: {
         repository: "lscr.io/linuxserver/jellyfin"
         tag:        "latest"
     }
-    port:              8096
+    port:              -5
     puid:              1337
     pgid:              1337
     timezone:          "Europe/Stockholm"
-    configStorageSize: "15Gi"
+    configStoragSize: "15Gi"
     media: {
-        tvshows: { mountPath: "/data/tvshows", size: "10Gi" }
-        movies:  { mountPath: "/data/movies",  size: "10Gi" }
+        tvshows: { type: "nfs", mountPath: "/data/tvshows", size: "10Gi" }
+        movies:  { type: "nfs", mountPath: "/data/movies",  size: "10Gi" }
     }
 }
 ```
@@ -370,7 +372,6 @@ values: {
 | Input | Error |
 |-------|-------|
 | `port: -5` | `invalid value -5 (out of bound >0)` |
-| `port: "8096"` | `conflicting values string and int` |
 | `configStoragSize` (typo) | `field not allowed` |
 | `type: "nfs"` | `2 errors in empty disjunction: "pvc" \| "emptyDir"` |
 
@@ -382,20 +383,25 @@ Schema and values are separate files. Author owns the schema, deployer overrides
 
 <!-- _class: why pain -->
 
-# Template Debugging
+# Helm: Template Debugging
 
 ```
 {{ if and .Values.ingress.enabled (not (empty .Values.ingress.hosts)) }}
 ```
 
-Good luck at 02:00.
+```
+Error: template: jellyfin/templates/ingress.yaml:23:18:
+  executing "jellyfin/templates/ingress.yaml" at <.Values.ingress.hosts>:
+  nil pointer evaluating interface {}.hosts
+```
 
-- Templates are string interpolation, not logic
-- Stack traces point into template internals — not to your config
-- No type information: was `.Values.port` a string or an int?
+- Error points to **the template**, not your values
+- You trace backwards: what value triggered this branch?
+- No type info: was `.Values.ingress.hosts` a list? A string? Nil?
 
 <!--
 Pain: template debugging. Every Helm user has hit this at the worst possible time.
+Show the template expression, then the error -- audience has to do the same mental trace-back the developer does at 02:00.
 -->
 
 ---
@@ -410,7 +416,8 @@ CUE is declarative — schemas and data **unify**, not concatenate.
 - **Errors show `file:line:column`** — not cryptic template stack traces
 - **Types follow embeddings** — CUE knows `port` is `int & >0 & <=65535` everywhere it's used
 
-> If it evaluates, it's valid. If it's invalid, you find out on your laptop.
+> `values.cue:8:5: ingress.hosts: field is required`
+> Not the template. Your file. The missing field.
 
 <!--
 The fundamental difference from Go templates. CUE is a value language, not a text language.
@@ -420,9 +427,7 @@ The fundamental difference from Go templates. CUE is a value language, not a tex
 
 <!-- _class: why pain -->
 
-# Forking to Customize
-
-Need a sidecar? **Fork the chart.** Now you own the whole thing.
+# Helm: One Blob
 
 ```text
 upstream chart ──→ your fork ──→ your changes
@@ -430,77 +435,23 @@ upstream chart ──→ your fork ──→ your changes
        └── upstream update ─── merge conflict
 ```
 
-Every platform team ends up maintaining forks of charts they didn't write.
-Upstream updates become month-long migration projects.
+A Helm chart is everything wired together in templates.
 
-<!--
-Pain: forking to customize. Very relatable for platform teams.
--->
-
----
-
-<!-- _class: two-col-footer why answer -->
-
-# OPM: Extending Without Forking
-
-<div>
-
-### The easy path: Curate
-
-- Add components (monitoring sidecar, audit logger) to any `#Module`
-- Extend `#config` to expose new fields to end-users
-- CUE unification merges it all — no patching, no merge conflicts
-
-</div>
-<div>
-
-### The harder path: Fork
-
-- Change existing behavior or fix something inside the module
-- Conscious decision, not the default
-
-</div>
-
-<div class="footer">
-
-> In Helm, every customization is a fork. In OPM, most are additive.
-
-</div>
-
-<!--
-Easy path is the common case -- platform teams curate modules for their org without touching upstream.
-Harder path is still available but it's a deliberate choice, not the only option.
--->
-
----
-
-<!-- _class: why pain -->
-
-# No Real Composition
-
-A Helm chart is **one blob**. Everything is wired together in the templates.
-
+- Want to add a sidecar? Fork. Now you own the whole thing.
 - Want to add scaling? Edit the Deployment template.
-- Want to expose differently? Edit the Service template.
-- Want both from different chart authors? Fork both.
+- Want pieces from two chart authors? Fork both.
 
-There's no way to take a container definition, a scaling policy, and an expose behavior — authored independently — and compose them.
+Every platform team ends up maintaining forks of charts they didn't write.
 
 <!--
-Pain: no real composition. Leads naturally into OPM's composability model.
+Pain: forking to customize + no real composition. Both stem from the same root: Helm charts are monolithic blobs.
 -->
 
 ---
 
-<!-- _class: why answer -->
+<!-- _class: why answer small-code -->
 
-# OPM: Independent Composition
-
-Resources, Traits, and Blueprints are **independently authored** — they compose without coupling.
-
-- **Add** a Trait — doesn't modify the Resource
-- **Remove** one — doesn't break the others
-- **Conflict?** CUE catches it at build time
+# OPM: Compose Without Forking
 
 ```cue
 web: {
@@ -509,16 +460,27 @@ web: {
   network.#Expose
 
   spec: {
-    contianer: {...}
-    scalaing: {...}
-    expose: {...}
+    container: {...}
+    scaling:   {...}
+    expose:    {...}
+  }
+}
+extra: {
+  workload.#Container
+  spec: {
+    container: {...}
   }
 }
 ```
 
-Each primitive owns its own field in `spec`. No overlap. No implicit dependencies.
+- Add a Trait without modifying the Resource
+- Add a component to any module — no fork, no merge conflicts
+- Conflict? CUE catches it at build time
+
+> In Helm, every customization is a fork. In OPM, most are additive.
 
 <!--
+Easy path: curate (additive). Harder path: fork (conscious decision).
 Keep this light -- the detailed version with code is in the HOW section.
 -->
 
@@ -556,7 +518,7 @@ CUE validates **before** anything touches a cluster.
 - **Mutually exclusive fields** are structurally impossible, not just documented
 
 ```cue
-matchN(1, [#config.serverType.paper != _|_, #config.serverType.forge != _|_])
+serverType: "paper" | "forge"
 // violation: "exactly 1 must be true, found 2"
 ```
 
@@ -595,42 +557,11 @@ These painpoints aren't abstract. As a Platform Engineer and Architect, they sho
 
 ---
 
-<!-- _class: how small-code -->
-
-# CUE in 60 Seconds
-
-```cue
-// Type constraints -- not comments, actual enforcement
-port: int & >0 & <=65535
-
-// Required vs optional
-name!:        string   // required
-description?: string   // optional
-
-// Defaults
-replicas: int | *3
-
-// Closed structs -- unknown fields are errors
-// (this alone fixes half the Helm values.yaml problems)
-```
-
-- Schemas, constraints, and data **unify** -- conflicts are errors, not silent overwrites
-- Unknown fields are **rejected** -- no typos slipping through
-- Errors show **file:line:column** across all source files
-
-<!--
-3 minutes. If the audience has never seen CUE, this is the crash course.
-Emphasize: schemas, constraints, and data UNIFY. Conflicts are errors, not silent overwrites.
-This is the "aha" slide for anyone used to YAML-based config.
--->
-
----
-
 <!-- _class: how -->
 
 # Primitives -- The Building Blocks
 
-Independently authored schemas. All share the same shape: `metadata` + `#spec`.
+Independently authored schemas. All share the same shape: `metadata` + `spec`.
 
 | Primitive | Question it answers | Examples |
 |-----------|---------------------|----------|
@@ -703,19 +634,114 @@ web: {
     network.#Expose
 
     spec: {
-        container: image: repository: "nginx"   // from #Container
-        scaling:   count: 3                      // from #Scaling
-        expose:    type: "LoadBalancer"           // from #Expose
+        container: {                                         // from #Container
+          image: repository: "nginx"   
+          ports: http: {targetPort: 8080}
+        }
+        scaling:   count: 3                                  // from #Scaling
+        expose: {                                            // from #Expose
+          type: "LoadBalancer"           
+          ports: http: contiainer.ports.http & {exposePort: 8888}
+        }
     }
 }
 ```
 
-- Adding a Trait doesn't modify the Resource
-- Removing one doesn't break the others
-- Conflicting fields? CUE catches it at build time
-
 <!--
 3-4 minutes. This is the key architectural insight.
+-->
+
+---
+
+<!-- _class: how small-code -->
+
+# `#config` — Typed Fields, Not Strings
+
+```cue
+// module.cue
+#config: {
+    image: schemas.#Image & {
+        repository: string | *"itzg/minecraft-server"
+        tag:        string | *"java21"
+        digest:     string | *""
+    }
+
+    rcon: {
+        enabled:  bool | *true
+        password: schemas.#Secret & {
+            $secretName: "server-secrets"
+            $dataKey:    "rcon-password"
+        }
+        port: int & >0 & <=65535 | *25575
+    }
+}
+```
+
+Fields aren't `string` — they're typed structures. `$secretName` and `$dataKey` are set by the **module author**, not the user.
+
+```cue
+// components.cue — the module never changes between dev and prod
+env: RCON_PASSWORD: {
+    name: "RCON_PASSWORD"
+    from: #config.rcon.password  // transformer → secretKeyRef
+}
+```
+
+<!--
+Bridge from "intent vs rendering" to what intent actually looks like in code.
+#Image and #Secret are reusable schemas -- the module author composes them into #config like any other CUE struct.
+-->
+
+---
+
+<!-- _class: how small-code -->
+
+# `#Secret` — Dev to Prod, Same Schema
+
+```cue
+// Dev: inline value (literal variant)
+rcon: password: value: "minecraft"
+
+// Prod: reference an existing K8s Secret
+rcon: password: {
+    secretName: "prod-secrets"
+    remoteKey:  "rcon-password"
+}
+```
+
+The module definition is identical in dev and prod. The user picks a variant. The transformer handles the rest.
+
+<!--
+$secretName and $dataKey are set once by the module author in #config.
+The user only provides the value or the reference -- they never touch the wiring.
+-->
+
+---
+
+<!-- _class: how small-code -->
+
+# `#Image` — More Than `image.tag: string`
+
+```cue
+#Image: {
+    repository!: string
+    tag!:        string & strings.MaxRunes(128)
+    digest!:     string
+    pullPolicy:  *"IfNotPresent" | "Always" | "Never"
+
+    // computed — no template concatenation
+    reference: "\(repository):\(tag)@\(digest)"
+}
+```
+
+| | Helm | OPM `#Image` |
+|---|---|---|
+| `tag` | `string` (anything) | `string & MaxRunes(128)` |
+| `pullPolicy` | `string` (anything) | closed enum |
+
+<!--
+The computed `reference` field is the key moment: no template concatenation, no risk of mismatched tag/digest.
+The transformer uses `reference` directly -- the module author never thinks about it.
 -->
 
 ---
@@ -740,45 +766,9 @@ Walk through the diagram:
 
 <!-- _class: how -->
 
-# Intent vs. Rendering
+# The Pipeline
 
-> **Primitives define intent. Transformers define rendering.**
-
-A single `#ExposeTrait` gets consumed by a Kubernetes transformer and produces a **Service**.
-
-A different transformer could produce **Docker Compose port mappings**.
-
-The Trait doesn't change -- the rendering is a separate concern owned by the **Provider**.
-
-| | Helm | OPM |
-|---|---|---|
-| **What** | Chart IS the rendering logic | Module describes WHAT |
-| **How** | Baked into templates | Transformer decides HOW |
-
-<!--
-This is the fundamental architectural difference from Helm.
--->
-
----
-
-<!-- _class: how -->
-
-# The Render Pipeline
-
-```text
-LOAD ──> PROVIDER ──> BUILD ──> MATCH ──> GENERATE
-CUE      Parse        Validate   Component    Execute
-module   transformers  values vs  x Transformer #transform
-                       #config    matching      --> K8s manifests
-```
-
-- No in-cluster controller -- CLI evaluates CUE and applies via server-side apply
-- **Deterministic** -- same input, same output
-- **Testable** without a cluster
-
-<!--
-2 minutes. Quick overview of the pipeline. Emphasize determinism.
--->
+![w:1100 center](../assets/pipeline-flow.png)
 
 ---
 
@@ -796,7 +786,7 @@ module   transformers  values vs  x Transformer #transform
 
 # Jellyfin -- A Simple Module
 
-Three files in `examples/jellyfin/`:
+Three files in `examples/modules/jellyfin/`:
 
 | File | Purpose |
 |------|---------|
@@ -817,7 +807,10 @@ Three files in `examples/jellyfin/`:
 # Jellyfin Demo
 
 ```bash
-opm mod build ./examples/jellyfin
+cd ./examples/releases/jellyfin
+
+opm rel vet . # Validate the release
+opm rel build . # Build the release
 ```
 
 Show the rendered YAML output.
@@ -855,13 +848,13 @@ This is where it gets interesting:
 
 ```bash
 # Default Paper server
-opm mod build ./examples/minecraft/minecraft-java
+opm rel build ./examples/releases/minecraft/mc_java
 
 # Same module, Forge modded server, hostPath storage, NodePort
-opm mod build ./examples/minecraft/minecraft-java -f values_forge.cue
+opm rel build ./examples/releases/minecraft/mc_java -f values_forge.cue
 
 # Same module, production Paper, 100 players, S3 backups
-opm mod build ./examples/minecraft/minecraft-java -f values_paper_restic.cue
+opm rel build ./examples/releases/minecraft/mc_java -f values_paper_restic.cue
 ```
 
 **Then the validation demo:**
@@ -954,17 +947,17 @@ Emphasize: this runs in CI. No cluster needed.
 
 <!-- _class: demo -->
 
-# `opm mod apply` -- Deploy with Inventory
+# `opm rel apply` -- Deploy with Inventory
 
 ```bash
 # First apply -- resources created
-opm mod apply ./examples/jellyfin
+opm rel apply .
 
 # Run again -- idempotent, "Module up to date"
-opm mod apply ./examples/jellyfin
+opm rel apply .
 
-# Change a value, re-apply -- "configured" vs "unchanged"
-opm mod apply ./examples/jellyfin -f modified-values.cue
+# Change a value in the release file, re-apply -- "configured" vs "unchanged"
+opm rel apply . --values modified_values.cue
 
 # Remove a component, re-apply -- stale resources pruned
 ```
@@ -980,10 +973,10 @@ Component-rename safety check prevents accidental deletion.
 
 <!-- _class: demo -->
 
-# `opm mod diff` -- Semantic Diffing
+# `opm rel diff` -- Semantic Diffing
 
 ```bash
-opm mod diff ./examples/jellyfin
+opm rel diff jellyfin_release.cue
 ```
 
 - **dyff-powered** semantic YAML diff (not line-by-line text)
@@ -998,17 +991,17 @@ opm mod diff ./examples/jellyfin
 
 <!-- _class: demo -->
 
-# `opm mod status` + `tree` + `events`
+# `opm rel status` + `tree` + `events`
 
 ```bash
 # Health status -- color-coded, --verbose shows pod diagnostics
-opm mod status
+opm rel status jellyfin
 
 # Ownership tree: Component --> Deployment --> ReplicaSet --> Pod
-opm mod tree --depth 2
+opm rel tree jellyfin --depth 2
 
 # Real-time events filtered to release resources
-opm mod events --watch
+opm rel events jellyfin --watch
 ```
 
 | Command | Key feature |
@@ -1026,11 +1019,11 @@ No more `kubectl get events | grep`.
 
 <!-- _class: demo -->
 
-# `opm mod list` -- What's Deployed
+# `opm rel list` -- What's Deployed
 
 ```bash
-opm mod list
-opm mod list -A  # all namespaces
+opm rel list
+opm rel list -A  # all namespaces
 ```
 
 kubectl-style table: **NAME**, **MODULE**, **VERSION**, **STATUS**, **AGE**
@@ -1093,6 +1086,28 @@ Then Ecosystem: multi-provider marketplace, no vendor lock-in.
 
 <!-- _class: road -->
 
+# Release Commands ✓
+
+**`opm release`** (alias: `rel`) — promotes `#ModuleRelease` from an ephemeral in-memory construct to a first-class, version-controlled file.
+
+| Command type | Arg | Commands |
+|---|---|---|
+| **Render** | `<release.cue>` | `vet` · `build` · `apply` · `diff` |
+| **Cluster** | `<name\|uuid>` | `status` · `tree` · `events` · `delete` · `list` |
+
+- **Hybrid module resolution** — import from registry or point to local dir with `--module`
+- **`opm mod` still works** — cluster commands emit deprecation notices pointing to `opm release`
+
+<!--
+Shipped. Moves opm from module-centric to release-centric workflow.
+Release file = declarative, reviewable, version-controlled deployment intent.
+opm mod remains the quick-start path; opm release is the production/GitOps path.
+-->
+
+---
+
+<!-- _class: road -->
+
 # Secrets & Immutable Config ✓
 
 **`#Secret`** — first-class type, two variants:
@@ -1118,16 +1133,65 @@ Auto-generation sidesteps a CUE circular-import constraint -- the component is b
 
 # Near-Term Priorities
 
-- **Release commands** (`opm rel vet` / `build` / `apply` / `diff` / `status` / `tree` / `events` / `delete`) — file-based release rendering with registry imports; cluster commands migrate from `mod` to `rel`
-
 - **Bundle system** (`#Bundle` / `#BundleRelease`) — recursive multi-module composition, per-instance namespaces, cross-module policies, dynamic composition via CUE for-loops; flattens to `ModuleRelease` for zero downstream changes
+
+- **Policy / PolicyRule** — finalize render-time governance: `Policy` groups and targets rules, `PolicyRule` defines what must be true with block / warn / audit enforcement
+
+- **Lifecycle / Workflow / Ops** — design the operational execution model: `Ops` as atomic units of work, `Actions` as compositions, `Lifecycle` for install / upgrade / delete transitions, `Workflow` for user-invoked ad-hoc operations
 
 - **OCI distribution** (`opm mod publish` / `opm mod get`)
 
+- **CLI test suite & stability** — complete test coverage across the render pipeline, command surface, and error paths; harden edge cases before broader adoption
+
 <!--
-Release commands are the most near-term -- moves opm from module-centric to release-centric workflow.
 Bundle is in RFC (RFC-0003) -- design is done, implementation next.
 OCI distribution unlocks the module registry vision.
+Test suite is a prerequisite for confident iteration as the command surface grows.
+-->
+
+---
+
+<!-- _class: road -->
+
+# Policy / PolicyRule
+
+Turn governance into a first-class part of the model:
+
+- **`PolicyRule`** defines the rule itself — what must be true
+- **`Policy`** groups rules and targets them to components by labels or explicit refs
+- **Enforcement modes** already point toward `block` / `warn` / `audit`
+- Goal: catch violations in the render pipeline, before anything reaches the cluster
+
+> Traits express preference. Policies express mandates.
+
+<!--
+PolicyRule is the primitive: the rule definition and its enforcement semantics.
+Policy is the construct: where those rules are attached and which components they affect.
+The important point for the audience is that this stays build-time first -- violations should be caught before apply.
+-->
+
+---
+
+<!-- _class: road -->
+
+# Lifecycle / Workflow
+
+Design the operational model without giving up the declarative core:
+
+- **`Op`** — atomic unit of work
+- **`Action`** — composed operation built from Ops
+- **`Lifecycle`** — transition-driven orchestration for install / upgrade / delete
+- **`Workflow`** — user-invoked, ad-hoc execution for operational tasks
+
+> Same model, but with a clear split between automatic transitions and explicit operator actions.
+
+<!--
+Use the distinction from the catalog docs:
+- Op = smallest executable building block
+- Action = composed operation
+- Lifecycle = tied to state transitions
+- Workflow = explicitly invoked, on-demand
+This keeps orchestration in the model without collapsing back into a controller-first design.
 -->
 
 ---

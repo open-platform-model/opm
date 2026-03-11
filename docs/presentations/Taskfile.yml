@@ -55,6 +55,7 @@ tasks:
     cmds:
       - npx -y @mermaid-js/mermaid-cli -i assets/opm-architecture.mmd -o assets/opm-architecture.png -b white -w 1200 -H 800
       - npx -y @mermaid-js/mermaid-cli -i assets/opm-architecture-slide.mmd -o assets/opm-architecture-slide.png -b white -w 1400 -H 600
+      - npx -y @mermaid-js/mermaid-cli -i assets/pipeline-flow.mmd -o assets/pipeline-flow.png -b white -w 1400 -H 350
 
   list:
     desc: List available presentations

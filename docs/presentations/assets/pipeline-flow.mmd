@@ -1,0 +1,12 @@
+flowchart LR
+    A["**Module**<br/>module.cue · values.cue<br/>components.cue"]
+    --> B["**Validate**<br/>#config unify<br/>concrete check"]
+    --> C["**Match**<br/>Component × Transformer"]
+    --> D["**Render**<br/>#transform · CUE eval"]
+    --> E["**K8s Resources**<br/>Deployment · Service · PVC"]
+    --> F["**Apply**<br/>server-side apply"]
+
+    classDef opm fill:#e8f0f7,stroke:#2471a3,color:#1a3a5c
+    classDef k8s fill:#f0faf7,stroke:#1a8a6a,color:#0d4a3a
+    class A,B,C,D opm
+    class E,F k8s
