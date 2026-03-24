@@ -7,7 +7,8 @@ Landing project with docs, specs, benchmarks, and Taskfile automation.
 ## Constitution
 
 This project follows the **Open Platform Model Constitution**.
-All agents MUST read and adhere to `openspec/config.yaml`.
+Read `CONSTITUTION.md` for the full list of design principles.
+All agents MUST read and adhere to `openspec/config.yaml` (normative source).
 
 **Core Principles:**
 
@@ -114,6 +115,12 @@ Examples:
 
 - Definition structure: `apiVersion`, `kind`, `metadata` (with `name!`, `fqn`), `#spec`.
 - Two-layer module: Module -> ModuleRelease.
+
+## Documentation Style
+
+- Read `docs/STYLE.md` before writing or editing any documentation in this repo.
+- `docs/glossary.md` is the **canonical glossary for the entire workspace**. All other repos link to it; do not duplicate it.
+- When adding a new term, follow the format in `docs/glossary.md`: one-sentence definition, optional CUE snippet, placed in the correct table.
 
 ## Glossary
 
