@@ -57,9 +57,9 @@ opm release delete ./blog/release.cue  # tear it down
 
 ## Going deeper
 
-- **End-to-end walkthrough** including local OCI registry, module publishing, and a kind cluster: [`cli/QUICKSTART.md`](../../cli/QUICKSTART.md).
-- **CLI-specific docs**: [`cli/README.md`](../../cli/README.md) for the canonical command list and [`cli/docs/roadmap.md`](../../cli/docs/roadmap.md) for what is next.
-- **Runnable examples**: [`cli/examples/`](../../cli/examples/) has nine example modules and matching release files.
+- **End-to-end walkthrough** including local OCI registry, module publishing, and a kind cluster: [`QUICKSTART.md`](https://github.com/open-platform-model/cli/blob/main/QUICKSTART.md).
+- **CLI-specific docs**: [`README.md`](https://github.com/open-platform-model/cli/blob/main/README.md) for the canonical command list and [`docs/roadmap.md`](https://github.com/open-platform-model/cli/blob/main/docs/roadmap.md) for what is next.
+- **Runnable examples**: [`examples/`](https://github.com/open-platform-model/cli/tree/main/examples) has nine example modules and matching release files.
 
 ## When to reach for the operator instead
 

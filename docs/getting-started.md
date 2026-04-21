@@ -17,7 +17,7 @@ To also deploy to a cluster (optional):
 - **kind** and **kubectl** — for a local Kubernetes cluster.
 - **Docker** — for a local OCI registry that hosts the catalog modules.
 
-See [`cli/README.md`](../../cli/README.md#requirements) for current version details.
+See [the CLI `README.md`](https://github.com/open-platform-model/cli/blob/main/README.md#requirements) for current version details.
 
 ## Steps
 
@@ -57,7 +57,7 @@ This runs CUE's type-checker over your module. If the schema is wrong, you hear 
 
 ### 5. Deploy (optional)
 
-To actually render and apply to a cluster, follow the full path in [`cli/QUICKSTART.md`](../../cli/QUICKSTART.md). It walks you through starting a local OCI registry, publishing the catalog modules, creating a kind cluster, and deploying an example release. The commands you will use:
+To actually render and apply to a cluster, follow the full path in [`QUICKSTART.md`](https://github.com/open-platform-model/cli/blob/main/QUICKSTART.md). It walks you through starting a local OCI registry, publishing the catalog modules, creating a kind cluster, and deploying an example release. The commands you will use:
 
 ```bash
 opm release vet    ./release.cue
@@ -75,6 +75,6 @@ You scaffolded a Module. Inside, one Component composed a Resource (`#Container`
 
 - **Understand the model**: [Concepts Overview](concepts/overview.md)
 - **See the two-layer split**: [Module and ModuleRelease](concepts/module-and-release.md)
-- **Do the full end-to-end**: [`cli/QUICKSTART.md`](../../cli/QUICKSTART.md)
+- **Do the full end-to-end**: [`cli/QUICKSTART.md`](https://github.com/open-platform-model/cli/blob/main/QUICKSTART.md)
 - **Browse real modules**: [Module Gallery](modules-gallery.md)
 - **Reach for the operator**: [The OPM Operator](operator.md)

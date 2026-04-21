@@ -38,7 +38,7 @@ If you are new to OPM, start with the CLI. If you are building a platform for mu
 
 Each tenant namespace names a `ServiceAccount`. The operator impersonates that `ServiceAccount` when it applies manifests, so the cluster's existing RBAC decides what the tenant is allowed to create. The operator's own privileges never leak into tenant workloads.
 
-See [`opm-operator/docs/TENANCY.md`](../../opm-operator/docs/TENANCY.md) for the worked example.
+See [`TENANCY.md`](https://github.com/open-platform-model/opm-operator/blob/main/docs/TENANCY.md) for the worked example.
 
 ## Status today
 
@@ -49,7 +49,7 @@ See [`opm-operator/docs/TENANCY.md`](../../opm-operator/docs/TENANCY.md) for the
 
 ## Going deeper
 
-- **Install and try it**: [`opm-operator/README.md`](../../opm-operator/README.md).
-- **Design docs** (controller architecture, reconciliation loop, SSA ownership, CUE-OCI transport, naming taxonomy): [`opm-operator/docs/design/`](../../opm-operator/docs/design/).
-- **Tenancy and RBAC**: [`opm-operator/docs/TENANCY.md`](../../opm-operator/docs/TENANCY.md).
+- **Install and try it**: [`opm-operator/README.md`](https://github.com/open-platform-model/opm-operator/blob/main/README.md).
+- **Design docs** (controller architecture, reconciliation loop, SSA ownership, CUE-OCI transport, naming taxonomy): [`opm-operator/docs/design/`](https://github.com/open-platform-model/opm-operator/tree/main/docs/design).
+- **Tenancy and RBAC**: [`opm-operator/docs/TENANCY.md`](https://github.com/open-platform-model/opm-operator/blob/main/docs/TENANCY.md).
 - **Where ModuleRelease fits in the model**: [Module and ModuleRelease](concepts/module-and-release.md).
