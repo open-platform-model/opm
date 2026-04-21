@@ -13,13 +13,12 @@ Open Platform Model (OPM) is a portable, composable way to describe applications
 
 OPM consists of a model, a CLI, and an operator.
 
-- **The model** — the definitions and the composition rules. Covered in [Concepts Overview](concepts/overview.md), [Resources, Traits, and Blueprints](concepts/resources-traits-blueprints.md), and [Module and ModuleRelease](concepts/module-and-release.md). The formal schema reference lives in [`catalog/docs/`](../../catalog/docs/).
+- **The model** — the definitions and the composition rules. Covered in [Concepts Overview](concepts/overview.md), [Resources, Traits, and Blueprints](concepts/resources-traits-blueprints.md), and [Module and ModuleRelease](concepts/module-and-release.md). The formal schema reference lives in [open-platform-model/catalog](https://github.com/open-platform-model/catalog/tree/main/docs).
 - **The [CLI](cli.md)** — the tool you use today to build, validate, and deploy Modules locally.
 - **The [operator](operator.md)** — the in-cluster controller that reconciles `ModuleRelease` custom resources continuously (experimental).
 
 ## Going deeper
 
-- [Architecture](architecture.md) — the full mental model in one long page.
 - [Glossary](glossary.md) — canonical definitions for every OPM term.
 - [Analysis](analysis/) — older research notes (cloud-native alignment, CRD lifecycle).
 

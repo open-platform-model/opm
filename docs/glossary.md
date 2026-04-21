@@ -13,12 +13,19 @@ Person or team operating the underlying infrastructure (Kubernetes clusters, clo
 Developer who creates and maintains OPM modules. Responsible for defining the Module, setting sane default values, and publishing updates. Module authors design for reusability and configurability.
 
 ```cue
+import m "opmodel.dev/core/v1alpha1/module@v1"
+
 // Module authors define the structure and defaults
-#Module: {
-    metadata: name: "my-service"
-    #values: {
-        replicas: int | *3  // Sane default
-    }
+m.#Module
+
+metadata: {
+    modulePath: "example.com/modules"
+    name:       "my-service"
+    version:    "0.1.0"
+}
+
+#config: {
+    scaling: int & >=1 | *3   // Sane default
 }
 ```
 
@@ -28,13 +35,26 @@ Person or team operating a platform and its catalog of Modules and Bundles. Cons
 
 ### End-user
 
-Person who consumes modules via ModuleRelease. Responsible for providing concrete configuration values for deployment. Interacts primarily with the `#values` interface exposed by modules.
+Person who consumes modules via ModuleRelease. Responsible for providing concrete configuration values for deployment. Interacts primarily with the `#config` schema exposed by modules.
 
 ```cue
-// End-users provide concrete values
-#ModuleRelease: {
-    module: "my-service@1.0.0"
-    values: replicas: 5  // Concrete value for production
+import (
+    mr "opmodel.dev/core/v1alpha1/modulerelease@v1"
+    svc "example.com/modules/my-service@v1"
+)
+
+// End-users reference a module and supply concrete values
+mr.#ModuleRelease
+
+metadata: {
+    name:      "my-service-prod"
+    namespace: "production"
+}
+
+#module: svc
+
+values: {
+    scaling: 5   // Concrete value for production
 }
 ```
 
@@ -47,28 +67,39 @@ These are the building blocks of every OPM module. See [Concepts Overview](conce
 A thing that physically exists at runtime. Resources are the fundamental "what exists" primitive — a container, a volume, a config map. Every Component contains at least one Resource.
 
 ```cue
+import resources_workload "opmodel.dev/opm/v1alpha1/resources/workload@v1"
+
 // A container workload
-#Container
-spec: container: image: "nginx:1.25"
+resources_workload.#Container
+
+spec: container: {
+    name:  "app"
+    image: {repository: "nginx", tag: "1.25"}
+}
 ```
 
 ### Trait
 
-An optional modifier that adjusts how a Component behaves. Where Resources say *what exists*, Traits say *how it behaves* — scaling, network exposure, health probes, restart policy.
+An optional modifier that adjusts how a Component behaves. Where Resources say *what exists*, Traits say *how it behaves* — scaling, network exposure, init containers, restart policy, security context.
 
 ```cue
+import traits_workload "opmodel.dev/opm/v1alpha1/traits/workload@v1"
+
 // Scale to three instances
-#Replicas
-spec: replicas: 3
+traits_workload.#Scaling
+
+spec: scaling: count: 3
 ```
 
 ### Blueprint
 
-A pre-bundled combination of Resources and Traits that captures a common pattern. Most authors use Blueprints instead of wiring Resources and Traits manually. Platform teams ship Blueprints as "golden paths."
+A pre-bundled combination of Resources and Traits that captures a common pattern. Platform teams ship Blueprints as "golden paths," though today most modules still compose raw Resources and Traits themselves.
 
 ```cue
-// Stateless web workload in one line
-#StatelessWorkload
+import blueprints_workload "opmodel.dev/opm/v1alpha1/blueprints/workload@v1"
+
+// Stateless web workload with Container + Scaling + RestartPolicy + UpdateStrategy bundled
+blueprints_workload.#StatelessWorkload
 ```
 
 ### Component
@@ -77,7 +108,7 @@ A logical part of an application, built by composing Resources + Traits, or by u
 
 ### Policy
 
-A rule a Component (or group of Components) must follow. Unlike Traits, which express preferences, Policies express requirements that can block, warn, or audit on violation. Examples: network rules, encryption, resource quotas.
+A rule a Component (or group of Components) must follow. Unlike Traits, which express preferences, Policies express requirements that can block, warn, or audit on violation. Policy is defined as a core type in the catalog; no concrete Policy definitions are shipped yet, so modules today enforce constraints through traits and the `#config` schema.
 
 ### Provider
 

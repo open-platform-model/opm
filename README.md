@@ -32,18 +32,18 @@ A Component, written in OPM, that describes a web workload:
 ```cue
 web: {
     resources_workload.#Container
-    traits_workload.#Replicas
+    traits_workload.#Scaling
     traits_network.#Expose
 
     spec: {
         container: {image: #config.web.image, ports: http: targetPort: 80}
-        replicas: #config.web.replicas
-        expose: ports: http: exposedPort: #config.web.port
+        scaling: count: #config.web.scaling
+        expose: ports: http: {targetPort: 80, exposedPort: #config.web.port}
     }
 }
 ```
 
-One Resource (`#Container`), two Traits (`#Replicas`, `#Expose`), one typed `#config` supplying the values. An author packages Components like this into a **Module**; a consumer deploys it with a **ModuleRelease** that supplies concrete values. CUE transformers convert the result to Kubernetes manifests at build time — no runtime controller required.
+One Resource (`#Container`), two Traits (`#Scaling`, `#Expose`), one typed `#config` supplying the values. An author packages Components like this into a **Module**; a consumer deploys it with a **ModuleRelease** that supplies concrete values. CUE transformers convert the result to Kubernetes manifests at build time — no runtime controller required.
 
 See [Module and ModuleRelease](docs/concepts/module-and-release.md) for the full worked example, or [Concepts Overview](docs/concepts/overview.md) to walk through every building block.
 
@@ -65,7 +65,7 @@ In short: compile-time validation instead of runtime templating, explicit owners
 
 Stabilize core definitions. Native validation (`opm module vet`). Secrets and config lifecycle. OCI-based module distribution. Rendering pipeline maturity.
 
-### Phase 2: Kubernetes Controller
+### Phase 2: Kubernetes Controller (current)
 
 In-cluster [operator](docs/operator.md) watching `ModuleRelease` CRDs. Continuous reconciliation and drift detection.
 

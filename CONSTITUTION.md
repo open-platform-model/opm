@@ -152,6 +152,6 @@ When principles appear to conflict, treat that as a design smell and document th
 ## Further Reading
 
 - `AGENTS.md` — repository mechanics, commands, and coding guidance
-- `docs/architecture.md` — architectural overview
+- `docs/concepts/overview.md` — user-facing overview of the model
 - `docs/glossary.md` — canonical term definitions
 - `specs/` — all active and deferred specifications

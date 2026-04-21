@@ -1,10 +1,10 @@
 # Module Gallery
 
-A guided tour through four real OPM modules. Each one solves a concrete problem, and the snippets here are real — you can find the full sources in the [`modules/`](../../modules/) directory of the workspace.
+A guided tour through four real OPM modules. Each one solves a concrete problem, and the snippets here are real — you can find the full sources in the [open-platform-model/modules](https://github.com/open-platform-model/modules) repo.
 
 ## cert-manager — wrapping a familiar operator
 
-[`modules/cert_manager/`](../../modules/cert_manager/) packages cert-manager — the de facto TLS certificate manager for Kubernetes — as an OPM module. It deploys the controller, the webhook, the cainjector, all six CRDs, and the full RBAC stack (ten ClusterRoles plus three namespace Roles).
+[`cert_manager/`](https://github.com/open-platform-model/modules/tree/main/cert_manager) packages cert-manager — the de facto TLS certificate manager for Kubernetes — as an OPM module. It deploys the controller, the webhook, the cainjector, all six CRDs, and the full RBAC stack (ten ClusterRoles plus three namespace Roles).
 
 ```cue
 metadata: {
@@ -31,7 +31,7 @@ Why it matters: most infrastructure on Kubernetes is a controller + its webhook 
 
 ## metallb — the smallest useful infrastructure module
 
-[`modules/metallb/`](../../modules/metallb/) is the bare-metal LoadBalancer. It deploys a Deployment (controller), a DaemonSet (speaker, one per node), the CRDs, and the RBAC.
+[`metallb/`](https://github.com/open-platform-model/modules/tree/main/metallb) is the bare-metal LoadBalancer. It deploys a Deployment (controller), a DaemonSet (speaker, one per node), the CRDs, and the RBAC.
 
 ```cue
 #config: {
@@ -57,7 +57,7 @@ Why it matters: small and representative. The `schemas.#Secret` reference is wor
 
 ## jellyfin — a real stateful consumer app
 
-[`modules/jellyfin/`](../../modules/jellyfin/) is a media server. It is a single-container stateful application with persistent storage, optional NFS mounts for a media library, optional HTTPRoute ingress, optional structured logging, and optional K8up-based backup to S3.
+[`jellyfin/`](https://github.com/open-platform-model/modules/tree/main/jellyfin) is a media server. It is a single-container stateful application with persistent storage, optional NFS mounts for a media library, optional HTTPRoute ingress, optional structured logging, and optional K8up-based backup to S3.
 
 ```cue
 #config: {
@@ -93,7 +93,7 @@ Why it matters: this is what a real application module looks like — typed cons
 
 ## clickstack — composition across services
 
-[`modules/clickstack/`](../../modules/clickstack/) is the HyperDX observability stack. It stitches together HyperDX (UI/API), a MongoDB replica set, a ClickHouse cluster with Keeper, and an OpenTelemetry Collector. It depends on four other modules (`mongodb_operator`, `clickhouse_operator`, `otel_collector`, `cert_manager`) being installed first, then emits custom resources against those operators.
+[`clickstack/`](https://github.com/open-platform-model/modules/tree/main/clickstack) is the HyperDX observability stack. It stitches together HyperDX (UI/API), a MongoDB replica set, a ClickHouse cluster with Keeper, and an OpenTelemetry Collector. It depends on four other modules (`mongodb_operator`, `clickhouse_operator`, `otel_collector`, `cert_manager`) being installed first, then emits custom resources against those operators.
 
 ```cue
 #config: {
@@ -124,17 +124,17 @@ Why it matters: a single `#config` drives four cooperating workloads and a fan o
 
 ## More
 
-The workspace also ships modules for GPU workloads, backup automation, object storage, VM management, game streaming, and a Minecraft server fleet. A few worth knowing about:
+The repo also ships modules for GPU workloads, backup automation, object storage, VM management, game streaming, and a Minecraft server fleet. A few worth knowing about:
 
-- [`modules/k8up/`](../../modules/k8up/) — Kubernetes-native backup automation operator
-- [`modules/sealed_secrets/`](../../modules/sealed_secrets/) — git-safe secret encryption
-- [`modules/garage/`](../../modules/garage/) — self-hosted S3-compatible storage
-- [`modules/otel_collector/`](../../modules/otel_collector/) — OpenTelemetry operator
-- [`modules/wolf/`](../../modules/wolf/) — GPU game streaming (advanced; DinD, multi-user)
-- [`modules/mc_java_fleet/`](../../modules/mc_java_fleet/) — multi-server Minecraft fleet with shared hostname routing (advanced; 780 lines)
-- [`modules/ch_vmm/`](../../modules/ch_vmm/) — Cloud Hypervisor VM manager (advanced; 9 CRDs, webhooks)
+- [`k8up/`](https://github.com/open-platform-model/modules/tree/main/k8up) — Kubernetes-native backup automation operator
+- [`sealed_secrets/`](https://github.com/open-platform-model/modules/tree/main/sealed_secrets) — git-safe secret encryption
+- [`garage/`](https://github.com/open-platform-model/modules/tree/main/garage) — self-hosted S3-compatible storage
+- [`otel_collector/`](https://github.com/open-platform-model/modules/tree/main/otel_collector) — OpenTelemetry operator
+- [`wolf/`](https://github.com/open-platform-model/modules/tree/main/wolf) — GPU game streaming (advanced; DinD, multi-user)
+- [`mc_java_fleet/`](https://github.com/open-platform-model/modules/tree/main/mc_java_fleet) — multi-server Minecraft fleet with shared hostname routing (advanced; 780 lines)
+- [`ch_vmm/`](https://github.com/open-platform-model/modules/tree/main/ch_vmm) — Cloud Hypervisor VM manager (advanced; 9 CRDs, webhooks)
 
-Browse the full list in [`modules/`](../../modules/) and the reusable authoring patterns in [`modules/DESIGN_PATTERNS.md`](../../modules/DESIGN_PATTERNS.md).
+Browse the full list at [open-platform-model/modules](https://github.com/open-platform-model/modules) and the reusable authoring patterns in [`DESIGN_PATTERNS.md`](https://github.com/open-platform-model/modules/blob/main/DESIGN_PATTERNS.md).
 
 ## Next steps
 

@@ -1,6 +1,6 @@
 # Documentation Style Guide — OPM
 
-Inherits all rules from the [workspace STYLE.md](../../STYLE.md). This file adds opm-specific conventions.
+Inherits all rules from the workspace-level `STYLE.md`. This file adds opm-specific conventions.
 
 ## Audience
 
@@ -17,8 +17,14 @@ Inherits all rules from the [workspace STYLE.md](../../STYLE.md). This file adds
 
 | Type | Location | Purpose |
 |------|----------|---------|
+| Documentation index | `docs/index.md` | Persona-based routing into the rest of `docs/` |
+| Getting started | `docs/getting-started.md` | First-touch walkthrough for newcomers |
+| Concepts | `docs/concepts/` | The model, explained in prose + example |
+| Component docs | `docs/cli.md`, `docs/operator.md` | What the CLI and operator are, at newcomer level |
+| Module gallery | `docs/modules-gallery.md` | Showcase of real modules |
+| Comparisons | `docs/opm-vs-helm.md` | Framing for evaluators |
 | Glossary | `docs/glossary.md` | **Canonical** — single source of truth for all OPM terms |
-| Architecture docs | `docs/` root | Internal architecture and analysis |
+| Analysis | `docs/analysis/` | Older research notes, kept for reference |
 | Specs | `specs/` | Internal specifications (not user-facing) |
 | Benchmarks | `benchmarks/` | Performance data |
 
@@ -35,20 +41,29 @@ User-facing guides follow this structure:
 ## Example-First Writing
 
 - Show the example before the explanation. Let the reader see what they're working toward.
-- Every CUE or YAML snippet must be self-contained and runnable, or clearly marked as a partial excerpt.
-- Bad: "Modules have a `#values` field that accepts typed configuration."
+- Every CUE snippet must be self-contained and compile against real OPM imports, or be clearly marked as a partial excerpt.
+- Prefer lifting snippets from the `opm module init` templates (`cli/internal/templates/`) or real modules under `modules/` so drift with the code is low.
+- Bad: "Modules have a `#config` field that accepts typed configuration."
 - Good:
 
 ```cue
-// A module that accepts a replica count
-#Module: {
-    #values: {
-        replicas: int | *3
-    }
+import m "opmodel.dev/core/v1alpha1/module@v1"
+
+// A module that accepts a scaling count
+m.#Module
+
+metadata: {
+    modulePath: "example.com/modules"
+    name:       "my-service"
+    version:    "0.1.0"
+}
+
+#config: {
+    scaling: int & >=1 | *3
 }
 ```
 
-"The `#values` field defines the configuration interface for your module. End-users supply concrete values; the `*3` sets a sane default."
+"The `#config` field defines the configuration contract for your module. End-users supply concrete values in a ModuleRelease; the `*3` sets a sane default, and the `>=1` constraint rejects invalid overrides at build time."
 
 ## Concept Introductions
 
@@ -69,9 +84,12 @@ Do not introduce more than two new concepts per section.
 
 ## Cross-References
 
-When referencing other repos' docs:
-- Use relative paths from the workspace root: `[CLI docs](../cli/docs/)`.
-- Or use GitHub URLs: `https://github.com/open-platform-model/cli`.
+- **Within this repo**: use relative paths — `[Glossary](glossary.md)`, `[Concepts Overview](concepts/overview.md)`.
+- **To other repos**: use GitHub URLs, never workspace-local relative paths. Readers consume these docs on GitHub and in cloned forks where sibling repos may not be present.
+  - File: `https://github.com/open-platform-model/<repo>/blob/main/<path>`
+  - Directory: `https://github.com/open-platform-model/<repo>/tree/main/<path>`
+  - Repo root: `https://github.com/open-platform-model/<repo>`
+- **Repo list**: `catalog`, `cli`, `opm-operator`, `modules`, `opm`, `opmodel.dev`, `orca`, `releases`.
 
 ## What to Omit
 
