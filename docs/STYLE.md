@@ -77,5 +77,5 @@ When referencing other repos' docs:
 
 - CUE schema internals (belongs in `catalog/docs/`).
 - CLI flag references (belongs in `cli/docs/`).
-- Controller operation procedures (belongs in `poc-controller/docs/`).
+- Controller operation procedures (belongs in `opm-operator/docs/`).
 - Hugo site content (belongs in `opmodel.dev/`).
