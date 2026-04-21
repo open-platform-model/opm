@@ -2,6 +2,8 @@
 
 Open Platform Model (OPM) is a way to define, compose, and deploy applications using simple building blocks. Instead of writing platform-specific configuration, you describe what your application needs and OPM handles the rest.
 
+> **New to OPM?** Start with [Concepts Overview](concepts/overview.md) for the gentler introduction. This page goes deeper into the full mental model.
+
 ## How It Works
 
 OPM uses three types of building blocks to describe your application:
@@ -394,6 +396,6 @@ Release   = Deployed instance
 
 ## Next Steps
 
-- See [Definition Types](../../core/docs/definition-types.md) for detailed schema documentation
+- See [Definition Types](../../catalog/docs/core/definition-types.md) for detailed schema documentation
 - Browse the [Catalog](../../catalog/) for available Resources, Traits, and Policies
-- Check [Examples](../examples/) for complete module examples
+- Check [Examples](../../cli/examples/) for complete module examples

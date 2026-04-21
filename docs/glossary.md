@@ -38,6 +38,63 @@ Person who consumes modules via ModuleRelease. Responsible for providing concret
 }
 ```
 
+## Core Concepts
+
+These are the building blocks of every OPM module. See [Concepts Overview](concepts/overview.md) for a walkthrough.
+
+### Resource
+
+A thing that physically exists at runtime. Resources are the fundamental "what exists" primitive — a container, a volume, a config map. Every Component contains at least one Resource.
+
+```cue
+// A container workload
+#Container
+spec: container: image: "nginx:1.25"
+```
+
+### Trait
+
+An optional modifier that adjusts how a Component behaves. Where Resources say *what exists*, Traits say *how it behaves* — scaling, network exposure, health probes, restart policy.
+
+```cue
+// Scale to three instances
+#Replicas
+spec: replicas: 3
+```
+
+### Blueprint
+
+A pre-bundled combination of Resources and Traits that captures a common pattern. Most authors use Blueprints instead of wiring Resources and Traits manually. Platform teams ship Blueprints as "golden paths."
+
+```cue
+// Stateless web workload in one line
+#StatelessWorkload
+```
+
+### Component
+
+A logical part of an application, built by composing Resources + Traits, or by using a Blueprint. A Module contains one or more Components.
+
+### Policy
+
+A rule a Component (or group of Components) must follow. Unlike Traits, which express preferences, Policies express requirements that can block, warn, or audit on violation. Examples: network rules, encryption, resource quotas.
+
+### Provider
+
+An implementation of OPM for a specific runtime (for example, Kubernetes). A Provider ships a set of Transformers that turn OPM definitions into runtime-specific resources.
+
+### Transformer
+
+A CUE function that converts an OPM definition into a provider-specific resource. The Kubernetes provider ships transformers for Deployments, StatefulSets, Services, Ingresses, PVCs, and more.
+
+### Module
+
+The portable, reusable definition of an application. A Module contains Components, a `#config` schema declaring which values are tunable, and sane defaults. Authored once and deployed many times. See [Module and ModuleRelease](concepts/module-and-release.md).
+
+### ModuleRelease
+
+The concrete deployment of a Module. Supplies final values for a specific environment and targets a namespace. Consumers write ModuleReleases; they do not need to understand the Module's internals.
+
 ## Terms and Definitions
 
 ### CUE-specific Terms
