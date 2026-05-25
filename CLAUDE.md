@@ -1,28 +1,28 @@
-# OPM Repository (Documentation & Specs)
+# OPM repository guide
 
-## Overview
+## Purpose
 
-Landing project w/ docs, specs, benchmarks, Taskfile automation.
+Landing project for Open Platform Model — internal docs, specs, benchmarks, Taskfile automation. Source of truth for specifications, glossary, and meta-project tooling. Public docs site lives separately in `opmodel.dev/`.
 
-## Constitution
+## Repository Rules
 
-Project follows **Open Platform Model Constitution**.
-Read `CONSTITUTION.md` for full design principles.
-All agents MUST read/adhere to `openspec/config.yaml` (normative source).
+- `CONSTITUTION.md` is the principle source; `openspec/config.yaml` is normative. Governance: Constitution supersedes this file on conflict.
+- Follow [Semantic Versioning v2.0.0](https://semver.org) for all repos.
+- Follow [Conventional Commits v1](https://www.conventionalcommits.org/en/v1.0.0/) for all repos. Format: `type(scope): description` — scopes: `vision`, `architecture`, `resource`, `trait`, `cli`, `module`.
+- Tone: extremely concise. No preamble/postamble. Skip explanations unless asked. Only show changed code, not entire files.
 
-**Core Principles:**
+## Entrypoint
 
-1. **Type Safety First**: All defs in CUE. Validate at definition time.
-2. **Separation of Concerns**: Module (Dev) -> ModuleRelease (Consumer). Clear ownership boundaries.
-3. **Composability**: Defs compose w/o implicit coupling. Resources, Traits, Blueprints independent.
-4. **Declarative Intent**: Express WHAT, not HOW. Provider-specific steps in ProviderDefinitions.
-5. **Portability by Design**: Defs must be runtime-agnostic.
-6. **Semantic Versioning**: SemVer v2.0.0 + Conventional Commits v1 required.
-7. **Simplicity & YAGNI**: Justify complexity. Prefer explicit over implicit.
+Read these on entry:
 
-**Governance**: Constitution supersedes this file on conflict.
+- `CLAUDE.md` — repo working rules (this file).
+- `CONSTITUTION.md` — full design principles (Type Safety First, Separation of Concerns, Composability, Declarative Intent, Portability by Design, Semantic Versioning, Simplicity & YAGNI).
+- `openspec/config.yaml` — normative source for OpenSpec artifact rules.
+- `docs/STYLE.md` — doc prose style rules (read before writing/editing any docs).
+- `docs/glossary.md` — **canonical glossary for entire workspace**. All other repos link to it; don't duplicate.
+- `Taskfile.yml` — authoritative build/test entrypoints.
 
-## Project Structure
+## Repository Layout
 
 ```text
 ├── adr/               # Architecture Decision Records
@@ -62,39 +62,19 @@ All agents MUST read/adhere to `openspec/config.yaml` (normative source).
 └── Taskfile.yml
 ```
 
-## Architecture Decision Records
+## Build And Dev Commands
 
-ADRs capture significant technical decisions w/ context and consequences.
+### Task commands
 
-- Location: `adr/`
-- Template: `adr/TEMPLATE.md`
-- Naming: `NNN-kebab-case-title.md` (three-digit, zero-padded)
+- Format: `task fmt` or `task module:fmt:all`
+- Validate: `task vet` or `task module:vet MODULE=core`
+- Single module: `task module:vet MODULE=examples`
+- Registry: `task registry:start`, `task registry:stop`
+- Benchmarks: `cd benchmarks/rendering && go test -bench=.`
 
-### Creating a new ADR
+### Spec creation scripts
 
-1. Copy `adr/TEMPLATE.md` to `adr/NNN-title.md` using next available number.
-2. Set status to `Proposed`.
-3. Fill in Context, Decision, Consequences.
-4. Update status to `Accepted` once agreed.
-
-### Updating an ADR
-
-- Never delete ADR — update status instead.
-- Retire: set status to `Deprecated`.
-- Replace: set status to `Superseded by ADR-NNN`, create new ADR.
-- One decision per ADR.
-
-## Maintenance Notes
-
-- **Project Structure Tree**: Update tree above when adding new specs/directories.
-
-## Build/Test Commands
-
-### Spec Creation Scripts
-
-#### create-new-feature.sh
-
-Creates new feature branch + spec directory. `--category` organizes specs:
+`create-new-feature.sh` creates new feature branch + spec directory. `--category` organizes specs:
 
 - `--category application` → `specs/application-model/`
 - `--category platform` → `specs/platform-model/`
@@ -108,61 +88,28 @@ Examples:
 .specify/scripts/bash/create-new-feature.sh "Update taskfile" --category root
 ```
 
-### Task Commands
+## Coding Standards
 
-- Format: `task fmt` or `task module:fmt:all`
-- Validate: `task vet` or `task module:vet MODULE=core`
-- Single module: `task module:vet MODULE=examples`
-- Registry: `task registry:start`, `task registry:stop`
-- Benchmarks: `cd benchmarks/rendering && go test -bench=.`
+- **CUE**: `#` for defs, `_` for hidden fields, `!` for required. See `CUE_GUIDE.md`.
+- **Specs**: Markdown in `V1ALPHA1_SPECS/`. Consistent heading structure.
+- **Commits**: `type(scope): description` — scopes: `vision`, `architecture`, `resource`, `trait`, `cli`, `module`.
 
-## Tone and style
+### Patterns
 
-- Extremely concise - only essential info
-- No preamble/postamble
-- Skip explanations unless asked
-- Only show changed code, not entire files
+- Definition structure: `apiVersion`, `kind`, `metadata` (with `name!`, `fqn`), `#spec`.
+- Two-layer module: Module → ModuleRelease.
 
-## Versioning
-
-- **Follow [Semantic Versioning v2.0.0](https://semver.org) for all repos.**
-- **Follow [Conventional Commits v1](https://www.conventionalcommits.org/en/v1.0.0/) for all repos.**
-
-## Code Style
-
-- **CUE**: `#` for defs, `_` for hidden fields, `!` for required. See CUE_GUIDE.md.
-- **Specs**: Markdown in V1ALPHA1_SPECS/. Consistent heading structure.
-- **Commits**: `type(scope): description` - scopes: vision/architecture/resource/trait/cli/module.
-
-## Patterns
-
-- Def structure: `apiVersion`, `kind`, `metadata` (w/ `name!`, `fqn`), `#spec`.
-- Two-layer module: Module -> ModuleRelease.
-
-## Documentation Style
+## Working Style for Agents
 
 - Read `docs/STYLE.md` before writing/editing any docs in this repo.
-- `docs/glossary.md` = **canonical glossary for entire workspace**. All other repos link to it; don't duplicate.
-- New terms: follow format in `docs/glossary.md`: one-sentence def, optional CUE snippet, correct table.
+- New glossary terms: follow format in `docs/glossary.md` — one-sentence definition, optional CUE snippet, correct table. Don't duplicate terms in other repos; link to the canonical glossary instead.
+- Update the Project Structure tree above when adding new specs/directories.
 
-## Glossary
+### Glossary — personas (quick reference)
 
-See [full glossary](docs/glossary.md) for detailed defs.
+See [full glossary](docs/glossary.md) for detailed definitions.
 
-### Personas
-
-- **Infrastructure Operator** - Operates underlying infra (clusters, cloud, networking)
-- **Module Author** - Develops/maintains ModuleDefinitions w/ sane defaults
-- **Platform Operator** - Curates module catalog, bridges infra and end-users
-- **End-user** - Consumes modules via ModuleRelease w/ concrete values
-
-## Active Technologies
-
-- YAML (Taskfile v3) + `go-task/task` v3.x, `cue` v0.15.0+, `go` 1.21+, `golangci-lint`, `watchexec` (003-taskfile-spec)
-- Go 1.25+ (002-cli-spec)
-- Local filesystem (~/.opm/), OCI registries (002-cli-spec)
-
-## Recent Changes
-
-- 005-validation: Added spec for `opm mod vet` using Go CUE SDK for native module validation
-- 003-taskfile-spec: Added YAML (Taskfile v3) + `go-task/task` v3.x, `cue` v0.15.0+, `go` 1.21+, `golangci-lint`, `watchexec`
+- **Infrastructure Operator** — Operates underlying infra (clusters, cloud, networking).
+- **Module Author** — Develops/maintains ModuleDefinitions with sane defaults.
+- **Platform Operator** — Curates module catalog, bridges infra and end-users.
+- **End-user** — Consumes modules via ModuleRelease with concrete values.

@@ -1202,7 +1202,7 @@ This keeps orchestration in the model without collapsing back into a controller-
 
 The Application Model is the **stable foundation**. Platforms change. Providers change. Runtimes change. The way you define your application shouldn't.
 
-- **Runtime-agnostic** — Kubernetes today, something else tomorrow. The module definition stays the same.
+- **Runtime-agnostic** — module definitions stay decoupled from runtime details, so providers can evolve without modules being rewritten.
 - **Provider-independent** — swap Hetzner for AWS, Neon for RDS. Change a provider config, not your application.
 - **Built on CUE** — a constraint language designed for configuration, not bolted onto YAML. The type system won't outgrow itself.
 - **Separation of concerns** — the model defines *what*. The platform decides *how*. That boundary is what makes it last.

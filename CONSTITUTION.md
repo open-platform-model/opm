@@ -70,7 +70,7 @@ Specs and documentation MUST express intent, not implementation. Declare WHAT, n
 
 ### V. Portability by Design
 
-All specifications and definitions MUST remain runtime-agnostic. The same Module MUST be deployable to multiple providers without rewriting.
+All specifications and definitions MUST remain runtime-agnostic. Runtime-specific details belong in ProviderDefinitions, not in core specs, so any provider that implements the catalog's primitives can render a module.
 
 - Specs must not assume a specific cloud provider or Kubernetes distribution
 - Platform-specific details belong in ProviderDefinitions, not in core specs

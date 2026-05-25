@@ -23,7 +23,7 @@ OPM takes a different approach:
 - **Type safety by default.** OPM is defined in [CUE](https://cuelang.org). Invalid configuration is rejected before deployment, not in production.
 - **Clear separation of responsibility.** Developers declare intent. Platform teams extend definitions. Consumers get approved releases.
 - **Composability by design.** Resources, Traits, and Blueprints are independent building blocks that compose without coupling.
-- **Portability by design.** Application definitions are runtime-agnostic. The same Module can target different providers without changes.
+- **Portability by design.** Application definitions stay declarative and decoupled from runtime details, so providers — not modules — own platform-specific concerns.
 
 ## What OPM looks like
 
