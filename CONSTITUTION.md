@@ -91,7 +91,7 @@ Allowed commit types:
 - `test`
 - `chore`
 
-Commit scopes: `vision`, `architecture`, `resource`, `trait`, `cli`, `module`.
+Commit scope SHOULD name the affected spec area or subsystem; see `CLAUDE.md` for the current scope set.
 
 Versioning communicates compatibility, change risk, and upgrade expectations across specs and published artifacts.
 
