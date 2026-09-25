@@ -96,4 +96,4 @@ Do not introduce more than two new concepts per section.
 - CUE schema internals (belongs in `catalog/docs/`).
 - CLI flag references (belongs in `cli/docs/`).
 - Controller operation procedures (belongs in `opm-operator/docs/`).
-- Hugo site content (belongs in `opmodel.dev/`).
+- Site engine files such as layouts, components and site configuration (belong in `opmodel.dev/`).
