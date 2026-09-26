@@ -88,7 +88,7 @@ For more, see [Components and blueprints](/docs/concepts/components-and-blueprin
 
 A catalog is a versioned CUE module that publishes these parts. It lists the resources, traits and blueprints it defines. It also carries transformers. A transformer turns a component into Kubernetes objects. The deployment transformer turns a stateless workload into a Deployment, and the service transformer turns an exposed port into a Service.
 
-OPM publishes two catalogs. `opmodel.dev/catalogs/opm@v4` holds the abstractions, such as the stateless workload and the expose trait. `opmodel.dev/catalogs/k8s@v1` holds raw Kubernetes kinds, passed through as they are, for what the abstractions do not cover.
+OPM publishes two catalogs. `opmodel.dev/catalogs/opm@v4` holds the abstractions, such as the stateless workload and the expose trait. `opmodel.dev/catalogs/k8s@v1` holds raw Kubernetes kinds, passed through as they are, for what the abstractions do not cover, yet.
 
 For more, see [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
