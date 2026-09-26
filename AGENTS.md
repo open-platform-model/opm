@@ -108,7 +108,7 @@ Read these on entry:
 - `CONSTITUTION.md` — full design principles (Type Safety First, Separation of Concerns, Composability, Declarative Intent, Portability by Design, Semantic Versioning, Simplicity & YAGNI).
 - `openspec/config.yaml` — normative source for OpenSpec artifact rules.
 - `docs/STYLE.md` — doc prose style rules (read before writing/editing any docs).
-- `docs/glossary.md` — **canonical glossary for entire workspace**. All other repos link to it; don't duplicate.
+- `docs/legacy/glossary.md` — **canonical glossary for entire workspace** until the site glossary, `docs/site/reference/glossary.md`, replaces it. All other repos link to it; don't duplicate.
 - `Taskfile.yml` — authoritative build/test entrypoints.
 
 ## Repository Layout
@@ -121,7 +121,12 @@ Read these on entry:
 │   └── templates/     # Templates for specs, plans, tasks, checklists
 ├── benchmarks/        # Performance benchmarks
 │   └── rendering/     # Module rendering benchmarks
-├── docs/              # End-user documentation
+├── docs/              # Documentation
+│   ├── site/          # Published pages; opmodel.dev assembles them by section
+│   ├── legacy/        # v0 pages, unpublished; source material until replaced
+│   ├── analysis/      # Research notes
+│   ├── presentations/ # Slide decks
+│   └── STYLE.md       # Prose style for this repo
 ├── specs/             # Specifications
 │   ├── application-model/              # Application Model (index only, specs moved to core/)
 │   ├── cli/                            # CLI specifications
@@ -191,12 +196,12 @@ Examples:
 ## Working Style for Agents
 
 - Read `docs/STYLE.md` before writing/editing any docs in this repo.
-- New glossary terms: follow format in `docs/glossary.md` — one-sentence definition, optional CUE snippet, correct table. Don't duplicate terms in other repos; link to the canonical glossary instead.
+- New glossary terms: follow format in `docs/legacy/glossary.md` — one-sentence definition, optional CUE snippet, correct table. Don't duplicate terms in other repos; link to the canonical glossary instead.
 - Update the Project Structure tree above when adding new specs/directories.
 
 ### Glossary — personas (quick reference)
 
-See [full glossary](docs/glossary.md) for detailed definitions.
+See [full glossary](docs/legacy/glossary.md) for detailed definitions.
 
 - **Infrastructure Operator** — Operates underlying infra (clusters, cloud, networking).
 - **Module Author** — Develops/maintains ModuleDefinitions with sane defaults.

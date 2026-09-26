@@ -6,7 +6,7 @@ Open Platform Model (OPM) is a portable, composable way to describe applications
 
 - **I'm curious — what is this?** → [Concepts Overview](concepts/overview.md)
 - **I want to try it** → [Getting Started](getting-started.md)
-- **I'm evaluating it** → [OPM vs. Helm](opm-vs-helm.md) and the [roadmap](../README.md#roadmap)
+- **I'm evaluating it** → [OPM vs. Helm](opm-vs-helm.md) and the [roadmap](../../README.md#roadmap)
 - **Show me real modules** → [Module Gallery](modules-gallery.md)
 
 ## The three pieces
@@ -20,7 +20,7 @@ OPM consists of a model, a CLI, and an operator.
 ## Going deeper
 
 - [Glossary](glossary.md) — canonical definitions for every OPM term.
-- [Analysis](analysis/) — older research notes (cloud-native alignment, CRD lifecycle).
+- [Analysis](../analysis/) — older research notes (cloud-native alignment, CRD lifecycle).
 
 ## For contributors
 

@@ -45,19 +45,19 @@ web: {
 
 One Resource (`#Container`), two Traits (`#Scaling`, `#Expose`), one typed `#config` supplying the values. An author packages Components like this into a **Module**; a consumer deploys it with a **ModuleRelease** that supplies concrete values. CUE transformers convert the result to Kubernetes manifests at build time — no runtime controller required.
 
-See [Module and ModuleRelease](docs/concepts/module-and-release.md) for the full worked example, or [Concepts Overview](docs/concepts/overview.md) to walk through every building block.
+See [Module and ModuleRelease](docs/legacy/concepts/module-and-release.md) for the full worked example, or [Concepts Overview](docs/legacy/concepts/overview.md) to walk through every building block.
 
 ## Start here
 
-- **[Documentation index](docs/index.md)** — pick your path.
-- **[Getting Started](docs/getting-started.md)** — scaffold your first module.
-- **[Concepts Overview](docs/concepts/overview.md)** — the model in one page.
-- **[Module Gallery](docs/modules-gallery.md)** — real modules shipping today.
-- **[CLI](docs/cli.md)** / **[Operator](docs/operator.md)** — the two ways to run OPM.
+- **[Documentation index](docs/legacy/index.md)** — pick your path.
+- **[Getting Started](docs/legacy/getting-started.md)** — scaffold your first module.
+- **[Concepts Overview](docs/legacy/concepts/overview.md)** — the model in one page.
+- **[Module Gallery](docs/legacy/modules-gallery.md)** — real modules shipping today.
+- **[CLI](docs/legacy/cli.md)** / **[Operator](docs/legacy/operator.md)** — the two ways to run OPM.
 
 ## How it compares to Helm
 
-In short: compile-time validation instead of runtime templating, explicit ownership boundaries between authors and consumers, composable Resources/Traits/Blueprints instead of monolithic charts, and built-in Policy support. See [OPM vs. Helm](docs/opm-vs-helm.md) for the full comparison.
+In short: compile-time validation instead of runtime templating, explicit ownership boundaries between authors and consumers, composable Resources/Traits/Blueprints instead of monolithic charts, and built-in Policy support. See [OPM vs. Helm](docs/legacy/opm-vs-helm.md) for the full comparison.
 
 ## Roadmap
 
@@ -67,7 +67,7 @@ Stabilize core definitions. Native validation (`opm module vet`). Secrets and co
 
 ### Phase 2: Kubernetes Controller (current)
 
-In-cluster [operator](docs/operator.md) watching `ModuleRelease` CRDs. Continuous reconciliation and drift detection.
+In-cluster [operator](docs/legacy/operator.md) watching `ModuleRelease` CRDs. Continuous reconciliation and drift detection.
 
 ### Phase 3: Platform Model
 

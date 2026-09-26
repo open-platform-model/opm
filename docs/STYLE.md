@@ -84,7 +84,7 @@ Do not introduce more than two new concepts per section.
 
 ## Cross-References
 
-- **Within this repo**: use relative paths — `[Glossary](glossary.md)`, `[Concepts Overview](concepts/overview.md)`.
+- **Within this repo**: use relative paths — `[Glossary](legacy/glossary.md)`, `[Concepts Overview](legacy/concepts/overview.md)`.
 - **To other repos**: use GitHub URLs, never workspace-local relative paths. Readers consume these docs on GitHub and in cloned forks where sibling repos may not be present.
   - File: `https://github.com/open-platform-model/<repo>/blob/main/<path>`
   - Directory: `https://github.com/open-platform-model/<repo>/tree/main/<path>`
