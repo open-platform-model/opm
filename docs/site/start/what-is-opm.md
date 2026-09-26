@@ -44,7 +44,7 @@ OPM works in four steps. You choose or write a module. You create a module insta
 
 You write a module in CUE, a configuration language that checks data against a schema. CUE is also composable. It combines values and schemas from many files and modules into one, and it refuses the result when two of them disagree. These two properties are why OPM is built on CUE. A component combines parts from a catalog. An instance combines a module with your values. CUE checks every combination.
 
-A module describes an application as a set of named components. A component is one workload and what belongs to it, such as a web server, its ports and its replica count.
+A module describes an application as a set of named components. A component is one deployable unit. Often it is a workload, such as a web server with its ports and its replica count. It can also be something that does not run: the application's configuration, the roles it needs, or a custom resource definition.
 
 The module also holds a configuration schema. The schema lists the settings a deployer can change, with their types and defaults. A module can also hold example values, which the CLI uses when you build the module without an instance. A module holds no Kubernetes manifests.
 
@@ -152,7 +152,7 @@ For more, see [Who owns an instance](/docs/concepts/who-owns-an-instance/).
 
 ### Module authors and platform teams change different things
 
-OPM keeps rendering out of the module on purpose. A platform team and an application team change different things, on different schedules. The platform team decides how a workload runs on its clusters, and it publishes that decision as transformers in a catalog. The application team describes its workloads with the parts the catalog defines.
+OPM keeps rendering out of the module on purpose. A platform team and an application team change different things, on different schedules. The platform team decides which Kubernetes objects the catalog's parts become on its clusters, and it publishes that decision as transformers in a catalog. The application team describes its application with the parts the catalog defines.
 
 When the platform team changes how a stateless workload becomes objects, it changes one transformer. No module has to change. In a Helm chart, the chart author makes both decisions.
 
@@ -200,9 +200,9 @@ A published module version does not fix the output. The output also depends on t
 
 The operator does not take over an instance the CLI applied. It only records that the CLI manages it. OPM has no command that moves an instance from one owner to the other. See [Who owns an instance](/docs/concepts/who-owns-an-instance/).
 
-### Deleting the ModuleInstance resource does not always delete the workloads
+### Deleting the ModuleInstance resource does not always delete what it deployed
 
-Deleting a ModuleInstance resource is not `helm uninstall`. If the CLI owns the instance, `kubectl delete` removes only the resource. The objects keep running, and nothing tracks them any more. If the operator owns the instance, it deletes the objects only when `spec.prune` is `true`, and the field has no default.
+Deleting a ModuleInstance resource is not `helm uninstall`. If the CLI owns the instance, `kubectl delete` removes only the resource. The objects stay in the cluster, and nothing tracks them any more. If the operator owns the instance, it deletes the objects only when `spec.prune` is `true`, and the field has no default.
 
 Use `opm instance delete`, and read [Deletion and pruning](/docs/operating/deletion-and-pruning/) first. For an instance the CLI owns, `opm instance delete` deletes every object in the inventory, Namespaces and CRDs included.
 
