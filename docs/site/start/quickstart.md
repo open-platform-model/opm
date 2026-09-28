@@ -1,49 +1,352 @@
 ---
 title: "Quickstart"
-description: "Deploy a ready-made module to a local kind cluster, from start to finish."
+description: "Create a module from a template, render it, and deploy an instance of it to a local kind cluster."
 type: tutorial
 sidebar:
   order: 10
 ---
 
-<!-- Open with the end result, in one or two sentences with "we": we deploy the published module `opmodel.dev/modules/web_app@v1` (an nginx web server) to a local kind cluster with the `opm` CLI, as an instance named `hello` in the `default` namespace. At the end the reader has a Deployment and a Service, both named `hello-web`, running on the cluster, has seen the same objects rendered as YAML before applying them, and has removed them again. Never "you will learn". Check against: modules/web_app/module.cue, modules/web_app/components.cue, cli/QUICKSTART.md, cli/examples/instances/podinfo/instance.cue -->
+In this quickstart, we create a module with the `opm` CLI and render it on our machine. Then we deploy an instance of it to a local kind cluster, change it, and remove it again. It takes about fifteen minutes.
+
+The quickstart has three parts:
+
+- **Set up** (step 1) configures the CLI.
+- **The module** (steps 2 to 4) runs on your machine only. You can stop after step 4 if you only want to see what a module is.
+- **The instance** (steps 5 to 9) deploys the module to a cluster.
 
 ## Before you begin
 
-<!-- Tools with exact versions, as links, nothing explained: the `opm` CLI from the GitHub releases of open-platform-model/cli (archives named `opm-<os>-<arch>.tar.gz`; name the release this page is tested against); the CUE CLI, v0.17.1 or later in the v0.17 line (the cli's CI installs `cuelang.org/go/cmd/cue@v0.17.1`); Docker or another container runtime kind supports; kind; kubectl. The cli tests against the kind node image `kindest/node:v1.34.3`. Network access to `ghcr.io` for the public OPM registry. Verify: which CLI release to name. v1.0.0-alpha.21 seeds its local platform with core v2.0.0-alpha.9 and catalog `opmodel.dev/catalogs/opm@v4` v4.1.0, while `cue mod tidy` in step 2 pins core v2.0.0-alpha.10, so that combination may print a version skew warning; main seeds alpha.10 and v4.4.0. Check against: cli/.goreleaser.yml, cli/.github/workflows/release.yml, cli/Taskfile.yml (`K8S_NODE_IMAGE`), cli/internal/config/templates.go -->
+- The `opm` CLI, [v1.0.0-alpha.22](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-alpha.22). Download the archive for your system, `opm-<os>-<arch>.tar.gz`, and put `opm` on your `PATH`.
+- Network access to `ghcr.io`, where the OPM templates, catalogs and modules are published.
+- For steps 6 to 9: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) v0.32.0, [Docker](https://docs.docker.com/get-started/get-docker/) or [Podman](https://podman.io/docs/installation) to run it, and [kubectl](https://kubernetes.io/docs/tasks/tools/).
 
 ## 1. Configure OPM
 
-<!-- Two commands. First `export CUE_REGISTRY='opmodel.dev=ghcr.io/open-platform-model,registry.cue.works'`, so the `cue` command in step 2 resolves OPM modules from the public registry on GHCR (the `opm` command reads its own mapping from its config file, which the next command writes). Then `opm config init`, which writes `~/.opm/config.cue` (with `registry` set to the GHCR mapping) and the local default platform module `~/.opm/platform/` (`cue.mod/module.cue` pinning core and the two first-party catalogs, `platform.cue` importing them) and fetches nothing. Show its output. Optionally `opm config vet` to prove the platform module builds; it fetches the pinned catalogs on first run. One line on why: every render needs a platform, and this is the one the CLI uses on a laptop; link "Platforms and catalogs". Verify: the exact output of `opm config init` and `opm config vet` (in testing, `opm config vet --config <path>` still read `~/.opm/config.cue`). Check against: cli/internal/cmd/config/init.go, cli/internal/cmd/config/vet.go, cli/internal/config/templates.go, cli/internal/config/resolver.go -->
+```sh
+opm config init
+```
 
-## 2. Write an instance file
+The output should look similar to this:
 
-<!-- Create a directory `hello` and run `cue mod init example.com/hello@v0` in it. Write `instance.cue` in package `hello`: import `core "opmodel.dev/core@v2"` and `web_app "opmodel.dev/modules/web_app@v1"`, embed `core.#ModuleInstance`, set `metadata: {name: "hello", namespace: "default"}`, set `#module: web_app`, and set `values: {replicas: 2}`. Then run `cue mod tidy`, and show the resulting `cue.mod/module.cue`, whose `deps` list `opmodel.dev/modules/web_app@v1` at v1.0.4, `opmodel.dev/core@v2` and `opmodel.dev/catalogs/opm@v4`. One line on why: the module is the application and the instance is one deployed copy of it with its values; link "Modules and instances". Tested 2026-09-25: this file renders with web_app v1.0.4. Do not claim that a misspelled key under `values` fails here: in testing, `values: {replica: 2}` in the instance package rendered silently with the module default of one replica. Check against: core/src/module_instance.cue, cli/examples/instances/podinfo/instance.cue, cli/examples/cue.mod/module.cue, modules/web_app/module.cue -->
+```text
+✔ Configuration initialized at /home/you/.opm
 
-## 3. Render the instance
+Created files:
+  /home/you/.opm/config.cue
+  /home/you/.opm/platform/cue.mod/module.cue
+  /home/you/.opm/platform/platform.cue
 
-<!-- Run `opm instance build ./instance.cue`. The output should look similar to: log lines naming the platform source (`~/.opm/platform`) and the matched transformers (`web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@<version>`, `hpa-transformer`, `service-transformer`), then YAML for a `Service` and a `Deployment`, both named `hello-web` in namespace `default`, the Deployment with `replicas: 2` and image `nginx:1.27`, each carrying the `module-instance.opmodel.dev/name: hello` and `module-instance.opmodel.dev/uuid` labels. Trim the YAML to the kind, name and replicas lines. One line on why: rendering is offline and needs no cluster, so the reader sees exactly what will be applied; link "How matching works". Check against: cli/internal/cmd/instance/build.go, modules/web_app/components.cue, catalog_opm/opm/transformers/deployment_transformer.cue, catalog_opm/opm/transformers/service_transformer.cue -->
+Validate with: opm config vet
+```
 
-## 4. Create a cluster
+`config.cue` tells `opm` where OPM publishes its templates, catalogs and modules. `platform/` is the platform `opm` renders against on your machine. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
-<!-- Two commands. `kind create cluster --name opm-quickstart`, then `opm operator install --crds-only`, which server-side-applies only the OPM CustomResourceDefinitions (ModuleInstance, ModulePackage, Platform, TransformerRegistration) and waits for them to be Established; no operator runs. Show the install output. One line on why: `opm instance apply` records what it deployed in a `ModuleInstance` resource, so the CRD must exist first; link "Who owns an instance". Verify: the exact output of `opm operator install --crds-only`. Check against: cli/internal/cmd/operator/install.go, opm-operator/config/crd/bases/ -->
+## 2. Create a module
 
-## 5. Deploy the instance
+```sh
+opm module init example.com/modules/hello@v0
+cd hello
+```
 
-<!-- Run `opm instance apply ./instance.cue`. No `--create-namespace` is needed because `default` exists. The output should look similar to: a warning that no cluster `Platform` was readable and the local default platform was used, the two objects applied, and a success line. Mention in one sentence that on this first apply the CLI also creates the cluster's `Platform` resource named `cluster` from the local platform, only if none exists. One line on why: the CLI applies with server-side apply and writes a `ModuleInstance` named `hello` with `spec.owner: cli` holding the inventory. Verify: the exact warning and success text; this step was not run against a live cluster while drafting. Check against: cli/internal/cmd/instance/apply.go, cli/internal/workflow/apply/apply.go, cli/internal/platform/cluster.go, cli/internal/inventory/cr.go -->
+The output of the first command should look similar to this:
 
-## 6. Check the instance
+```text
+Scaffolded example.com/modules/hello@v0 from opmodel.dev/templates/standard@v1 v1.0.2
 
-<!-- Run `opm instance status hello -n default` and show its table: the Deployment and the Service with their status. Then `kubectl get moduleinstance hello -n default` to show the record the CLI wrote. Optionally `opm instance list -n default`. Verify: the column headings of `opm instance status` and the `kubectl get moduleinstance` print columns (Ready, Module, Version). Check against: cli/internal/cmd/instance/status.go, cli/internal/cmd/instance/list.go, opm-operator/api/v1alpha1/moduleinstance_types.go -->
+hello/                        Module directory
+  components.cue
+  cue.mod/module.cue
+  identity/identity.cue
+  module.cue
 
-## 7. Remove the instance
+Validate it:  opm module vet hello
+```
 
-<!-- Run `opm instance delete hello -n default --force` (`--force` skips the confirmation prompt) and show that it deletes the two objects and the `ModuleInstance` record. Then `kind delete cluster --name opm-quickstart`. One line on why: `opm instance delete` removes what the inventory lists; deleting the `ModuleInstance` with kubectl instead would leave the objects running. Link "Deletion and pruning". Verify: the exact delete output. Check against: cli/internal/cmd/instance/delete.go, cli/README.md -->
+The standard template holds one component, `web`: a web server with an exposed port. `module.cue` holds the configuration schema, the settings an instance can change, each with a type and a default:
+
+```cue
+#config: {
+	// Container image
+	image: res.#Image & {
+		repository: string | *"nginx"
+		tag:        string | *"1.29"
+		digest:     string | *""
+	}
+
+	// Replica count
+	replicas: int & >=1 | *1
+
+	// Container/Service port
+	port: int & >0 & <=65535 | *80
+
+	// Kubernetes Service type
+	serviceType: "ClusterIP" | "NodePort" | "LoadBalancer" | *"ClusterIP"
+}
+```
+
+See [Modules and instances](/docs/concepts/modules-and-instances/).
+
+## 3. Check the module
+
+```sh
+opm module vet .
+```
+
+The output should look similar to this:
+
+```text
+INFO m:hello: ✔ Identity conforms to #IdentityPackage  identity/identity.cue
+INFO m:hello: ✔ Coordinates agree                 example.com/modules/hello@v0
+INFO m:hello: ✔ Version matches path major        0.1.0
+INFO m:hello: ✔ Values satisfy #config            debugValues
+INFO m:hello: ✔ Module config valid
+```
+
+`opm module vet` checks the module on its own: its identity, its version, and that its example values fit the configuration schema. Nothing is rendered yet.
+
+## 4. Render the module
+
+```sh
+opm module build .
+```
+
+The output should look similar to this, shortened:
+
+```text
+INFO Building synthetic instance "hello-debug" for module "hello"
+INFO platform: /home/you/.opm/platform (local default)
+INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.4.0
+INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.4.0
+INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.4.0
+apiVersion: v1
+kind: Service
+metadata:
+    name: hello-debug-web
+    namespace: default
+...
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: hello-debug-web
+    namespace: default
+spec:
+    replicas: 1
+...
+```
+
+To render a module on its own, `opm` creates a temporary instance named `hello-debug` from the module's example values. Three transformers on the platform matched the `web` component. Two of them produced a Service and a Deployment. The HPA transformer produced nothing, because the template sets a fixed replica count. See [How matching works](/docs/concepts/how-matching-works/).
+
+:::tip[You can stop here]
+This is the end of the module part. The rest of the quickstart deploys the module to a cluster.
+:::
+
+## 5. Write an instance
+
+Create a directory for the instance inside the module:
+
+```sh
+mkdir -p instances/dev
+```
+
+Create `instances/dev/instance.cue` with this content:
+
+```cue
+package dev
+
+import (
+	core "opmodel.dev/core@v2"
+	hello "example.com/modules/hello@v0"
+)
+
+core.#ModuleInstance
+
+metadata: {
+	name:      "hello"
+	namespace: "default"
+}
+
+#module: hello
+
+values: {
+	replicas: 2
+}
+```
+
+Check the instance:
+
+```sh
+opm instance vet ./instances/dev/instance.cue
+```
+
+The output should look similar to this:
+
+```text
+INFO platform: /home/you/.opm/platform (local default)
+INFO m:hello: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.4.0
+INFO m:hello: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.4.0
+INFO m:hello: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.4.0
+INFO m:hello: r:Deployment/default/hello-web                    ✓ valid
+INFO m:hello: r:Service/default/hello-web                       ✓ valid
+INFO m:hello: ✔ Instance valid (2 resources)
+```
+
+The instance deploys the module as `hello` in the `default` namespace, with two replicas. See [Modules and instances](/docs/concepts/modules-and-instances/).
+
+:::note[An instance can live anywhere]
+This instance sits inside the module's directory, so it can import `hello` before `hello` is published. That is a shortcut for trying out a module. For a published module, `opm instance init` creates a standalone instance in a directory of its own, for example:
+
+```sh
+opm instance init hello opmodel.dev/modules/web_app --namespace default
+```
+:::
+
+## 6. Create a cluster
+
+```sh
+kind create cluster --name opm-quickstart
+opm operator install --crds-only
+```
+
+The output of the second command should look similar to this:
+
+```text
+INFO installing opm-operator (CRDs only)
+INFO r:CustomResourceDefinition/moduleinstances.opmodel.dev  + created
+INFO r:CustomResourceDefinition/modulepackages.opmodel.dev  + created
+INFO r:CustomResourceDefinition/platforms.opmodel.dev  + created
+INFO r:CustomResourceDefinition/transformerregistrations.opmodel.dev  + created
+✔ opm-operator v1.0.0-alpha.19 installed (embedded, 4 resource(s) applied)
+```
+
+`opm` records what it deploys in a ModuleInstance resource, so the cluster needs the OPM resource definitions. No operator runs. See [Who owns an instance](/docs/concepts/who-owns-an-instance/).
+
+## 7. Deploy the instance
+
+```sh
+opm instance apply ./instances/dev/instance.cue
+```
+
+The output should look similar to this, shortened:
+
+```text
+WARN cluster Platform not used (no Platform CR in the cluster) — falling back to the local default platform
+...
+INFO m:hello: applying 2 resources
+INFO m:hello: r:Deployment/default/hello-web                    + created
+INFO m:hello: r:Service/default/hello-web                       + created
+INFO m:hello: applied 2 resources successfully (2 created)
+✔ Instance applied
+INFO seeded cluster Platform from the local default platform (write-if-absent)
+```
+
+Check the instance:
+
+```sh
+opm instance status hello -n default
+```
+
+The output should look similar to this:
+
+```text
+Instance:    hello
+Version:    v0.1.0
+Owner:      cli
+Namespace:  default
+Status:     Ready
+Resources:  2 total (2 ready)
+
+KIND         NAME        COMPONENT   STATUS   AGE
+Deployment   hello-web   web         Ready    24s
+Service      hello-web   web         Ready    24s
+```
+
+The cluster had no platform, so `opm` rendered against your local one and then copied it to the cluster. From now on, `opm instance apply` and `opm instance diff` render against the cluster's platform. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
+
+## 8. Change the instance
+
+First, make a mistake. In `instances/dev/instance.cue`, set `replicas: 0`, and check the instance:
+
+```sh
+opm instance vet ./instances/dev/instance.cue
+```
+
+The output should look similar to this, shortened:
+
+```text
+ERRO render failed: 2 issues
+...
+invalid value 0 (out of bound >=1)
+  values.unifiedModule.#components.web.spec.statelessWorkload.scaling.count
+    > module.cue:43:18
+    > instance.cue:18:12
+```
+
+The configuration schema allows one replica or more, so `opm` refuses the value before anything reaches the cluster.
+
+Now set `replicas: 3`, and compare the instance with what runs in the cluster:
+
+```sh
+opm instance diff ./instances/dev/instance.cue
+```
+
+The output should look similar to this, shortened:
+
+```text
+1 modified
+
+--- Deployment/hello-web (default) [modified]
+
+spec.replicas
+± value change
+- 2
++ 3
+```
+
+Apply the change:
+
+```sh
+opm instance apply ./instances/dev/instance.cue
+```
+
+The output should look similar to this, shortened:
+
+```text
+INFO m:hello: r:Deployment/default/hello-web                    ~ configured
+INFO m:hello: r:Service/default/hello-web                       = unchanged
+INFO m:hello: applied 2 resources successfully (1 configured, 1 unchanged)
+✔ Instance applied
+```
+
+Only the Deployment changed, and the Service stayed as it was.
+
+## 9. Clean up
+
+```sh
+opm instance delete hello -n default --force
+kind delete cluster --name opm-quickstart
+```
+
+The output of the first command should look similar to this:
+
+```text
+INFO m:hello: deleting resources in namespace "default"
+INFO m:hello: r:Deployment/default/hello-web                    - deleted
+INFO m:hello: r:Service/default/hello-web                       - deleted
+INFO m:hello: all resources have been deleted
+✔ Instance deleted
+```
+
+`opm instance delete` removes every object the instance recorded, then the ModuleInstance resource itself. `--force` skips the confirmation prompt. See [Deletion and pruning](/docs/operating/deletion-and-pruning/).
 
 ## What you built
 
-<!-- Two or three sentences: an instance file that deploys a published module with one value changed, rendered to plain Kubernetes objects on the laptop, applied to a kind cluster by the CLI with its inventory recorded on the cluster, then removed. No theory. Check against: cli/internal/cmd/instance/apply.go, core/src/module_instance.cue -->
+We created a module from the standard template, checked it and rendered it on our machine. Then we deployed an instance of it to a kind cluster and had a bad value refused. We changed the Deployment from two replicas to three, and removed everything the instance created.
 
 ## Next steps
 
-<!-- Three links at most, by title: the concept page "Modules and instances", the tutorial "Your first module" or the how-to guide "Install the operator" (pick one how-to guide), and the reference page "CLI Reference". Check against: core/docs/site/concepts/modules-and-instances.md, opm-operator/docs/site/operating/install-the-operator.md, opmodel.dev/site/content/docs/reference/cli/index.md -->
+- [What OPM is](/docs/start/what-is-opm/)
+- [Your first module](/docs/authoring/your-first-module/)
+- [Deploy with the CLI](/docs/operating/deploy-with-the-cli/)
+
+<!-- Tested end to end on 2026-09-28 with the released opm v1.0.0-alpha.22 (linux-amd64 archive, checksum verified), the templates at 1.0.2 from GHCR, kind v0.32.0 with its default node image and kubectl v1.36.3, in a fresh home directory with an empty CUE cache and no registry overrides. Every output on this page is from that run. cli#229 will change steps 3 and 4: module build and vet will render against the module's own deps instead of ~/.opm/platform. The note in step 5 describes opm instance init from the planned cli change add-instance-init, which alpha.22 does not ship; its example command is untested. Run it and correct the syntax when the command is released. Re-run every step and update the outputs when the named release changes. -->
