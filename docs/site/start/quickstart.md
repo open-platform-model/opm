@@ -204,7 +204,7 @@ INFO m:shop: r:Service/default/shop-web                        ✓ valid
 INFO m:shop: ✔ Instance valid (2 resources)
 ```
 
-An instance renders against a platform. There is no cluster yet, so `opm` generated one from the catalogs `shop/cue.mod/module.cue` pins, which the `platform: instance deps` line names. With a kube context, `opm instance vet` first looks for the cluster's Platform, and falls back to these catalogs with a warning when it finds none. See [Modules and instances](/docs/concepts/modules-and-instances/).
+An instance renders against a platform. There is no cluster yet, and no kube context, so `opm` generated one from the catalogs `shop/cue.mod/module.cue` pins, which the `platform: instance deps` line names. With a kube context, `opm instance vet` first looks for the cluster's Platform, and falls back to these catalogs with a warning when it finds none. See [Modules and instances](/docs/concepts/modules-and-instances/).
 
 :::note[Deploying your own module]
 `opm instance init` works with published modules. To deploy the module from part 2 the same way, publish it first. See [Publish a module](/docs/authoring/publish-a-module/).
@@ -272,7 +272,7 @@ Service      shop-web   web         Ready    21s
 
 Right after the apply, the Deployment can show `NotReady` while its pods start. Run the command again after a few seconds.
 
-The cluster has no Platform, so `opm` warned and rendered against the instance's own catalogs, as in step 5. `opm instance apply` does not create a Platform; only `opm operator install` without `--crds-only` seeds one. Until the cluster has one, every apply and diff warns the same way. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
+The cluster has no Platform, so `opm` warned and rendered against the instance's own catalogs, as in step 5. `opm instance apply` does not create a Platform; only `opm operator install` seeds one, and not with `--crds-only` or `--skip-platform`. Until the cluster has one, every apply and diff warns the same way. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
 ## 8. Change the instance
 
