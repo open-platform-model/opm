@@ -7,6 +7,7 @@ sidebar:
 
 import ModuleToCluster from '@components/diagrams/ModuleToCluster.astro'
 import RolesAndArtifacts from '@components/diagrams/RolesAndArtifacts.astro'
+import ComponentToObjects from '@components/diagrams/ComponentToObjects.astro'
 
 Open Platform Model (OPM) is first and foremost an [application model](/docs/concepts/application-and-platform-models/). This page shows how its parts fit together, one picture at a time, and links to the page that explains each one.
 
@@ -24,7 +25,9 @@ Read more: [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/), and
 
 ## How a component becomes objects
 
-{/* Figure 3, planned. The web component of the quickstart module: its parts (the container resource, the workload-type label from the stateless workload blueprint, the expose trait) against three transformers and what each requires. Deployment transformer and service transformer match and emit a Deployment and a Service; the HPA transformer matches and emits nothing, because the component sets a fixed replica count. Point: every transformer whose requirements the component meets runs, so one component can become several objects. Read more: How matching works. Check against: catalog_opm/opm/transformers/deployment_transformer.cue, service_transformer.cue, hpa_transformer.cue, cli/templates/standard/components.cue */}
+<ComponentToObjects />
+
+Read more: [How matching works](/docs/concepts/how-matching-works/).
 
 ## Where things live
 
