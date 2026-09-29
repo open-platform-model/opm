@@ -8,6 +8,7 @@ sidebar:
 import ModuleToCluster from '@components/diagrams/ModuleToCluster.astro'
 import RolesAndArtifacts from '@components/diagrams/RolesAndArtifacts.astro'
 import ComponentToObjects from '@components/diagrams/ComponentToObjects.astro'
+import WhereThingsLive from '@components/diagrams/WhereThingsLive.astro'
 
 Open Platform Model (OPM) is first and foremost an [application model](/docs/concepts/application-and-platform-models/). This page shows how its parts fit together, one picture at a time, and links to the page that explains each one.
 
@@ -31,7 +32,9 @@ Read more: [How matching works](/docs/concepts/how-matching-works/).
 
 ## Where things live
 
-{/* Figure 4, planned. Three zones: the registry (templates, modules, catalogs), your machine (module source, instance package, ~/.opm), and the cluster (ModuleInstance and Platform resources, the applied objects). Arrows labelled with the command that moves something between them: opm module init, opm module publish, opm instance init, opm instance apply, opm platform pull, and the operator fetching a module. Point: every command moves something between these three places. Read more: Deploy with the CLI, Publish a module. Check against: cli/README.md (command tables), cli/internal/cmd/ */}
+<WhereThingsLive />
+
+Read more: [Deploy a module with the CLI](/docs/operating/deploy-with-the-cli/) and [Publish a module](/docs/authoring/publish-a-module/).
 
 ## Two ways to deploy, one owner
 
