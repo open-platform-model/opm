@@ -1,0 +1,39 @@
+---
+title: "Start here"
+description: "New to OPM? See what it is, try it, and learn what it does not do."
+sidebar:
+  order: 1
+---
+
+import ModuleToCluster from '@components/diagrams/ModuleToCluster.astro'
+
+Open Platform Model (OPM) is first and foremost an [application model](/docs/concepts/application-and-platform-models/). This page shows how its parts fit together, one picture at a time, and links to the page that explains each one.
+
+## From module to running objects
+
+<ModuleToCluster />
+
+Read more: [What OPM is](/docs/start/what-is-opm/).
+
+## Three roles, three artifacts
+
+{/* Figure 2, planned. Three lanes: the module author owns the module, the platform team owns the platform (its catalogs and their pinned versions), and the deployer owns the instance (values and namespace). Arrows show what each role consumes from the others. Point: each role changes its own artifact, on its own schedule. Read more: Platforms and catalogs. Check against: core/SPEC.md (section 1, Type System Overview), opm/docs/site/start/what-is-opm.md (Module authors and platform teams change different things) */}
+
+## How a component becomes objects
+
+{/* Figure 3, planned. The web component of the quickstart module: its parts (the container resource, the workload-type label from the stateless workload blueprint, the expose trait) against three transformers and what each requires. Deployment transformer and service transformer match and emit a Deployment and a Service; the HPA transformer matches and emits nothing, because the component sets a fixed replica count. Point: every transformer whose requirements the component meets runs, so one component can become several objects. Read more: How matching works. Check against: catalog_opm/opm/transformers/deployment_transformer.cue, service_transformer.cue, hpa_transformer.cue, cli/templates/standard/components.cue */}
+
+## Where things live
+
+{/* Figure 4, planned. Three zones: the registry (templates, modules, catalogs), your machine (module source, instance package, ~/.opm), and the cluster (ModuleInstance and Platform resources, the applied objects). Arrows labelled with the command that moves something between them: opm module init, opm module publish, opm instance init, opm instance apply, opm platform pull, and the operator fetching a module. Point: every command moves something between these three places. Read more: Deploy with the CLI, Publish a module. Check against: cli/README.md (command tables), cli/internal/cmd/ */}
+
+## Two ways to deploy, one owner
+
+{/* Figure 5, planned. Two lanes: the CLI applying an instance file, and the operator reconciling a ModuleInstance that Git or kubectl created. Both end in a ModuleInstance whose spec.owner names who manages it, cli or operator. Point: an instance has one owner, and the other leaves it alone. Read more: Who owns an instance. Check against: opm-operator/api/v1alpha1/moduleinstance_types.go, opm-operator/internal/reconcile/moduleinstance.go (handleCLIOwned), cli/internal/inventory/ownership.go */}
+
+## Where to start
+
+- To try OPM, follow the [Quickstart](/docs/start/quickstart/).
+- To understand how it works, read [What OPM is](/docs/start/what-is-opm/).
+- If you know Kubernetes or Helm, read [OPM for Kubernetes users](/docs/start/opm-for-kubernetes-users/).
+- To know its limits, read [What OPM does not do](/docs/start/what-opm-does-not-do/).
