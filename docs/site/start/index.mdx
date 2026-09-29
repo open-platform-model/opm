@@ -9,6 +9,7 @@ import ModuleToCluster from '@components/diagrams/ModuleToCluster.astro'
 import RolesAndArtifacts from '@components/diagrams/RolesAndArtifacts.astro'
 import ComponentToObjects from '@components/diagrams/ComponentToObjects.astro'
 import WhereThingsLive from '@components/diagrams/WhereThingsLive.astro'
+import ThreeWaysToDeploy from '@components/diagrams/ThreeWaysToDeploy.astro'
 
 Open Platform Model (OPM) is first and foremost an [application model](/docs/concepts/application-and-platform-models/). This page shows how its parts fit together, one picture at a time, and links to the page that explains each one.
 
@@ -36,9 +37,11 @@ Read more: [How matching works](/docs/concepts/how-matching-works/).
 
 Read more: [Deploy a module with the CLI](/docs/operating/deploy-with-the-cli/) and [Publish a module](/docs/authoring/publish-a-module/).
 
-## Two ways to deploy, one owner
+## Three ways to deploy
 
-{/* Figure 5, planned. Two lanes: the CLI applying an instance file, and the operator reconciling a ModuleInstance that Git or kubectl created. Both end in a ModuleInstance whose spec.owner names who manages it, cli or operator. Point: an instance has one owner, and the other leaves it alone. Read more: Who owns an instance. Check against: opm-operator/api/v1alpha1/moduleinstance_types.go, opm-operator/internal/reconcile/moduleinstance.go (handleCLIOwned), cli/internal/inventory/ownership.go */}
+<ThreeWaysToDeploy />
+
+Read more: [Who owns an instance](/docs/concepts/who-owns-an-instance/) and [Operator resources](/docs/reference/operator-resources/).
 
 ## Where to start
 
