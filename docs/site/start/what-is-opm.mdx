@@ -88,7 +88,7 @@ For more, see [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
 A platform is a CUE module that imports the catalogs it uses. Its `cue.mod/module.cue` pins one version of each catalog, the way any CUE module pins its dependencies. Those pins decide which transformers a render uses.
 
-`opm config init` writes a default platform to `~/.opm/platform/`, with both first-party catalogs. `opm instance build` and `opm instance vet` render against it, or against the platform directory you pass with `--platform`. They never contact the cluster. `opm instance apply` and `opm instance diff` use the cluster's platform unless you pass `--platform`. If the cluster has no platform, or you cannot read it, they fall back to the local default and warn.
+A render takes the platform directory you pass with `--platform` first. Without one, the `opm instance` commands and `opm module apply` use the cluster's platform. If the cluster has none, or you may not read it, they warn and use a platform `opm` generates from the render's own pins: the catalogs in the instance package's `cue.mod/module.cue`, or the module's for `opm module apply`. `opm instance build` and `opm instance vet` never fail because of the cluster, and `--offline` keeps them off it. `opm module build` and `opm module vet` never read the cluster: they use the module's own pins. Every render prints a `platform:` line that names the platform it used.
 
 On a cluster, the platform is a Platform resource. It is cluster-scoped and must be named `cluster`. It lists the module path and version of each catalog. The operator generates a platform module from it, and so does the CLI when it renders against the cluster.
 

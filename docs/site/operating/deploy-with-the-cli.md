@@ -25,11 +25,11 @@ Check against: cli/.goreleaser.yml, cli/release-please-config.json, cli/.release
 
 ## 1. Initialize the CLI configuration
 
-<!-- Run `opm config init`. Show its output: "Configuration initialized at ~/.opm", the three created files (`~/.opm/config.cue`, `~/.opm/platform/cue.mod/module.cue`, `~/.opm/platform/platform.cue`) and the line "Validate with: opm config vet". Then run `opm config vet` and show its three check lines: "Config file found", "Config schema validation passed", "Platform module builds".
+<!-- Run `opm config init`. Show its output: "Configuration initialized at ~/.opm", the one created file (`~/.opm/config.cue`) and the line "Validate with: opm config vet". Then run `opm config vet` and show its two check lines: "Config file found" and "Config schema validation passed". A reader with a `~/.opm/platform/` left from an earlier release also sees a warning that no command reads it any more; they can pass it with `--platform ~/.opm/platform` or delete it.
 
-One line on why: `config.cue` maps `opmodel.dev` to `ghcr.io/open-platform-model`, so no `OPM_REGISTRY` export is needed for `opm`, and `~/.opm/platform/` is the local default platform, pinning the catalogs `opmodel.dev/catalogs/opm@v4` at v4.4.0 and `opmodel.dev/catalogs/k8s@v1` at v1.0.0-alpha.3. Link the concept page "Platforms and catalogs".
+One line on why: `config.cue` maps `opmodel.dev` to `ghcr.io/open-platform-model`, so no `OPM_REGISTRY` export is needed for `opm`. Init writes no platform: every render in this tutorial takes `--platform <dir>` if given, else the cluster's Platform named `cluster`, else a platform generated from the instance package's own `cue.mod/module.cue` pins. Link the concept page "Platforms and catalogs".
 
-Check against: cli/internal/cmd/config/init.go, cli/internal/cmd/config/vet.go, cli/internal/config/templates.go, cli/internal/config/resolver.go -->
+Check against: cli/internal/cmd/config/init.go, cli/internal/cmd/config/vet.go, cli/internal/config/templates.go, cli/internal/config/resolver.go, cli/internal/platform/resolve.go -->
 
 ## 2. Create a kind cluster
 
@@ -63,17 +63,25 @@ Check against: core/src/module_instance.cue, modules/web_app/module.cue, modules
 
 <!-- Run `opm instance build ./instance.cue` from the `hello` directory. `values.cue` beside it is loaded automatically. Show a trimmed YAML excerpt: the Deployment `hello-web` in namespace `hello` with `replicas: 2`, and the Service `hello-web`, each carrying the labels `module-instance.opmodel.dev/name: hello`, `module-instance.opmodel.dev/uuid` and `app.kubernetes.io/managed-by: opm-cli`. Verify: the exact label set on the rendered objects.
 
-One line on why: build is offline. It reads no cluster and renders against the local default platform from step 1, so mistakes in values surface here, before anything reaches the cluster.
+Also show the two log lines above the YAML: the warning "cluster Platform not used (no Platform CR in the cluster) — rendering against the instance's own deps" and the provenance line "platform: instance deps (opmodel.dev/catalogs/opm@v4 <version>; generated module <home>/.opm/cache/platforms/<hash>)".
 
-Check against: cli/internal/cmd/instance/build.go, cli/internal/workflow/render/render.go, cli/internal/cmdutil/flags.go, core/src/transformer.cue -->
+One line on why: build reads the cluster only to find its Platform, and never fails because of it. The kind cluster has none, so it warns and renders against the catalogs the instance pins (`--offline` skips the lookup). Mistakes in values surface here, before anything reaches the cluster.
+
+Check against: cli/internal/cmd/instance/build.go, cli/internal/cmd/instance/cluster.go, cli/internal/platform/resolve.go, cli/internal/workflow/render/render.go, cli/internal/cmdutil/flags.go, core/src/transformer.cue -->
 
 ## 6. Apply the instance
 
-<!-- Run `opm instance apply ./instance.cue --create-namespace`. Show the output: the warning "cluster Platform not used (no Platform CR in the cluster) — falling back to the local default platform", the provenance line "platform: <home>/.opm/platform (local default)", `namespace "hello" created`, one line per resource (`r:Deployment/hello/hello-web` and `r:Service/hello/hello-web`, each "created"), "applied 2 resources successfully (2 created)", "Instance applied", and last "seeded cluster Platform from the local default platform (write-if-absent)". Verify: the order of these lines in a real run.
+<!-- Run `opm instance apply ./instance.cue --create-namespace`. Show the output: the same warning and `platform: instance deps (...)` line as step 5, `namespace "hello" created`, one line per resource (`r:Deployment/hello/hello-web` and `r:Service/hello/hello-web`, each "created"), "applied 2 resources successfully (2 created)", and last "Instance applied". Verify: the order of these lines in a real run.
 
-One line on why: the warning is expected, because step 3 created no Platform. Apply writes the ModuleInstance `hello` with `spec.owner: cli` and the two resources in `status.inventory`, then copies the local default platform into a Platform named `cluster`, so the next apply on this cluster reads that instead of falling back. Link the concept page "Who owns an instance".
+One line on why: the warning is expected, because step 3 created no Platform. Apply writes the ModuleInstance `hello` with `spec.owner: cli` and the two resources in `status.inventory`. It creates no Platform (only `opm operator install` without `--crds-only` or `--skip-platform` seeds one), so every later apply on this cluster warns the same way. Link the concept page "Who owns an instance".
 
 Check against: cli/internal/cmd/instance/apply.go, cli/internal/workflow/apply/apply.go, cli/internal/workflow/render/env.go, cli/internal/platform/resolve.go, cli/internal/platform/cluster.go, cli/internal/output/styles.go -->
+
+<!-- Note after step 6, as a short `:::note[Clusters without the operator]` admonition:
+
+A cluster without the operator runs basic modules only. No provider is ever registered there, so a module with a provider-fulfilled trait, such as the catalog's backup trait, is refused with the hint "a provider-fulfilled contract has no provider on this platform: install one, pass --platform <dir> with a platform that carries one, or pass --skip-unprovided to render the rest". `--skip-unprovided` renders the rest: it skips only contracts nothing on the platform provides and warns on each, for example `component "db": skipped provider-fulfilled trait "<fqn>" (no provider on this platform)`. A skipped resource leaves its whole component unrendered. Apply records the skips on the ModuleInstance in the annotation `module-instance.opmodel.dev/skipped-contracts`, and the next apply that skips nothing clears it. The flag also works on `opm instance build`, `vet` and `diff` and on `opm module build`, `vet` and `apply`, and is refused for an operator-managed instance.
+
+Check against: cli/internal/cmdutil/flags.go, cli/internal/workflow/render/skipped.go, cli/internal/workflow/render/validation.go, cli/internal/inventory/cr.go, cli/internal/workflow/apply/thineditor.go, core/SPEC.md (section 3.1, #Component) -->
 
 ## 7. Check the running instance
 
@@ -91,7 +99,7 @@ Check against: cli/internal/cmd/instance/delete.go, cli/internal/kubernetes/dele
 
 ## What you built
 
-<!-- Two or three sentences: a published module, rendered on your machine against the local default platform and applied by the CLI, with its inventory recorded in a ModuleInstance the CLI owns. Nothing in the cluster reconciled it: it changed only when you ran `opm`, and it would stay as deployed until the next `opm instance apply`.
+<!-- Two or three sentences: a published module, rendered on your machine against the catalogs the instance pins and applied by the CLI, with its inventory recorded in a ModuleInstance the CLI owns. Nothing in the cluster reconciled it: it changed only when you ran `opm`, and it would stay as deployed until the next `opm instance apply`.
 
 Check against: cli/README.md, opm-operator/internal/reconcile/moduleinstance.go -->
 

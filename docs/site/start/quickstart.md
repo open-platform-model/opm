@@ -16,7 +16,7 @@ The quickstart has three parts:
 
 ## Before you begin
 
-- The `opm` CLI, [v1.0.0-alpha.23](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-alpha.23). Download the archive for your system, `opm-<os>-<arch>.tar.gz`, and put `opm` on your `PATH`.
+- The `opm` CLI, [v1.0.0-alpha.24](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-alpha.24). Download the archive for your system, `opm-<os>-<arch>.tar.gz`, and put `opm` on your `PATH`.
 - Network access to `ghcr.io`, where the OPM templates, catalogs and modules are published.
 - For steps 6 to 9: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) v0.32.0, [Docker](https://docs.docker.com/get-started/get-docker/) or [Podman](https://podman.io/docs/installation) to run it, and [kubectl](https://kubernetes.io/docs/tasks/tools/).
 
@@ -33,13 +33,11 @@ The output should look similar to this:
 
 Created files:
   /home/you/.opm/config.cue
-  /home/you/.opm/platform/cue.mod/module.cue
-  /home/you/.opm/platform/platform.cue
 
 Validate with: opm config vet
 ```
 
-`config.cue` tells `opm` where OPM publishes its templates, catalogs and modules. `platform/` is the platform `opm` renders instances against on your machine. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
+`config.cue` tells `opm` where OPM publishes its templates, catalogs and modules. It writes no platform: each render uses the platform you pass with `--platform`, else the cluster's Platform, else one generated from the catalogs the module or instance itself pins. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
 ## 2. Create a module
 
@@ -197,16 +195,16 @@ opm instance vet shop/instance.cue
 The output should look similar to this:
 
 ```text
-INFO platform: /home/you/.opm/platform (local default)
-INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.4.0
-INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.4.0
-INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.4.0
+INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.1.0; generated module /home/you/.opm/cache/platforms/1bd308a6…)
+INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.1.0
+INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.1.0
+INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.1.0
 INFO m:shop: r:Deployment/default/shop-web                     ✓ valid
 INFO m:shop: r:Service/default/shop-web                        ✓ valid
 INFO m:shop: ✔ Instance valid (2 resources)
 ```
 
-An instance renders against a platform, here the local one from step 1, not against the module's own catalogs. See [Modules and instances](/docs/concepts/modules-and-instances/).
+An instance renders against a platform. There is no cluster yet, and no kube context, so `opm` generated one from the catalogs `shop/cue.mod/module.cue` pins, which the `platform: instance deps` line names. With a kube context, `opm instance vet` first looks for the cluster's Platform, and falls back to these catalogs with a warning when it finds none. See [Modules and instances](/docs/concepts/modules-and-instances/).
 
 :::note[Deploying your own module]
 `opm instance init` works with published modules. To deploy the module from part 2 the same way, publish it first. See [Publish a module](/docs/authoring/publish-a-module/).
@@ -241,14 +239,14 @@ opm instance apply shop/instance.cue
 The output should look similar to this, shortened:
 
 ```text
-WARN cluster Platform not used (no Platform CR in the cluster) — falling back to the local default platform
+WARN cluster Platform not used (no Platform CR in the cluster) — rendering against the instance's own deps
+INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.1.0; generated module /home/you/.opm/cache/platforms/1bd308a6…)
 ...
 INFO m:shop: applying 2 resources
 INFO m:shop: r:Deployment/default/shop-web                     + created
 INFO m:shop: r:Service/default/shop-web                        + created
 INFO m:shop: applied 2 resources successfully (2 created)
 ✔ Instance applied
-INFO seeded cluster Platform from the local default platform (write-if-absent)
 ```
 
 Check the instance:
@@ -274,7 +272,7 @@ Service      shop-web   web         Ready    21s
 
 Right after the apply, the Deployment can show `NotReady` while its pods start. Run the command again after a few seconds.
 
-The cluster had no platform, so `opm` rendered against your local one and then copied it to the cluster. From now on, `opm instance apply` and `opm instance diff` render against the cluster's platform. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
+The cluster has no Platform, so `opm` warned and rendered against the instance's own catalogs, as in step 5. `opm instance apply` does not create a Platform; only `opm operator install` seeds one, and not with `--crds-only` or `--skip-platform`. Until the cluster has one, every apply and diff warns the same way. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
 ## 8. Change the instance
 
@@ -362,4 +360,4 @@ We created a module from the standard template, checked it and rendered it on ou
 - [Your first module](/docs/authoring/your-first-module/)
 - [Publish a module](/docs/authoring/publish-a-module/)
 
-<!-- Tested end to end on 2026-09-29 with the released opm v1.0.0-alpha.23 (linux-amd64 archive, checksum verified), the templates at 1.0.2 and web_app 1.0.4 from GHCR, kind v0.32.0 with its default node image and kubectl v1.36.3, in a fresh home directory with an empty CUE cache and no registry overrides. Every output on this page is from that run; the generated-module hash in steps 3 and 4 is shortened. web_app declares no initValues, so init prints the debugValues line in step 5; if web_app gains initValues, update that line and the values.cue listing. Re-run every step and update the outputs when the named release changes. -->
+<!-- Steps 1 to 5 re-run on 2026-09-29 with opm v1.0.0-alpha.24 built from the tag, in a fresh home directory with no kubeconfig; the step 5 vet output and the step 7 WARN and platform lines follow that release (the step 7 lines from internal/platform/resolve.go, not yet re-run on kind). Tested end to end on 2026-09-29 with the released opm v1.0.0-alpha.23 (linux-amd64 archive, checksum verified), the templates at 1.0.2 and web_app 1.0.4 from GHCR, kind v0.32.0 with its default node image and kubectl v1.36.3, in a fresh home directory with an empty CUE cache and no registry overrides. Every output on this page is from that run; the generated-module hashes in steps 3, 4, 5 and 7 are shortened. web_app declares no initValues, so init prints the debugValues line in step 5; if web_app gains initValues, update that line and the values.cue listing. Re-run every step and update the outputs when the named release changes. -->

@@ -22,8 +22,8 @@ Check against: cli/CHANGELOG.md, cli/.goreleaser.yml, cli/internal/config/templa
 ## 1. Create the local OPM configuration
 
 <!-- Command: `opm config init`.
-Output to show: `Configuration initialized at <home>/.opm`, then "Created files:" listing `config.cue`, `platform/cue.mod/module.cue` and `platform/platform.cue` under `~/.opm`, then `Validate with: opm config vet`.
-One line on why: rendering needs a platform, and this writes the local default platform (subscribed to opmodel.dev/catalogs/opm@v4 and opmodel.dev/catalogs/k8s@v1) that `opm module build` uses when there is no `--platform` flag. It also writes the registry mapping step 2 needs. Link the concept page "Platforms and catalogs".
+Output to show: `Configuration initialized at <home>/.opm`, then "Created files:" listing only `~/.opm/config.cue`, then `Validate with: opm config vet`.
+One line on why: it writes the registry mapping step 2 needs. It writes no platform: without `--platform`, `opm module build` renders against a platform generated from the module's own `cue.mod/module.cue` pins and never reads a cluster. Link the concept page "Platforms and catalogs".
 If `~/.opm/config.cue` already exists the command refuses with "configuration already exists" and a hint to use `--force`. Tell the reader to skip the step in that case rather than overwrite.
 Check against: cli/internal/cmd/config/init.go, cli/internal/config/templates.go, cli/internal/platform/resolve.go -->
 
@@ -54,9 +54,9 @@ Check against: core/src/module.cue (#Module), cli/templates/minimal/module.cue, 
 
 <!-- File edit: add the import `bp "opmodel.dev/catalogs/opm/blueprints/v1beta1"` and a `#components` block holding one component, `web`, that embeds `bp.#StatelessWorkload` and sets `spec: statelessWorkload: {container: {name: "web", image: #config.image, ports: http: {name: "http", targetPort: #config.port}}, scaling: count: #config.replicas}`.
 Command: `opm module build ./hello`.
-Output to show: the log lines `Building synthetic instance "hello-debug" for module "hello"`, `platform: <home>/.opm/platform (local default)`, `▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@<catalog version>` and a second match line for `hpa-transformer`, which pairs with every stateless component (the blueprint always carries the Scaling trait) and renders nothing unless `scaling.auto` is set; say so in half a line, since the reader will see it. Then YAML for one Deployment named `hello-debug-web` in namespace `default` with `replicas: 1` and image `nginx:1.29`. The name is the synthetic instance name plus the component name.
+Output to show: the log lines `Building synthetic instance "hello-debug" for module "hello"`, `platform: module deps (opmodel.dev/catalogs/opm@v4 v<catalog version>; generated module <home>/.opm/cache/platforms/<hash>)`, `▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@<catalog version>` and a second match line for `hpa-transformer`, which pairs with every stateless component (the blueprint always carries the Scaling trait) and renders nothing unless `scaling.auto` is set; say so in half a line, since the reader will see it. Then YAML for one Deployment named `hello-debug-web` in namespace `default` with `replicas: 1` and image `nginx:1.29`. The name is the synthetic instance name plus the component name.
 One line on why: the blueprint stamps the workload-type label that selects the Deployment transformer. Link the concept page "Components and blueprints".
-Check against: catalog_opm/opm/blueprints/v1beta1/stateless_workload.cue, catalog_opm/opm/transformers/deployment_transformer.cue, catalog_opm/opm/transformers/hpa_transformer.cue, library/opm/kernel/parity_harness_test.go (shippedCases), cli/internal/workflow/render/module.go (syntheticIdentity), core/src/component.cue (resourceName default), cli/internal/workflow/render/log_output.go -->
+Check against: cli/internal/platform/resolve.go (Describe), catalog_opm/opm/blueprints/v1beta1/stateless_workload.cue, catalog_opm/opm/transformers/deployment_transformer.cue, catalog_opm/opm/transformers/hpa_transformer.cue, library/opm/kernel/parity_harness_test.go (shippedCases), cli/internal/workflow/render/module.go (syntheticIdentity), core/src/component.cue (resourceName default), cli/internal/workflow/render/log_output.go -->
 
 ## 5. Expose the component as a Service
 
@@ -83,7 +83,7 @@ Check against: cli/internal/cmd/module/build.go, cli/internal/cmdutil/manifest_o
 
 ## What you built
 
-<!-- Two or three sentences on the result: a module directory with an identity package, a `module.cue` holding metadata, a configuration contract with defaults, example values and one component built from the stateless blueprint with the Expose trait; rendered offline against the local default platform into a Deployment and a Service; a values file changed the replica count without editing the module. No theory.
+<!-- Two or three sentences on the result: a module directory with an identity package, a `module.cue` holding metadata, a configuration contract with defaults, example values and one component built from the stateless blueprint with the Expose trait; rendered offline against the module's own catalogs into a Deployment and a Service; a values file changed the replica count without editing the module. No theory.
 Check against: cli/templates/minimal/, cli/templates/standard/components.cue -->
 
 ## Next steps
