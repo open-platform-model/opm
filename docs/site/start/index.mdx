@@ -6,6 +6,7 @@ sidebar:
 ---
 
 import ModuleToCluster from '@components/diagrams/ModuleToCluster.astro'
+import RolesAndArtifacts from '@components/diagrams/RolesAndArtifacts.astro'
 
 Open Platform Model (OPM) is first and foremost an [application model](/docs/concepts/application-and-platform-models/). This page shows how its parts fit together, one picture at a time, and links to the page that explains each one.
 
@@ -17,7 +18,9 @@ Read more: [What OPM is](/docs/start/what-is-opm/).
 
 ## Three roles, three artifacts
 
-{/* Figure 2, planned. Three lanes: the module author owns the module, the platform team owns the platform (its catalogs and their pinned versions), and the deployer owns the instance (values and namespace). Arrows show what each role consumes from the others. Point: each role changes its own artifact, on its own schedule. Read more: Platforms and catalogs. Check against: core/SPEC.md (section 1, Type System Overview), opm/docs/site/start/what-is-opm.md (Module authors and platform teams change different things) */}
+<RolesAndArtifacts />
+
+Read more: [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/), and why OPM splits the roles in [What OPM is](/docs/start/what-is-opm/).
 
 ## How a component becomes objects
 
