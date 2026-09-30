@@ -36,6 +36,14 @@ Read more: [Deploy a module with the CLI](/docs/operating/deploy-with-the-cli/) 
 
 Read more: [Who owns an instance](/docs/concepts/who-owns-an-instance/) and [Operator resources](/docs/reference/operator-resources/).
 
+## Release status
+
+OPM is in beta. The beta line is the core schema `opmodel.dev/core@v2` (versions `2.0.0-beta.N`), the Kubernetes catalog `opmodel.dev/catalogs/k8s@v1`, the Go library, the `opm` CLI and the operator (versions `1.0.0-beta.N`). Each of them is on the path to a stable release.
+
+A breaking change can still land during the beta. It comes with a migration note in the release's changelog, and it raises the beta number, for example from `-beta.1` to `-beta.2`. It never moves a module path to a new major version. The OPM catalog `opmodel.dev/catalogs/opm@v4` and the published modules are already stable and follow semantic versioning: a breaking change there is a new major version. A core change that would force a new major of the OPM catalog needs the maintainers' approval. At the stable release, each package drops its `-beta.N` suffix, in dependency order starting with core.
+
+The beta is a release status, not a contract level. A resource, trait or blueprint carries its own `apiVersion` (`v1alpha1`, `v1beta1`, `v1`), which moves on its own ladder with its own promise; see the [Glossary](/docs/reference/glossary/). The operator's resources stay at `opmodel.dev/v1alpha1` until the stable release.
+
 ## Where to start
 
 - To try OPM, follow the [Quickstart](/docs/start/quickstart/).
