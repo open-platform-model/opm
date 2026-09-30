@@ -15,7 +15,7 @@ The quickstart has three parts:
 
 ## Before you begin
 
-- The `opm` CLI, [v1.0.0-alpha.24](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-alpha.24). Download the archive for your system, `opm-<os>-<arch>.tar.gz`, and put `opm` on your `PATH`.
+- The `opm` CLI, [v1.0.0-beta.2](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-beta.2). Download the archive for your system, `opm-<os>-<arch>.tar.gz`, and put `opm` on your `PATH`.
 - Network access to `ghcr.io`, where the OPM templates, catalogs and modules are published.
 - For steps 6 to 9: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) v0.32.0, [Docker](https://docs.docker.com/get-started/get-docker/) or [Podman](https://podman.io/docs/installation) to run it, and [kubectl](https://kubernetes.io/docs/tasks/tools/).
 
@@ -48,7 +48,7 @@ cd hello
 The output of the first command should look similar to this:
 
 ```text
-Scaffolded example.com/modules/hello@v0 from opmodel.dev/templates/standard@v1 v1.0.2
+Scaffolded example.com/modules/hello@v0 from opmodel.dev/templates/standard@v1 v1.0.3
 
 hello/                        Module directory
   components.cue
@@ -98,10 +98,10 @@ INFO m:hello: ✔ Version matches path major        0.1.0
 INFO m:hello: ✔ Values satisfy #config            debugValues
 INFO m:hello: ✔ Module config valid
 INFO Building synthetic instance "hello-debug" for module "hello"
-INFO platform: module deps (opmodel.dev/catalogs/opm@v4 v4.4.0; generated module /home/you/.opm/cache/platforms/8936a1c7…)
-INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.4.0
-INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.4.0
-INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.4.0
+INFO platform: module deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/ad084691…)
+INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.4.4
+INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.4.4
+INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.4.4
 INFO m:hello: r:Deployment/default/hello-debug-web              ✓ valid
 INFO m:hello: r:Service/default/hello-debug-web                 ✓ valid
 INFO m:hello: ✔ Module valid (2 resources)
@@ -119,7 +119,7 @@ The output should look similar to this, shortened:
 
 ```text
 INFO Building synthetic instance "hello-debug" for module "hello"
-INFO platform: module deps (opmodel.dev/catalogs/opm@v4 v4.4.0; generated module /home/you/.opm/cache/platforms/8936a1c7…)
+INFO platform: module deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/ad084691…)
 ...
 apiVersion: v1
 kind: Service
@@ -157,7 +157,7 @@ opm instance init shop opmodel.dev/modules/web_app -n default
 The output should look similar to this:
 
 ```text
-INFO Resolved opmodel.dev/modules/web_app -> v1 1.0.4 (highest major on core v2)
+INFO Resolved opmodel.dev/modules/web_app -> v1 1.0.5 (highest major on core v2)
 Values template: debugValues (module declares no initValues; review before deploying)
 Initialized instance shop/
   cue.mod/module.cue
@@ -195,10 +195,10 @@ opm instance vet shop/instance.cue
 The output should look similar to this:
 
 ```text
-INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.1.0; generated module /home/you/.opm/cache/platforms/1bd308a6…)
-INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.1.0
-INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.1.0
-INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.1.0
+INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/ad084691…)
+INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.4.4
+INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.4.4
+INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.4.4
 INFO m:shop: r:Deployment/default/shop-web                     ✓ valid
 INFO m:shop: r:Service/default/shop-web                        ✓ valid
 INFO m:shop: ✔ Instance valid (2 resources)
@@ -226,7 +226,7 @@ INFO r:CustomResourceDefinition/moduleinstances.opmodel.dev  + created
 INFO r:CustomResourceDefinition/modulepackages.opmodel.dev  + created
 INFO r:CustomResourceDefinition/platforms.opmodel.dev  + created
 INFO r:CustomResourceDefinition/transformerregistrations.opmodel.dev  + created
-✔ opm-operator v1.0.0-alpha.19 installed (embedded, 4 resource(s) applied)
+✔ opm-operator v1.0.0-beta.1 installed (embedded, 4 resource(s) applied)
 ```
 
 `opm` records what it deploys in a ModuleInstance resource, so the cluster needs the OPM resource definitions. No operator runs. See [Who owns an instance](/docs/concepts/who-owns-an-instance/).
@@ -241,7 +241,7 @@ The output should look similar to this, shortened:
 
 ```text
 WARN cluster Platform not used (no Platform CR in the cluster) — rendering against the instance's own deps
-INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.1.0; generated module /home/you/.opm/cache/platforms/1bd308a6…)
+INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/ad084691…)
 ...
 INFO m:shop: applying 2 resources
 INFO m:shop: r:Deployment/default/shop-web                     + created
@@ -260,18 +260,18 @@ The output should look similar to this:
 
 ```text
 Instance:    shop
-Version:    v1.0.4
+Version:    v1.0.5
 Owner:      cli
 Namespace:  default
 Status:     Ready
 Resources:  2 total (2 ready)
 
 KIND         NAME       COMPONENT   STATUS   AGE
-Deployment   shop-web   web         Ready    21s
-Service      shop-web   web         Ready    21s
+Deployment   shop-web   web         Ready    30s
+Service      shop-web   web         Ready    30s
 ```
 
-Right after the apply, the Deployment can show `NotReady` while its pods start. Run the command again after a few seconds.
+Right after the apply, the Deployment can show `NotReady` for about half a minute, while the image is pulled and its pods start. Run the command again after that.
 
 The cluster has no Platform, so `opm` warned and rendered against the instance's own catalogs, as in step 5. `opm instance apply` does not create a Platform; only `opm operator install` seeds one, and not with `--crds-only` or `--skip-platform`. Until the cluster has one, every apply and diff warns the same way. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
@@ -361,4 +361,4 @@ We created a module from the standard template, checked it and rendered it on ou
 - [Your first module](/docs/authoring/your-first-module/)
 - [Publish a module](/docs/authoring/publish-a-module/)
 
-<!-- Steps 1 to 5 re-run on 2026-09-29 with opm v1.0.0-alpha.24 built from the tag, in a fresh home directory with no kubeconfig; the step 5 vet output and the step 7 WARN and platform lines follow that release (the step 7 lines from internal/platform/resolve.go, not yet re-run on kind). Tested end to end on 2026-09-29 with the released opm v1.0.0-alpha.23 (linux-amd64 archive, checksum verified), the templates at 1.0.2 and web_app 1.0.4 from GHCR, kind v0.32.0 with its default node image and kubectl v1.36.3, in a fresh home directory with an empty CUE cache and no registry overrides. Every output on this page is from that run; the generated-module hashes in steps 3, 4, 5 and 7 are shortened. web_app declares no initValues, so init prints the debugValues line in step 5; if web_app gains initValues, update that line and the values.cue listing. Re-run every step and update the outputs when the named release changes. -->
+<!-- Tested end to end on 2026-09-30 with the released opm v1.0.0-beta.2 (linux-amd64 archive from the GitHub release, checksum verified against checksums.txt; it embeds opm-operator v1.0.0-beta.1), the templates at 1.0.3, web_app 1.0.5 (on core v2.0.0-beta.1 and catalogs/opm v4.4.4) from GHCR, kind v0.32.0 with its default node image (kindest/node v1.36.1) and kubectl v1.36.3, in a fresh home directory with an empty CUE cache and no registry overrides. Every output on this page is from that run, with timestamps removed; the generated-module hashes in steps 3, 4, 5 and 7 are shortened, and steps 3 to 7 print the same hash because the module and the instance pin the same catalog. The first `opm instance status` right after the apply showed the Deployment NotReady; the one shown ran about 30 seconds later. web_app declares no initValues, so init prints the debugValues line in step 5; if web_app gains initValues, update that line and the values.cue listing. Re-run every step and update the outputs when the named release changes. -->

@@ -13,7 +13,7 @@ Check against: cli/internal/cmd/module/init.go, cli/templates/minimal/, cli/QUIC
 ## Before you begin
 
 <!-- Tools and exact versions only, nothing explained.
-- The `opm` CLI at v1.0.0-alpha.21, the latest entry in cli/CHANGELOG.md when this was outlined. Verify: how a reader installs it. cli/.goreleaser.yml suggests release binaries; cli/QUICKSTART.md builds from source with `task build && task install`, which also needs Go 1.25+ and Task.
+- The `opm` CLI at v1.0.0-beta.2, the newest release on 2026-09-30 (outlined at v1.0.0-alpha.21). Verify: how a reader installs it; the quickstart links the release tag, whose `opm-<os>-<arch>.tar.gz` archives are checked against `checksums.txt`. cli/.goreleaser.yml suggests release binaries; cli/QUICKSTART.md builds from source with `task build && task install`, which also needs Go 1.25+ and Task.
 - Network access to ghcr.io. The registry mapping `opm config init` writes routes `opmodel.dev` to `ghcr.io/open-platform-model`, which serves core, the catalogs and the `minimal` template.
 - No Kubernetes cluster and no CUE toolchain. Verify by walking the tutorial: none of these commands shells out to `cue`.
 Check against: cli/CHANGELOG.md, cli/.goreleaser.yml, cli/internal/config/templates.go (DefaultRegistry) -->
@@ -29,7 +29,7 @@ Check against: cli/internal/cmd/config/init.go, cli/internal/config/templates.go
 ## 2. Scaffold the module
 
 <!-- Command: `opm mod init example.com/modules/hello@v0 minimal` (`mod` is an alias of `module`).
-Output to show: `Scaffolded example.com/modules/hello@v0 from opmodel.dev/templates/minimal@v1 <version>`, then the file tree: `hello/`, `cue.mod/module.cue`, `identity/identity.cue`, `module.cue`, then `Validate it:  opm module vet hello`. Verify: the template version the registry serves today (the source in cli/templates/minimal/identity/identity.cue says 1.0.2).
+Output to show: `Scaffolded example.com/modules/hello@v0 from opmodel.dev/templates/minimal@v1 <version>`, then the file tree: `hello/`, `cue.mod/module.cue`, `identity/identity.cue`, `module.cue`, then `Validate it:  opm module vet hello`. Verify: the template version the registry serves today (the source in cli/templates/minimal/identity/identity.cue says 1.0.3).
 Say that the path's last segment, `hello`, becomes the package name and the module name, so it must be snake_case, and that `identity/identity.cue` now holds `ModulePath: "example.com/modules/hello@v0"` and `Version: "0.1.0"`.
 One line on why: the identity package is the single place the module's path and version are written. Link the concept page "Identity and names".
 Check against: cli/internal/cmd/module/init.go, cli/internal/scaffold/scaffold.go (ValidateNewModulePath, InitialVersion, Reidentify), cli/internal/scaffold/ref.go (Official, DefaultTemplate) -->

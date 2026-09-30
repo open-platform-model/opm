@@ -14,7 +14,7 @@ Check against: modules/web_app/module.cue, modules/web_app/components.cue, modul
 ## Before you begin
 
 <!-- Exact tools and versions, as links, nothing explained:
-- The `opm` CLI v1.0.0-alpha.21, the release binary archive `opm-<os>-<arch>` from the open-platform-model/cli GitHub releases. Every CLI release is a GitHub prerelease, so link the tag, not a "latest" URL. Verify: the archive extension and the current release at publish time. Building from source needs Go 1.26 (go.mod says `go 1.26.0`; the QUICKSTART's "Go 1.25+" is stale).
+- The `opm` CLI v1.0.0-beta.2, the release binary archive `opm-<os>-<arch>.tar.gz` from the open-platform-model/cli GitHub releases, checked against the release's `checksums.txt`. GitHub's "latest" release for open-platform-model/cli resolves to v0.6.0, and every current CLI release (v1.0.0-beta.1 and v1.0.0-beta.2) is marked Pre-release (checked 2026-09-30), so link the tag, not a "latest" URL. Verify: the archive extension and the current release at publish time. Building from source needs Go 1.26 (go.mod says `go 1.26.0`; the QUICKSTART's "Go 1.25+" is stale).
 - kind, and Docker for kind to run on.
 - kubectl.
 - CUE v0.17 or newer (`cue`). The CLI never runs `cue`, but the instance module's dependencies are written into `cue.mod/module.cue` by `cue mod tidy` in step 4. Verify: that no `opm` command populates an instance module's dependencies.
@@ -38,7 +38,7 @@ Check against: cli/internal/config/templates.go, cli/Taskfile.yml, opm-kind-demo
 
 ## 3. Install the ModuleInstance CRD
 
-<!-- Run `opm operator install --crds-only`. Show the output: "installing opm-operator (CRDs only)", one line per CRD (moduleinstances, modulepackages, platforms and transformerregistrations, all under opmodel.dev), and "opm-operator v1.0.0-alpha.19 installed (embedded, 4 resource(s) applied)". Verify: the count and the per-CRD line wording.
+<!-- Run `opm operator install --crds-only`. Show the output: "installing opm-operator (CRDs only)", one line per CRD (moduleinstances, modulepackages, platforms and transformerregistrations, all under opmodel.dev), and "opm-operator v1.0.0-beta.1 installed (embedded, 4 resource(s) applied)" (as opm v1.0.0-beta.2 prints it, 2026-09-30). Verify: the count and the per-CRD line wording.
 
 One line on why: `opm instance apply` records what it deployed in a ModuleInstance, so the CRD must exist first. Without it, apply stops with "ModuleInstance CRD not found — run 'opm operator install --crds-only'". This installs no controller and creates no Platform. Link the concept page "Who owns an instance".
 
@@ -52,7 +52,7 @@ Check against: cli/internal/cmd/operator/install.go, cli/internal/operator/manif
 
 `values.cue`: `package hello` and `values: replicas: 2`. The module's `#config` also takes `image`, `port` and `serviceType`, all with defaults.
 
-Then run `CUE_REGISTRY='opmodel.dev=ghcr.io/open-platform-model,registry.cue.works' cue mod tidy` and show the resulting `deps` block of `cue.mod/module.cue`: `opmodel.dev/modules/web_app@v1`, `opmodel.dev/core@v2` and `opmodel.dev/catalogs/opm@v4`. Verify: the module path to give `cue mod init` (for example `example.com/hello`), whether `tidy` resolves the prerelease-only `core@v2` line, and the published `web_app` version (identity says 1.0.4; an unreleased deps bump may have moved it).
+Then run `CUE_REGISTRY='opmodel.dev=ghcr.io/open-platform-model,registry.cue.works' cue mod tidy` and show the resulting `deps` block of `cue.mod/module.cue`: `opmodel.dev/modules/web_app@v1`, `opmodel.dev/core@v2` and `opmodel.dev/catalogs/opm@v4`. Verify: the module path to give `cue mod init` (for example `example.com/hello`), whether `tidy` resolves the prerelease-only `core@v2` line, and the published `web_app` version (identity says 1.0.5; an unreleased deps bump may have moved it).
 
 One line on why: `metadata.namespace` is required, and `values` must satisfy the module's `#config`. Link the concept page "Modules and instances".
 
