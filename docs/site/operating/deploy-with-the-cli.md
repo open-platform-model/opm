@@ -2,8 +2,7 @@
 title: "Deploy a module with the CLI"
 description: "Install a module on a cluster with the opm command and watch it come up."
 type: tutorial
-sidebar:
-  order: 10
+weight: 10
 ---
 
 <!-- Open with the end result: a running copy of the published module `opmodel.dev/modules/web_app@v1` (nginx behind a ClusterIP Service) on a local kind cluster, deployed as the instance `hello` in namespace `hello` with `opm instance apply`. The reader ends with a Deployment `hello-web` running two replicas, a Service `hello-web`, and a ModuleInstance `hello` that records both, with `spec.owner: cli`. No operator runs at any point. Name the result in one sentence, then start.

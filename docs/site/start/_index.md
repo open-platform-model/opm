@@ -1,45 +1,38 @@
 ---
 title: "Start here"
 description: "New to OPM? See what it is, try it, and learn what it does not do."
-sidebar:
-  order: 1
+weight: 1
 ---
-
-import ModuleToCluster from '@components/diagrams/ModuleToCluster.astro'
-import RolesAndArtifacts from '@components/diagrams/RolesAndArtifacts.astro'
-import ComponentToObjects from '@components/diagrams/ComponentToObjects.astro'
-import WhereThingsLive from '@components/diagrams/WhereThingsLive.astro'
-import ThreeWaysToDeploy from '@components/diagrams/ThreeWaysToDeploy.astro'
 
 Open Platform Model (OPM) is first and foremost an [application model](/docs/concepts/application-and-platform-models/). This page shows how its parts fit together, one picture at a time, and links to the page that explains each one.
 
 ## From module to running objects
 
-<ModuleToCluster />
+{{< opm/module-to-cluster >}}
 
 Read more: [What OPM is](/docs/start/what-is-opm/).
 
 ## Three roles, three artifacts
 
-<RolesAndArtifacts />
+{{< opm/roles-and-artifacts >}}
 
 Read more: [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/), and why OPM splits the roles in [What OPM is](/docs/start/what-is-opm/).
 
 ## How a component becomes objects
 
-<ComponentToObjects />
+{{< opm/component-to-objects >}}
 
 Read more: [How matching works](/docs/concepts/how-matching-works/).
 
 ## Where things live
 
-<WhereThingsLive />
+{{< opm/where-things-live >}}
 
 Read more: [Deploy a module with the CLI](/docs/operating/deploy-with-the-cli/) and [Publish a module](/docs/authoring/publish-a-module/).
 
 ## Three ways to deploy
 
-<ThreeWaysToDeploy />
+{{< opm/three-ways-to-deploy >}}
 
 Read more: [Who owns an instance](/docs/concepts/who-owns-an-instance/) and [Operator resources](/docs/reference/operator-resources/).
 

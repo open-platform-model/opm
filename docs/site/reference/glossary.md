@@ -2,8 +2,7 @@
 title: "Glossary"
 description: "Every OPM term in one place, each with a short definition."
 type: reference
-sidebar:
-  order: 8
+weight: 8
 ---
 
 <!-- One sentence saying what the page lists: every OPM term and every CUE term the documentation uses, each defined once, for a reader who runs Kubernetes and has never used OPM or CUE. Every other page links a term's first use to its row here. Each definition is one or two sentences, names the definition, field or command the term comes from, and places the term against Kubernetes where an honest comparison exists. Rows follow the product's structure: the model, rendering, identity and versions, deploying, diagnostics, publishing, then CUE terms last. Keep the rows in step with the terms the other pages actually use; add a row before a page uses a new term. The description says "OPM term", but the page also defines CUE terms. Check against: enhancements/0018/03-decisions.md (D11), core/SPEC.md -->
@@ -89,4 +88,4 @@ sidebar:
 
 ## See also
 
-<!-- By title: "OPM for Kubernetes users" for each term next to its Kubernetes counterpart, "What OPM is" for how the terms fit together, "Definitions" and "Catalog members" for the generated field-level reference, and "What enforces a rule" for the badges. Check against: opm/docs/site/start/, opmodel.dev/site/content/docs/reference/definitions/index.md, catalog_opm/docs/site/reference/catalog-members.md, core/docs/site/concepts/what-enforces-a-rule.md -->
+<!-- By title: "OPM for Kubernetes users" for each term next to its Kubernetes counterpart, "What OPM is" for how the terms fit together, "Definitions" and "Catalog members" for the generated field-level reference, and "What enforces a rule" for the badges. Check against: opm/docs/site/start/, opmodel.dev/site/content/docs/reference/definitions/_index.md, catalog_opm/docs/site/reference/catalog-members.md, core/docs/site/concepts/what-enforces-a-rule.md -->

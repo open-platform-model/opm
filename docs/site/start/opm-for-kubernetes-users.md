@@ -2,8 +2,7 @@
 title: "OPM for Kubernetes users"
 description: "Each OPM term next to the closest Kubernetes idea, and where the comparison stops holding."
 type: reference
-sidebar:
-  order: 40
+weight: 40
 ---
 
 <!-- One sentence saying what the page lists: each OPM term a Kubernetes or Helm user meets, next to the closest idea they already know and the point where the comparison stops holding. Rows follow the product's structure: what a module is made of, what supplies rendering, identity, then deploying and the operator's resources. Each term's definition lives in the "Glossary"; this page gives only the analogy and its limit. No opinion. Check against: core/SPEC.md, cli/README.md, opm-operator/api/v1alpha1/ -->

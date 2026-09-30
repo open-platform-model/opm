@@ -2,8 +2,7 @@
 title: "Quickstart"
 description: "Create a module from a template and render it, then deploy a published module to a local kind cluster."
 type: tutorial
-sidebar:
-  order: 10
+weight: 10
 ---
 
 In this quickstart, we create a module with the `opm` CLI and render it on our machine. Then we deploy a published module to a local kind cluster, change it, and remove it again. It takes about fifteen minutes.
@@ -141,9 +140,10 @@ spec:
 
 To render a module on its own, `opm` creates a temporary instance named `hello-debug` from the module's example values. Two of the three transformers produced a Service and a Deployment. The HPA transformer produced nothing, because the template sets a fixed replica count.
 
-:::tip[You can stop here]
-This is the end of the module part. The rest of the quickstart deploys a module to a cluster.
-:::
+> [!TIP]
+> **You can stop here**
+>
+> This is the end of the module part. The rest of the quickstart deploys a module to a cluster.
 
 ## 5. Create an instance
 
@@ -206,9 +206,10 @@ INFO m:shop: ✔ Instance valid (2 resources)
 
 An instance renders against a platform. There is no cluster yet, and no kube context, so `opm` generated one from the catalogs `shop/cue.mod/module.cue` pins, which the `platform: instance deps` line names. With a kube context, `opm instance vet` first looks for the cluster's Platform, and falls back to these catalogs with a warning when it finds none. See [Modules and instances](/docs/concepts/modules-and-instances/).
 
-:::note[Deploying your own module]
-`opm instance init` works with published modules. To deploy the module from part 2 the same way, publish it first. See [Publish a module](/docs/authoring/publish-a-module/).
-:::
+> [!NOTE]
+> **Deploying your own module**
+>
+> `opm instance init` works with published modules. To deploy the module from part 2 the same way, publish it first. See [Publish a module](/docs/authoring/publish-a-module/).
 
 ## 6. Create a cluster
 

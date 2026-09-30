@@ -2,8 +2,7 @@
 title: "Your first module"
 description: "Write a small module from an empty file and render it."
 type: tutorial
-sidebar:
-  order: 10
+weight: 10
 ---
 
 <!-- Open with the end result, in the "we" voice: we build a module called `hello` with one component, `web`, that runs nginx as a stateless workload behind a Service, and we render it on the laptop into a Deployment and a Service written to `./manifests`, ready to apply. No cluster is involved at any point. Never "you will learn".
