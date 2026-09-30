@@ -29,7 +29,7 @@ Check against: cli/internal/cmd/config/init.go, cli/internal/config/templates.go
 ## 2. Scaffold the module
 
 <!-- Command: `opm mod init example.com/modules/hello@v0 minimal` (`mod` is an alias of `module`).
-Output to show: `Scaffolded example.com/modules/hello@v0 from opmodel.dev/templates/minimal@v1 <version>`, then the file tree: `hello/`, `cue.mod/module.cue`, `identity/identity.cue`, `module.cue`, then `Validate it:  opm module vet hello`. Verify: the template version the registry serves today (the source in cli/templates/minimal/identity/identity.cue says 1.0.2).
+Output to show: `Scaffolded example.com/modules/hello@v0 from opmodel.dev/templates/minimal@v1 <version>`, then the file tree: `hello/`, `cue.mod/module.cue`, `identity/identity.cue`, `module.cue`, then `Validate it:  opm module vet hello`. Verify: the template version the registry serves today (the source in cli/templates/minimal/identity/identity.cue says 1.0.3).
 Say that the path's last segment, `hello`, becomes the package name and the module name, so it must be snake_case, and that `identity/identity.cue` now holds `ModulePath: "example.com/modules/hello@v0"` and `Version: "0.1.0"`.
 One line on why: the identity package is the single place the module's path and version are written. Link the concept page "Identity and names".
 Check against: cli/internal/cmd/module/init.go, cli/internal/scaffold/scaffold.go (ValidateNewModulePath, InitialVersion, Reidentify), cli/internal/scaffold/ref.go (Official, DefaultTemplate) -->

@@ -271,7 +271,7 @@ Deployment   shop-web   web         Ready    30s
 Service      shop-web   web         Ready    30s
 ```
 
-Right after the apply, the Deployment can show `NotReady` while its pods start. Run the command again after a few seconds.
+Right after the apply, the Deployment can show `NotReady` for about half a minute, while the image is pulled and its pods start. Run the command again after that.
 
 The cluster has no Platform, so `opm` warned and rendered against the instance's own catalogs, as in step 5. `opm instance apply` does not create a Platform; only `opm operator install` seeds one, and not with `--crds-only` or `--skip-platform`. Until the cluster has one, every apply and diff warns the same way. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
