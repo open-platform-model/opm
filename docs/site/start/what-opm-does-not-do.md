@@ -2,8 +2,7 @@
 title: "What OPM does not do"
 description: "The systems OPM does not have today, stated plainly before you rely on them."
 type: reference
-sidebar:
-  order: 41
+weight: 41
 ---
 
 <!-- One sentence saying what the page lists: systems a Helm or Kubernetes user may expect that OPM does not have, one row each. State every absence flatly in the present tense ("OPM has no …"). No forecast, no "yet", no "planned", no roadmap, and no mention of draft enhancements or their numbers anywhere on the page. Rows follow the order a reader meets them: authoring (hooks, workflows), deploying (rollback, handoff, export), platform (provider classes, a model of the platform itself). Add no secrets row; secrets documentation is pending and this page carries no secrets material. Check against: enhancements/0018/03-decisions.md (D3), enhancements/0018/02-design.md (Non-Goals) -->

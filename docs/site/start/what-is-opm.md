@@ -2,13 +2,8 @@
 title: "What OPM is"
 description: "What OPM is, in Kubernetes terms, and the problem it solves."
 type: explanation
-sidebar:
-  order: 30
+weight: 30
 ---
-
-import HelmAndOpm from '@components/diagrams/HelmAndOpm.astro'
-import ModuleToCluster from '@components/diagrams/ModuleToCluster.astro'
-import ComponentToObjects from '@components/diagrams/ComponentToObjects.astro'
 
 Open Platform Model (OPM) is first and foremost an [application model](/docs/concepts/application-and-platform-models/). The module describes what should be deployed as components. A schema defines the settings you can change. A module is distributed as an OCI artifact.
 
@@ -22,7 +17,7 @@ The `opm` CLI has the role Helm has, and the OPM operator has the role Flux's he
 
 The comparison stops at templates. A module has no templates. It describes its components. The platform you render against decides which Kubernetes objects each component becomes. The same module can therefore render differently on two platforms.
 
-<HelmAndOpm />
+{{< opm/helm-and-opm >}}
 
 OPM keeps its record of an instance in the cluster, in a ModuleInstance resource. The resource lists the objects OPM applied for the instance. Helm keeps its release record in a Secret instead. The CLI writes this resource too. You have to install its CRD even if you do not run the operator. `opm operator install --crds-only` installs only the CRDs.
 
@@ -30,7 +25,7 @@ OPM keeps its record of an instance in the cluster, in a ModuleInstance resource
 
 OPM works in four steps. You choose or write a module. You create a module instance from it, with your values. OPM renders the instance against a platform, whose transformers turn each component into Kubernetes objects. The CLI or the operator then applies the objects and records what it applied.
 
-<ModuleToCluster />
+{{< opm/module-to-cluster >}}
 
 ### A module describes the application
 
@@ -124,7 +119,7 @@ For more, see [Identity and names](/docs/concepts/identity-and-names/).
 
 OPM renders an instance in one CUE evaluation. A transformer lists what it requires: resources, traits and labels. The labels come from the parts a component attaches, such as the stateless workload blueprint. A transformer matches a component that has everything it requires. Every transformer that matches runs, so one component can become several objects. The `web` component matches the deployment transformer and the service transformer, so it renders a Deployment and a Service.
 
-<ComponentToObjects />
+{{< opm/component-to-objects >}}
 
 When a render cannot handle everything in an instance, it fails. It fails if a component matches no transformer. It also fails if a resource or trait in a component is handled by no transformer that matched it. A trait marked optional is the exception: if nothing handles it, the render continues with a warning.
 
