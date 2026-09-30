@@ -2,6 +2,8 @@
 
 Inherits all rules from the workspace-level `STYLE.md`. This file adds opm-specific conventions.
 
+Pages under `docs/site/` follow the site page rules in the workspace `STYLE.md` (Site Pages): callouts are GitHub alerts, order is `weight`, a section page is `_index.md`, and figures are `{{< opm/... >}}` shortcodes.
+
 ## Audience
 
 **End-users and newcomers to Open Platform Model.** This repo is the home for user-facing documentation: quickstarts, conceptual guides, and worked examples. Readers may be developers encountering OPM for the first time, or teams evaluating whether to adopt it.
