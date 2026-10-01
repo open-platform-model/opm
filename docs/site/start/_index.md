@@ -1,6 +1,6 @@
 ---
 title: "Start here"
-description: "New to OPM? See what it is, install it, try it, and learn what it does not do."
+description: "New to OPM? See what it is, install it, try it, and learn how it works."
 weight: 1
 ---
 
