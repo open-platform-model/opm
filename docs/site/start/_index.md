@@ -1,6 +1,6 @@
 ---
 title: "Start here"
-description: "New to OPM? See what it is, try it, and learn what it does not do."
+description: "New to OPM? See what it is, install it, try it, and learn how it works."
 weight: 1
 ---
 
@@ -47,6 +47,7 @@ The beta is a release status, not a contract level. A resource, trait or bluepri
 ## Where to start
 
 - To try OPM, follow the [Quickstart](/docs/start/quickstart/).
+- To install OPM, see [Install the CLI](/docs/start/install-the-cli/) and [Install the operator](/docs/start/install-the-operator/).
 - To understand how it works, read [What OPM is](/docs/start/what-is-opm/).
 - If you know Kubernetes or Helm, read [OPM for Kubernetes users](/docs/start/opm-for-kubernetes-users/).
 - To know its limits, read [What OPM does not do](/docs/start/what-opm-does-not-do/).

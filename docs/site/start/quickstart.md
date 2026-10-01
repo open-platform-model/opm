@@ -15,7 +15,7 @@ The quickstart has three parts:
 
 ## Before you begin
 
-- The `opm` CLI, [v1.0.0-beta.2](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-beta.2). Download the archive for your system, `opm-<os>-<arch>.tar.gz`, and put `opm` on your `PATH`.
+- The `opm` CLI, [v1.0.0-beta.2](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-beta.2). See [Install the CLI](/docs/start/install-the-cli/).
 - Network access to `ghcr.io`, where the OPM templates, catalogs and modules are published.
 - For steps 6 to 9: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) v0.32.0, [Docker](https://docs.docker.com/get-started/get-docker/) or [Podman](https://podman.io/docs/installation) to run it, and [kubectl](https://kubernetes.io/docs/tasks/tools/).
 
