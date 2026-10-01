@@ -21,6 +21,12 @@ The comparison stops at templates. A module has no templates. It describes its c
 
 OPM keeps its record of an instance in the cluster, in a ModuleInstance resource. The resource lists the objects OPM applied for the instance. Helm keeps its release record in a Secret instead. The CLI writes this resource too. You have to install its CRD even if you do not run the operator. `opm operator install --crds-only` installs only the CRDs.
 
+OPM also gives modules a shared vocabulary, which Helm charts do not have. The catalogs publish [resources and traits](/docs/concepts/resources-and-traits/) as contracts that modules and platforms both name. A module that needs backups attaches the `backup` trait, with a schedule and a retention for a component's volumes. It names no backup engine. The platform carries exactly one backup provider, a catalog whose transformer renders the engine's own object, for example a k8up `Schedule`. On a platform whose provider is Velero, the same module renders a Velero `Schedule` instead. A Helm chart that wants backups defines its own values and templates one engine's resources.
+
+{{< opm/one-trait-any-provider >}}
+
+For how a platform gets its provider, see [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
+
 ## How it works
 
 OPM works in four steps. You choose or write a module. You create a module instance from it, with your values. OPM renders the instance against a platform, whose transformers turn each component into Kubernetes objects. The CLI or the operator then applies the objects and records what it applied.
