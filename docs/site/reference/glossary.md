@@ -5,7 +5,7 @@ type: reference
 weight: 8
 ---
 
-<!-- One sentence saying what the page lists: every OPM term and every CUE term the documentation uses, each defined once, for a reader who runs Kubernetes and has never used OPM or CUE. Every other page links a term's first use to its row here. Each definition is one or two sentences, names the definition, field or command the term comes from, and places the term against Kubernetes where an honest comparison exists. Rows follow the product's structure: the model, rendering, identity and versions, deploying, diagnostics, publishing, then CUE terms last. Keep the rows in step with the terms the other pages actually use; add a row before a page uses a new term. The description says "OPM term", but the page also defines CUE terms. Check against: enhancements/0018/03-decisions.md (D11), core/SPEC.md -->
+<!-- One sentence saying what the page lists: every OPM term and every CUE term the documentation uses, each defined once, for a reader who runs Kubernetes and has never used OPM or CUE. Every other page links a term's first use to its row here. Each definition is one or two sentences, names the definition, field or command the term comes from, and places the term against Kubernetes where an honest comparison exists. Rows follow the product's structure: the model, rendering, identity and versions, deploying, diagnostics, publishing, then CUE terms last. Keep the rows in step with the terms the other pages actually use; add a row before a page uses a new term. The description says "OPM term", but the page also defines CUE terms. Check against: enhancements/archive/0018/03-decisions.md (D11), core/SPEC.md -->
 
 | Term | Definition |
 | --- | --- |
