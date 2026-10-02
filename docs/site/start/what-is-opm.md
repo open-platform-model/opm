@@ -189,7 +189,7 @@ A published module version does not fix the output. The output also depends on t
 
 ### `opm module apply` is for iterating, `opm instance apply` is for deploying
 
-`opm module apply` does not deploy the module as it is. It creates an instance named `<module>-debug` from the module's example values, in the `default` namespace unless you pass `--namespace`. Use it while you write a module. To deploy, write an instance and apply it with `opm instance apply`. The debug instance stays in the cluster until you delete it with `opm instance delete`.
+`opm module apply` does not deploy the module as it is. It creates an instance named after the module, with underscores turned into hyphens and `-debug` appended, from the module's example values, in the `default` namespace unless you pass `--namespace`. Use it while you write a module. To deploy, write an instance and apply it with `opm instance apply`. The debug instance stays in the cluster until you delete it with `opm instance delete`.
 
 ### An instance is managed by the CLI or by the operator, never both
 
