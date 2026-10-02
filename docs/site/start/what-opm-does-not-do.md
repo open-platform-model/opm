@@ -25,7 +25,7 @@ This page lists the systems a Kubernetes or Helm user may expect that the Open P
 
 ## Direction
 
-<!-- Direction note rules (0018:D3, as amended): one note per row an enhancement's design covers, a NOTE alert titled Direction under an h3 named exactly as the row's System cell (the row links that h3's anchor), the enhancement's number and title, its status in the present tense, whether it covers the row fully or in part, no date, no promise, no decision or question numbers. A design that only touches a row gets no note: 0026 (two providers serving different catalog majors) for Provider classes, 0007 (side manifests do not patch rendered objects) for Patching, 0005 (readiness reporting, no decision) for Waiting. Links point at GitHub until the site has an Enhancements tab; then change each to /enhancements/NNNN/ in the same change that adds the tab, because the build fails on a link to a missing page. Check against: enhancements/INDEX.md, enhancements/0009/03-decisions.md, enhancements/0012/03-decisions.md, enhancements/0014/03-decisions.md, enhancements/0014/07-questions.md, enhancements/0023/03-decisions.md, enhancements/0023/07-questions.md, enhancements/0027/03-decisions.md -->
+<!-- Direction note rules (0018:D3, as amended): one note per row an enhancement's design covers, a NOTE alert titled Direction under an h3 named exactly as the row's System cell (the row links that h3's anchor), the enhancement's number and title, its status in the present tense, whether it covers the row fully or in part, no date, no promise, no decision or question numbers. A design that only touches a row gets no note: 0026 (two providers serving different catalog majors) for Provider classes, 0007 (side manifests do not patch rendered objects) for Patching, 0005 (readiness reporting, no decision) for Waiting. Each note links its entry on the site as /enhancements/NNNN/; the build fails on a link to an entry the section lacks. Check against: enhancements/INDEX.md, enhancements/0009/03-decisions.md, enhancements/0012/03-decisions.md, enhancements/0014/03-decisions.md, enhancements/0014/07-questions.md, enhancements/0023/03-decisions.md, enhancements/0023/07-questions.md, enhancements/0027/03-decisions.md -->
 
 Each note names an enhancement whose design covers some or all of one row above. An enhancement is a design, not a feature: none of what these notes describe exists in OPM today.
 
@@ -34,42 +34,42 @@ Each note names an enhancement whose design covers some or all of one row above.
 > [!NOTE]
 > **Direction**
 >
-> Enhancement 0009, [Operational Primitives: Op, Action, Lifecycle, Workflow](https://github.com/open-platform-model/enhancements/tree/main/0009), is a draft, and none of its lifecycle design is built. It covers part of this row. Its design lets a module declare steps for nine fixed phases, from `pre-install` to `post-uninstall`, and plans each phase so that the CLI or the operator runs it one step at a time. A step that runs a command or a container and waits for it, in place of a Job nothing waits for, depends on step kinds the design lists but does not define. It adds no command that runs tests against a deployed instance.
+> Enhancement 0009, [Operational Primitives: Op, Action, Lifecycle, Workflow](/enhancements/0009/), is a draft, and none of its lifecycle design is built. It covers part of this row. Its design lets a module declare steps for nine fixed phases, from `pre-install` to `post-uninstall`, and plans each phase so that the CLI or the operator runs it one step at a time. A step that runs a command or a container and waits for it, in place of a Job nothing waits for, depends on step kinds the design lists but does not define. It adds no command that runs tests against a deployed instance.
 
 ### Workflows
 
 > [!NOTE]
 > **Direction**
 >
-> Enhancement 0009, [Operational Primitives: Op, Action, Lifecycle, Workflow](https://github.com/open-platform-model/enhancements/tree/main/0009), is a draft, and none of its workflow design is built. It covers part of this row. Its design lets a module declare a named workflow of ordered steps, which runs only when someone invokes it by name. It leaves the render and the apply unchanged, so the rendered objects are still applied in the order the row describes, and nothing in it orders those objects the way sync waves do.
+> Enhancement 0009, [Operational Primitives: Op, Action, Lifecycle, Workflow](/enhancements/0009/), is a draft, and none of its workflow design is built. It covers part of this row. Its design lets a module declare a named workflow of ordered steps, which runs only when someone invokes it by name. It leaves the render and the apply unchanged, so the rendered objects are still applied in the order the row describes, and nothing in it orders those objects the way sync waves do.
 
 ### Signature verification of pulled modules
 
 > [!NOTE]
 > **Direction**
 >
-> Enhancement 0023, [Artifact Provenance, Signatures and Platform Trust Policy](https://github.com/open-platform-model/enhancements/tree/main/0023), is a draft, and most of its design is open on purpose. It covers part of this row. Its design attaches signatures and build records to every published module and catalog, and checks each one a platform fetches against that platform's trust policy before its content is used. The check applies only on a platform that declares a trust policy, and a failing artifact is refused by the operator but only reported by the CLI. Whether the check extends to an artifact's dependencies, such as the module an instance package imports through `cue.mod`, is undecided.
+> Enhancement 0023, [Artifact Provenance, Signatures and Platform Trust Policy](/enhancements/0023/), is a draft, and most of its design is open on purpose. It covers part of this row. Its design attaches signatures and build records to every published module and catalog, and checks each one a platform fetches against that platform's trust policy before its content is used. The check applies only on a platform that declares a trust policy, and a failing artifact is refused by the operator but only reported by the CLI. Whether the check extends to an artifact's dependencies, such as the module an instance package imports through `cue.mod`, is undecided.
 
 ### Export to GitOps manifests
 
 > [!NOTE]
 > **Direction**
 >
-> Enhancement 0014, [Export a Deployed Instance as GitOps Manifests](https://github.com/open-platform-model/enhancements/tree/main/0014), is a draft, and no work on it has started. It covers part of this row. Its design adds a command that reads a deployed `ModuleInstance` and writes a directory to commit: the instance, its Namespace, the ServiceAccount that applies it, that account's RBAC and a `kustomization.yaml`. The command writes nothing unless the published module still renders exactly what is deployed, and it refuses an instance rendered from local files. Whether it exports an instance the CLI owns, which is every instance `opm instance apply` creates, is undecided.
+> Enhancement 0014, [Export a Deployed Instance as GitOps Manifests](/enhancements/0014/), is a draft, and no work on it has started. It covers part of this row. Its design adds a command that reads a deployed `ModuleInstance` and writes a directory to commit: the instance, its Namespace, the ServiceAccount that applies it, that account's RBAC and a `kustomization.yaml`. The command writes nothing unless the published module still renders exactly what is deployed, and it refuses an instance rendered from local files. Whether it exports an instance the CLI owns, which is every instance `opm instance apply` creates, is undecided.
 
 ### Keeping an object when its instance is deleted
 
 > [!NOTE]
 > **Direction**
 >
-> Enhancement 0012, [Kubernetes as a First-Class Kernel Platform](https://github.com/open-platform-model/enhancements/tree/main/0012), is a draft, and no work on it has started. It covers part of this row. Its design has neither the CLI nor the operator ever delete a Namespace or a CRD in an instance's inventory, and has both skip a live object that another owner manages. It protects those objects by kind and adds no annotation or field that keeps one chosen object, so a PersistentVolumeClaim is as deletable as it is today.
+> Enhancement 0012, [Kubernetes as a First-Class Kernel Platform](/enhancements/0012/), is a draft, and no work on it has started. It covers part of this row. Its design has neither the CLI nor the operator ever delete a Namespace or a CRD in an instance's inventory, and has both skip a live object that another owner manages. It protects those objects by kind and adds no annotation or field that keeps one chosen object, so a PersistentVolumeClaim is as deletable as it is today.
 
 ### A model of the platform itself
 
 > [!NOTE]
 > **Direction**
 >
-> Enhancement 0027, [Self-Service Kinds from Published Modules](https://github.com/open-platform-model/enhancements/tree/main/0027), is a draft, and no work on it has started. It covers one part of this row: the services a platform offers to teams. Its design lets a platform team bind a published module, its major version, an exact release and an update policy in one cluster-wide object, served as a Kubernetes kind that a team creates by supplying values alone. No enhancement designs a description of a cluster's controllers or APIs.
+> Enhancement 0027, [Self-Service Kinds from Published Modules](/enhancements/0027/), is a draft, and no work on it has started. It covers one part of this row: the services a platform offers to teams. Its design lets a platform team bind a published module, its major version, an exact release and an update policy in one cluster-wide object, served as a Kubernetes kind that a team creates by supplying values alone. No enhancement designs a description of a cluster's controllers or APIs.
 
 ## See also
 
