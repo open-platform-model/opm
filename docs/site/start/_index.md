@@ -38,7 +38,7 @@ Read more: [Who owns an instance](/docs/concepts/who-owns-an-instance/) and [Ope
 
 ## Release status
 
-OPM is in beta. The beta lines are the core schema `opmodel.dev/core@v2`, the raw Kubernetes catalog `opmodel.dev/catalogs/k8s@v1`, the Go library, the `opm` CLI and the operator. The raw Kubernetes catalog, the library, the CLI and the operator ship versions `1.0.0-beta.N`, and core ships versions `2.0.0-beta.N`. Each beta line is on the path to a stable release.
+OPM is in beta. The beta lines are the core schema `opmodel.dev/core@v2`, the Go library, the `opm` CLI and the operator. The library, the CLI and the operator ship versions `1.0.0-beta.N`, and core ships versions `2.0.0-beta.N`. Each beta line is on the path to a stable release.
 
 A breaking change can still land during the beta. It comes with a migration note in the release's changelog, and it raises the beta number, for example from `-beta.1` to `-beta.2`. It never moves a module path to a new major version. The abstraction catalog `opmodel.dev/catalogs/opm@v4` and the published modules are already stable and follow semantic versioning: a breaking change there is a new major version. A core change that would force a new major of the abstraction catalog needs the maintainers' approval. At the stable release, each beta line drops its `-beta.N` suffix, in dependency order starting with core.
 
