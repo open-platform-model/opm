@@ -155,7 +155,7 @@ When the platform team changes how a stateless workload becomes objects, it chan
 
 A module's configuration schema is its public contract. It has to be expressible as OpenAPI v3, with no CUE loops or conditionals. That way, tools that do not run CUE can read it: a web form, a kubectl plugin, or generated code in another language.
 
-Your values are unified with the schema, not substituted into text. Two values that disagree are an error, instead of one overriding the other. Values you pass with `-f` are checked against the schema before anything renders. A wrong type or an unknown setting stops the render instead of reaching the cluster.
+Your values are unified with the schema, not substituted into text. Two values that disagree are an error, instead of one overriding the other. Values you pass with `-f`, a module's example values and the values in a ModuleInstance resource are checked against the schema before anything renders. A wrong type or an unknown setting stops the render instead of reaching the cluster.
 
 ### Instance identity survives upgrades
 
@@ -179,9 +179,9 @@ The name reaches further than OPM does today. OPM models applications. It models
 
 A module is not a folder of manifests, like a Helm chart's `templates/` directory. It describes components, and the platform's transformers decide which objects each one becomes. To see the objects, run `opm instance build`, or `opm module build` for a module on its own.
 
-### Only values passed with `-f` are checked for unknown settings
+### Values in an instance package are not checked for unknown settings
 
-OPM checks a values file you pass with `-f` against the schema, and refuses a setting the schema does not have. Values written in the instance's own package, such as in a `values.cue` file, are not checked that way. A misspelled setting there is ignored without an error.
+OPM refuses a setting the schema does not have in a values file you pass with `-f`, in a module's example values, and in a ModuleInstance resource's `spec.values`. Values written in the instance's own package, such as in a `values.cue` file, are not checked that way when the CLI renders the package. A misspelled setting there is ignored without an error.
 
 ### The same module can render differently on two platforms
 
@@ -208,7 +208,7 @@ Each rule names what refuses a violation. [What enforces a rule](/docs/concepts/
 - `cue`: A module's name must equal the last segment of its module path. `cue vet` and every command that loads the module refuse a mismatch.
 - `publish`: A module's version must have the major version its path names, such as `1.2.0` for a path ending in `@v1`. `opm module vet` and `opm module publish` refuse a mismatch.
 - `publish`: A published version cannot be published again. `opm module publish` refuses it.
-- `kernel`: Values passed with `-f` must fit the module's configuration schema. `opm instance vet` and `opm instance build` refuse a wrong type or an unknown setting.
+- `kernel`: Values passed with `-f`, a module's example values and a ModuleInstance resource's `spec.values` must fit the module's configuration schema. The CLI's vet, build and apply commands and the operator refuse a wrong type or an unknown setting.
 - `kernel`: Every component must match at least one transformer. The render fails otherwise, in the CLI and in the operator.
 - `kernel`: Every resource, and every trait that is not optional, must be handled by a transformer that matched its component. The render fails otherwise.
 - `convention`: A module's configuration schema must be expressible as OpenAPI v3. Nothing checks it.
