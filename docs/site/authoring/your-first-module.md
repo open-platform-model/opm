@@ -47,7 +47,7 @@ Check against: cli/internal/cmd/module/init.go, cli/internal/scaffold/scaffold.g
 Command after the edit: `opm module vet ./hello`.
 Output to show: five check lines, "Identity conforms to #IdentityPackage" (identity/identity.cue), "Coordinates agree" (example.com/modules/hello@v0), "Version matches path major" (0.1.0), "Values satisfy #config" (debugValues) and "Module config valid".
 One line on why: `#config` is the contract every instance's values are checked against. Link the concept page "Modules and instances".
-Check against: core/src/module.cue (#Module), cli/templates/minimal/module.cue, modules/web_app/module.cue (literal name), catalog_opm/opm/resources/v1beta1/container.cue (#Image), cli/internal/cmd/module/vet.go -->
+Check against: core/src/module.cue (#Module), cli/templates/minimal/module.cue, modules/web_app/module.cue (literal name), catalog_opm/src/resources/v1beta1/container.cue (#Image), cli/internal/cmd/module/vet.go -->
 
 ## 4. Add a web component
 
@@ -55,7 +55,7 @@ Check against: core/src/module.cue (#Module), cli/templates/minimal/module.cue, 
 Command: `opm module build ./hello`.
 Output to show: the log lines `Building synthetic instance "hello-debug" for module "hello"`, `platform: module deps (opmodel.dev/catalogs/opm@v4 v<catalog version>; generated module <home>/.opm/cache/platforms/<hash>)`, `▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@<catalog version>` and a second match line for `hpa-transformer`, which pairs with every stateless component (the blueprint always carries the Scaling trait) and renders nothing unless `scaling.auto` is set; say so in half a line, since the reader will see it. Then YAML for one Deployment named `hello-debug-web` in namespace `default` with `replicas: 1` and image `nginx:1.29`. The name is the synthetic instance name plus the component name.
 One line on why: the blueprint stamps the workload-type label that selects the Deployment transformer. Link the concept page "Components and blueprints".
-Check against: cli/internal/platform/resolve.go (Describe), catalog_opm/opm/blueprints/v1beta1/stateless_workload.cue, catalog_opm/opm/transformers/deployment_transformer.cue, catalog_opm/opm/transformers/hpa_transformer.cue, library/opm/kernel/parity_harness_test.go (shippedCases), cli/internal/workflow/render/module.go (syntheticIdentity), core/src/component.cue (resourceName default), cli/internal/workflow/render/log_output.go -->
+Check against: cli/internal/platform/resolve.go (Describe), catalog_opm/src/blueprints/v1beta1/stateless_workload.cue, catalog_opm/src/transformers/deployment_transformer.cue, catalog_opm/src/transformers/hpa_transformer.cue, library/opm/kernel/parity_harness_test.go (shippedCases), cli/internal/workflow/render/module.go (syntheticIdentity), core/src/component.cue (resourceName default), cli/internal/workflow/render/log_output.go -->
 
 ## 5. Expose the component as a Service
 
@@ -63,7 +63,7 @@ Check against: cli/internal/platform/resolve.go (Describe), catalog_opm/opm/blue
 Command: `opm module build ./hello`.
 Output to show: a further match line naming `service-transformer`, and YAML that now holds the Deployment and a Service, both named `hello-debug-web`. The `#Expose` wrapper names the Service after the component's short DNS name.
 One line on why: a trait adds behaviour to a component without changing its blueprint. Link the concept page "Resources and traits".
-Check against: catalog_opm/opm/traits/v1beta1/expose.cue (#Expose, #ExposeSchema), catalog_opm/opm/transformers/service_transformer.cue, cli/templates/standard/components.cue -->
+Check against: catalog_opm/src/traits/v1beta1/expose.cue (#Expose, #ExposeSchema), catalog_opm/src/transformers/service_transformer.cue, cli/templates/standard/components.cue -->
 
 ## 6. Render with your own values
 
