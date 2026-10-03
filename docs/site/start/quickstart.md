@@ -15,7 +15,7 @@ The quickstart has three parts:
 
 ## Before you begin
 
-- The `opm` CLI, [v1.0.0-beta.2](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-beta.2). See [Install the CLI](/docs/start/install-the-cli/).
+- The `opm` CLI, [v1.0.0-beta.5](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-beta.5). See [Install the CLI](/docs/start/install-the-cli/).
 - Network access to `ghcr.io`, where the OPM templates, catalogs and modules are published.
 - For steps 6 to 9: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) v0.32.0, [Docker](https://docs.docker.com/get-started/get-docker/) or [Podman](https://podman.io/docs/installation) to run it, and [kubectl](https://kubernetes.io/docs/tasks/tools/).
 
@@ -36,7 +36,7 @@ Created files:
 Validate with: opm config vet
 ```
 
-`config.cue` tells `opm` where OPM publishes its templates, catalogs and modules. It writes no platform: each render uses the platform you pass with `--platform`, else the cluster's Platform, else one generated from the catalogs the module or instance itself pins. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
+`config.cue` tells `opm` where OPM publishes its templates, catalogs and modules. It writes no platform: `opm module build` and `opm module vet` use the platform you pass with `--platform`, else one generated from the catalogs the module pins, and never read the cluster. The `opm instance` commands and `opm module apply` use the platform you pass with `--platform`, else the cluster's Platform, else one generated from the catalogs the instance or module pins. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
 ## 2. Create a module
 
@@ -226,7 +226,7 @@ INFO r:CustomResourceDefinition/moduleinstances.opmodel.dev  + created
 INFO r:CustomResourceDefinition/modulepackages.opmodel.dev  + created
 INFO r:CustomResourceDefinition/platforms.opmodel.dev  + created
 INFO r:CustomResourceDefinition/transformerregistrations.opmodel.dev  + created
-✔ opm-operator v1.0.0-beta.1 installed (embedded, 4 resource(s) applied)
+✔ opm-operator v1.0.0-beta.4 installed (embedded, 4 resource(s) applied)
 ```
 
 `opm` records what it deploys in a ModuleInstance resource, so the cluster needs the OPM resource definitions. No operator runs. See [Who owns an instance](/docs/concepts/who-owns-an-instance/).
@@ -267,8 +267,8 @@ Status:     Ready
 Resources:  2 total (2 ready)
 
 KIND         NAME       COMPONENT   STATUS   AGE
-Deployment   shop-web   web         Ready    30s
-Service      shop-web   web         Ready    30s
+Deployment   shop-web   web         Ready     30s
+Service      shop-web   web         Applied   30s
 ```
 
 Right after the apply, the Deployment can show `NotReady` for about half a minute, while the image is pulled and its pods start. Run the command again after that.
@@ -361,4 +361,4 @@ We created a module from the standard template, checked it and rendered it on ou
 - [Your first module](/docs/authoring/your-first-module/)
 - [Publish a module](/docs/authoring/publish-a-module/)
 
-<!-- Tested end to end on 2026-09-30 with the released opm v1.0.0-beta.2 (linux-amd64 archive from the GitHub release, checksum verified against checksums.txt; it embeds opm-operator v1.0.0-beta.1), the templates at 1.0.3, web_app 1.0.5 (on core v2.0.0-beta.1 and catalogs/opm v4.4.4) from GHCR, kind v0.32.0 with its default node image (kindest/node v1.36.1) and kubectl v1.36.3, in a fresh home directory with an empty CUE cache and no registry overrides. Every output on this page is from that run, with timestamps removed; the generated-module hashes in steps 3, 4, 5 and 7 are shortened, and steps 3 to 7 print the same hash because the module and the instance pin the same catalog. The first `opm instance status` right after the apply showed the Deployment NotReady; the one shown ran about 30 seconds later. web_app declares no initValues, so init prints the debugValues line in step 5; if web_app gains initValues, update that line and the values.cue listing. Re-run every step and update the outputs when the named release changes. -->
+<!-- Tested end to end on 2026-10-03 with the released opm v1.0.0-beta.5 (linux-amd64 archive from the GitHub release, checksum verified against checksums.txt; it embeds opm-operator v1.0.0-beta.4), the templates at 1.0.3, web_app 1.0.5 (on core v2.0.0-beta.1 and catalogs/opm v4.4.4) from GHCR, kind v0.32.0 with its default node image (kindest/node v1.36.1) and kubectl v1.36.3, in a fresh home directory with an empty CUE cache and no registry overrides. Every output on this page is from that run, with timestamps removed; the generated-module hashes in steps 3, 4, 5 and 7 are shortened, and steps 3 to 7 print the same hash because the module and the instance pin the same catalog. The first `opm instance status` right after the apply showed the Deployment NotReady; the one shown ran about 30 seconds later. web_app declares no initValues, so init prints the debugValues line in step 5; if web_app gains initValues, update that line and the values.cue listing. Re-run every step and update the outputs when the named release changes. -->

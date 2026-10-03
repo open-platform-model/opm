@@ -13,7 +13,7 @@ This page assumes you run Kubernetes and have used Helm, but have never used CUE
 
 ## In Kubernetes terms
 
-The `opm` CLI has the role Helm has, and the OPM operator has the role Flux's helm-controller has. A module is the chart. A module instance is the release (one configured copy of the module, in one namespace). `opm instance build` renders an instance without contacting the cluster, as `helm template` does. `opm instance apply` renders it and applies the result, as `helm upgrade --install` does. The operator watches ModuleInstance resources and applies the instances it manages, as helm-controller does for a HelmRelease.
+The `opm` CLI has the role Helm has, and the OPM operator has the role Flux's helm-controller has. A module is the chart. A module instance is the release (one configured copy of the module, in one namespace). `opm instance build` renders an instance and prints the objects without applying them, as `helm template` does. `opm instance apply` renders it and applies the result, as `helm upgrade --install` does. The operator watches ModuleInstance resources and applies the instances it manages, as helm-controller does for a HelmRelease.
 
 The comparison stops at templates. A module has no templates. It describes its components. The platform you render against decides which Kubernetes objects each component becomes. The same module can therefore render differently on two platforms.
 
@@ -123,7 +123,7 @@ For more, see [Identity and names](/docs/concepts/identity-and-names/).
 
 ### Rendering matches components to transformers
 
-OPM renders an instance in one CUE evaluation. A transformer lists what it requires: resources, traits and labels. The labels come from the parts a component attaches, such as the stateless workload blueprint. A transformer matches a component that has everything it requires. Every transformer that matches runs, so one component can become several objects. The `web` component matches the deployment transformer and the service transformer, so it renders a Deployment and a Service.
+OPM renders an instance in one CUE evaluation. A transformer lists what it requires: resources, traits and labels. The labels come from the parts a component attaches, such as the stateless workload blueprint. A transformer matches a component that has everything it requires. Every transformer that matches runs, so one component can become several objects. The `web` component matches the deployment transformer, the service transformer and the HPA transformer. The HPA transformer emits an object only when the component sets autoscaling, which `web` does not, so `web` renders a Deployment and a Service.
 
 {{< opm/component-to-objects >}}
 
@@ -133,7 +133,7 @@ For more, see [How matching works](/docs/concepts/how-matching-works/).
 
 ### The CLI or the operator applies the result
 
-Rendering does not touch the cluster. The CLI or the operator applies the objects.
+Rendering applies nothing. The CLI or the operator applies the objects.
 
 `opm instance apply` applies them with server-side apply. It records what it applied in the instance's ModuleInstance resource, under `status.inventory`. On the next apply, it deletes the objects the new render no longer produces. Pass `--no-prune` to keep them.
 
@@ -197,7 +197,7 @@ The operator does not take over an instance the CLI applied. It only records tha
 
 ### Deleting the ModuleInstance resource does not always delete what it deployed
 
-Deleting a ModuleInstance resource is not `helm uninstall`. If the CLI owns the instance, `kubectl delete` removes only the resource. The objects stay in the cluster, and nothing tracks them any more. If the operator owns the instance, it deletes the objects only when `spec.prune` is `true`, and the field has no default.
+Deleting a ModuleInstance resource is not `helm uninstall`. If the CLI owns the instance, `kubectl delete` removes only the resource. The objects stay in the cluster, and nothing tracks them any more. If the operator owns the instance, it deletes the objects only when `spec.prune` is `true`, and the field defaults to `false`.
 
 Use `opm instance delete`, and read [Deletion and pruning](/docs/operating/deletion-and-pruning/) first. For an instance the CLI owns, `opm instance delete` deletes every object in the inventory, Namespaces and CRDs included.
 
