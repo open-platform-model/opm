@@ -36,7 +36,7 @@ Created files:
 Validate with: opm config vet
 ```
 
-`config.cue` tells `opm` where OPM publishes its templates, catalogs and modules. It writes no platform: `opm module build` and `opm module vet` use the platform you pass with `--platform`, else one generated from the catalogs the module pins, and never read the cluster. The `opm instance` commands and `opm module apply` use the platform you pass with `--platform`, else the cluster's Platform, else one generated from the catalogs the instance or module pins. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
+`config.cue` tells `opm` where OPM publishes its templates, catalogs and modules. It sets no platform. Steps 3, 5 and 7 show which platform each render uses. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
 ## 2. Create a module
 
