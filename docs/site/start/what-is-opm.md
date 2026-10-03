@@ -181,7 +181,7 @@ A module is not a folder of manifests, like a Helm chart's `templates/` director
 
 ### Values in an instance package are not checked for unknown settings
 
-OPM refuses a setting the schema does not have in a values file you pass with `-f`, in a module's example values, and in a ModuleInstance resource's `spec.values`. Values written in the instance's own package, such as in a `values.cue` file, are not checked that way when the CLI renders the package. A misspelled setting there is ignored without an error.
+OPM refuses a setting the schema does not have in a values file you pass with `-f`, in a module's example values, and in a ModuleInstance resource's `spec.values`. Values written in the instance's own package, such as in a `values.cue` file, are not checked that way by any CLI command. A misspelled setting there is ignored without an error. For an instance the operator owns, `opm instance apply` passes those values to the operator in the resource's `spec.values`, and the operator refuses the setting. The operator does not check them in a `ModulePackage`.
 
 ### The same module can render differently on two platforms
 
