@@ -48,9 +48,9 @@ The platform model and its parts are meant to grow into an ecosystem of consumer
 
 That gives smaller cloud and infrastructure companies a way in. Today a team that needs a database, object storage, a queue and an identity service tends to buy all of them from one large provider, because each one is wired into its applications differently. In a shared, open form, many smaller providers could together offer what only the largest providers offer alone, and the large providers could take part on the same terms.
 
-## Why: data sovereignty
+## Why: less reliance on a few cloud providers
 
-Much of the world's software runs on a few large cloud providers. Moving away is expensive, because applications are written against one provider's services. An organisation that cannot move has little say over where its data lives and which law it falls under. Regulation has started to push the other way, with rules that limit what a provider may charge a customer to switch.
+Much of Europe's software runs on a few large cloud providers based outside it. Moving away is expensive, because applications are written against one provider's services. European policy now pushes the other way. The EU Data Act's cloud-switching rules have applied since 12 September 2025, and from 12 January 2027 a provider may no longer charge for switching. The Commission proposed a Cloud and AI Development Act in June 2026.
 
 A model that keeps applications and platforms independent of any one provider turns switching into an edit. That is the contribution OPM wants to make. It does not make anything sovereign by itself: open source and portability are prerequisites, not the whole answer. Who controls a service, which law it falls under and how far it can be trusted are questions a model can at most describe.
 
