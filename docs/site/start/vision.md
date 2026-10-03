@@ -68,7 +68,7 @@ Several projects cover part of this ground. The project knows of none that combi
 | [Crossplane](https://www.crossplane.io/) | Lets a platform team define APIs that compose infrastructure and services, with providers for cloud APIs, reconciled by a control plane. | Crossplane reconciles infrastructure. OPM wants a typed model of the platform and the application, in which a Crossplane composition could be one way to supply a capability. |
 | [Kratix](https://www.kratix.io/) | Promises package a platform capability as an API with the workflows that fulfil it, delivered to many clusters. | The closest to the provider idea. OPM describes a capability as a typed contract in a catalog, not as a workflow. |
 | [Sovereign Cloud Stack](https://sovereigncloudstack.org/en/) | Open standards and a reference implementation for sovereign infrastructure on OpenStack and Kubernetes. | It standardises infrastructure, and OPM sits above it. A Sovereign Cloud Stack cloud is the kind of infrastructure an OPM platform would run on. |
-| [IPCEI-CIS](https://www.8ra.com/) (the 8ra initiative) | A multi-country programme building a multi-provider cloud-edge continuum across many operators. | It works on infrastructure and interoperability, and defines no application model of its own. |
+| [IPCEI-CIS](https://www.8ra.com/) (the 8ra initiative) | An EU programme building a multi-provider cloud-edge continuum across European operators. | It works on infrastructure and interoperability, and defines no application model of its own. |
 | [Gaia-X](https://gaia-x.eu/) | A trust framework and self-descriptions for federated data and infrastructure. | It has no deployment model. OPM has no relation to it today. |
 
 ## Open questions
