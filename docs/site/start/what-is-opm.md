@@ -39,7 +39,7 @@ You write a module in CUE, a configuration language that checks data against a s
 
 A module describes an application as a set of named components. A component is one deployable unit. Often it is a workload, such as a web server with its ports and its replica count. It can also be something that does not run: the application's configuration, the roles it needs, or a custom resource definition.
 
-The module also holds a configuration schema. The schema lists the settings a deployer can change, with their types and defaults. A module can also hold example values, which the CLI uses when you build the module without an instance. A module holds no Kubernetes manifests.
+The module also holds a configuration schema. The schema lists the settings a deployer can change, with their types and defaults. A module can also hold example values, which the CLI uses when you build the module without an instance.
 
 Every module has a module path, such as `opmodel.dev/modules/web_app@v1`. The path ends in the major version, and the segment before it is the module's name. You publish the module to an OCI registry under that path, with a full version such as `1.2.0`. `opm module publish` refuses a version that is already in the registry.
 
@@ -139,7 +139,9 @@ Rendering applies nothing. The CLI or the operator applies the objects.
 
 The operator reconciles ModuleInstance resources that name a published module by path and version. It fetches the module from the registry, renders it against the cluster's platform, applies the objects and records the inventory. It cannot use a module that exists only on your disk.
 
-Each instance has one owner, recorded in `spec.owner` as `cli` or `operator`. Every instance that `opm instance apply` creates is owned by the CLI, and the operator does not apply or prune it. A ModuleInstance resource you write yourself, with no owner, belongs to the operator. If you run `opm instance apply` against an instance the operator owns, the CLI applies nothing itself. It updates the module and values in the resource, and the operator applies them.
+Each instance has one owner, recorded in `spec.owner` as `cli` or `operator`. Every instance that `opm instance apply` creates is owned by the CLI, and the operator does not apply or prune it. A ModuleInstance resource you write yourself, with no owner, belongs to the operator. If you run `opm instance apply` against an instance the operator owns, the CLI applies nothing itself. It updates the module and values in the resource, and the operator applies them. No command moves an instance from one owner to the other.
+
+To remove an instance, use `opm instance delete`, not `kubectl delete`. Deleting the ModuleInstance resource does not always delete the objects it deployed. See [Deletion and pruning](/docs/operating/deletion-and-pruning/) first.
 
 For more, see [Who owns an instance](/docs/concepts/who-owns-an-instance/).
 
@@ -155,7 +157,7 @@ When the platform team changes how a stateless workload becomes objects, it chan
 
 A module's configuration schema is its public contract. It has to be expressible as OpenAPI v3, with no CUE loops or conditionals. That way, tools that do not run CUE can read it: a web form, a kubectl plugin, or generated code in another language.
 
-Your values are unified with the schema, not substituted into text. Two values that disagree are an error, instead of one overriding the other. Values you pass with `-f`, a module's example values and the values in a ModuleInstance resource are checked against the schema before anything renders. A wrong type or an unknown setting stops the render instead of reaching the cluster.
+Your values are unified with the schema, not substituted into text. Values you pass with `-f`, a module's example values and the values in a ModuleInstance resource are checked against the schema before anything renders. A wrong type or an unknown setting stops the render instead of reaching the cluster.
 
 ### Instance identity survives upgrades
 
@@ -168,38 +170,6 @@ So the ID leaves out the module's version, and its major version too. Moving an 
 A render depends only on files you can commit. The platform module's `cue.mod` pins each catalog's version, so publishing a newer catalog does not change an existing platform. Upgrading a catalog is an edit to that file, and you review it like any other change.
 
 The same pins let you reproduce a cluster's render on your machine. `opm platform pull` writes the cluster's platform module to a directory. `opm instance build --platform <dir>` then renders the instance the way the cluster does.
-
-## Common mistakes
-
-### OPM does not model your whole platform
-
-The name reaches further than OPM does today. OPM models applications. It models a platform only as far as rendering needs: which catalogs the platform uses. For what each of the two models covers, and where the platform model stands, see [The application model and the platform model](/docs/concepts/application-and-platform-models/). For the vision behind the name, see [Where OPM is going](/docs/start/vision/).
-
-### A module names components, not Kubernetes objects
-
-A module is not a folder of manifests, like a Helm chart's `templates/` directory. It describes components, and the platform's transformers decide which objects each one becomes. To see the objects, run `opm instance build`, or `opm module build` for a module on its own.
-
-### Values in an instance package are not checked for unknown settings
-
-OPM refuses a setting the schema does not have in a values file you pass with `-f`, in a module's example values, and in a ModuleInstance resource's `spec.values`. Values written in the instance's own package, such as in a `values.cue` file, are not checked that way by any CLI command. A misspelled setting there is ignored without an error. For an instance the operator owns, `opm instance apply` passes those values to the operator in the resource's `spec.values`, and the operator refuses the setting. The operator does not check them in a `ModulePackage`.
-
-### The same module can render differently on two platforms
-
-A published module version does not fix the output. The output also depends on the catalogs the platform uses, and on the versions it pins. If your instance asks for a newer core or catalog than the platform pins, OPM renders with the platform's version and warns. A platform set to refuse skew fails the render instead. See [Version skew](/docs/diagnostics/version-skew/).
-
-### `opm module apply` is for iterating, `opm instance apply` is for deploying
-
-`opm module apply` does not deploy the module as it is. It creates an instance named after the module, with underscores turned into hyphens and `-debug` appended, from the module's example values, in the `default` namespace unless you pass `--namespace`. Use it while you write a module. To deploy, write an instance and apply it with `opm instance apply`. The debug instance stays in the cluster until you delete it with `opm instance delete`.
-
-### An instance is managed by the CLI or by the operator, never both
-
-The operator does not take over an instance the CLI applied. It only records that the CLI manages it. OPM has no command that moves an instance from one owner to the other. See [Who owns an instance](/docs/concepts/who-owns-an-instance/).
-
-### Deleting the ModuleInstance resource does not always delete what it deployed
-
-Deleting a ModuleInstance resource is not `helm uninstall`. If the CLI owns the instance, `kubectl delete` removes only the resource. The objects stay in the cluster, and nothing tracks them any more. If the operator owns the instance, it deletes the objects only when `spec.prune` is `true`, and the field defaults to `false`.
-
-Use `opm instance delete`, and read [Deletion and pruning](/docs/operating/deletion-and-pruning/) first. For an instance the CLI owns, `opm instance delete` deletes every object in the inventory, Namespaces and CRDs included.
 
 ## What enforces this
 
