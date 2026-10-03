@@ -30,7 +30,7 @@ The two models are meant to depend on each other.
 
 The first two steps work today in a narrow form. A provider module can render a `TransformerRegistration` that adds its catalog to the platform once its instance reports `Ready`, and every module on that platform can then use the contracts the catalog implements. No published module uses this mechanism today. The rest of the circle is the goal.
 
-The circle has a hard edge. A provider module needs a platform to render on before it can extend one, so something has to come first. How a platform is bootstrapped, and how a cycle between providers is refused, are open questions.
+The circle has a hard edge. A provider module needs a platform to render on before it can extend one, so something has to come first.
 
 ## Platforms that move
 
