@@ -11,7 +11,7 @@ Open Platform Model (OPM) is an application model today. This page says where th
 
 OPM aims to model both individual applications and the platforms they run on. Modules would supply what a platform offers, and the platform would offer it to the modules of every team that uses it. An organisation would define its platforms once and instantiate them onto the infrastructure it chooses: a Kubernetes cluster, a public cloud or its own data centre.
 
-Around the model, the project wants an ecosystem in which cloud and infrastructure companies, small and large, offer their services in one open, shared form. The motivation is to make Europe, and anyone else, less dependent on a few large cloud providers. All of it is meant to be open source.
+Around the model, the project wants an ecosystem in which cloud and infrastructure companies, small and large, offer their services in one open, shared form. The motivation is data sovereignty: an organisation should decide where its software and data run, and not depend on a few large cloud providers. All of it is meant to be open source.
 
 ## From an application model to a platform model
 
@@ -80,7 +80,7 @@ The vision leaves hard questions open. Each one needs an answer before the platf
 - **Who checks what a provider adds?** A provider's module changes what every module on the platform renders. Enhancement 0023, [Artifact Provenance, Signatures and Platform Trust Policy](/enhancements/0023/), is a draft that designs a platform trust policy for the artifacts a platform fetches.
 - **Who writes the providers, and why?** An ecosystem needs its first providers before it has users. Earlier service marketplaces, such as the Open Service Broker API, stalled at this point.
 - **Who governs the shared parts?** The catalogs that consumers and providers share have to stay open and neutral, so that no single company controls the vocabulary.
-- **What can the model say about trust and jurisdiction?** Europe's sovereignty debate is about control, jurisdiction and assurance levels. Whether OPM should describe them, and how, is open.
+- **What can the model say about trust and jurisdiction?** Data sovereignty is about control, jurisdiction and assurance levels. Whether OPM should describe them, and how, is open.
 
 ## What exists today
 
