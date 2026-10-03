@@ -28,7 +28,7 @@ The two models are meant to depend on each other.
 1. A team's module names the capability in catalog terms and does not care who provides it.
 1. A team's module can itself become a provider: one team's database service becomes a capability the next team uses.
 
-The first two steps work today in a narrow form. A provider module can render a `TransformerRegistration` that adds its catalog to the platform once its instance reports `Ready`, and every module on that platform can then use the contracts the catalog implements. No published module uses this mechanism today. The rest of the circle is the goal.
+The first two steps work today in a narrow form. A provider module can render a `TransformerRegistration` that claims its catalog. Once the operator accepts the claim and the provider's instance reports `Ready`, the catalog joins the platform, and every module on that platform can use the contracts the catalog implements. No published module uses this mechanism today. The rest of the circle is the goal.
 
 The circle has a hard edge. A provider module needs a platform to render on before it can extend one, so something has to come first.
 
@@ -36,7 +36,7 @@ The circle has a hard edge. A provider module needs a platform to render on befo
 
 AWS, GCP and Kubernetes are platforms in their own right. In OPM's terms they are infrastructure: what an organisation's own platforms run on. An organisation could define one or more platforms, such as one for internal tools and one for customer-facing services, and instantiate each wherever it needs it, in a public cloud or self-hosted.
 
-Portability has a limit, and the model has to face it. A platform that offers a managed database has to get that database from somewhere on every infrastructure it runs on. OPM's answer is the one it already gives applications: the platform names the capability as a contract, and a provider on each infrastructure supplies it. This works today for a single trait:
+Portability has a limit, and the model has to face it. A platform that offers a managed database has to get that database from somewhere on every infrastructure it runs on. OPM's answer is the one it already gives applications: the platform names the capability as a contract, and a provider on each infrastructure supplies it. This works today for a single trait, though OPM publishes no backup provider yet, so k8up and Velero here are examples:
 
 {{< opm/one-trait-any-provider >}}
 
@@ -50,7 +50,9 @@ That gives smaller cloud and infrastructure companies a way in. Today a team tha
 
 ## Why: less reliance on a few cloud providers
 
-Much of Europe's software runs on a few large cloud providers based outside it. Moving away is expensive, because applications are written against one provider's services. European policy now pushes the other way. The EU Data Act's cloud-switching rules have applied since 12 September 2025, and from 12 January 2027 a provider may no longer charge for switching. The Commission proposed a Cloud and AI Development Act in June 2026.
+Amazon, Microsoft and Google, three providers based outside Europe, hold about 70% of the European cloud market, and European providers hold about 15% ([Synergy Research Group, July 2025](https://www.srgresearch.com/articles/european-cloud-providers-local-market-share-now-holds-steady-at-15)). Moving away is expensive. Applications are written against one provider's services, and data egress fees and licensing terms add to the cost. European policy now pushes the other way. The cloud-switching rules of the [EU Data Act](https://eur-lex.europa.eu/eli/reg/2023/2854/oj) have applied since 12 September 2025. Until 12 January 2027 a provider may charge no more than its own direct costs for a switch, and from that date it may charge nothing, data egress included. The Commission proposed a [Cloud and AI Development Act](https://digital-strategy.ec.europa.eu/en/library/proposal-cloud-and-ai-development-act-cada) on 3 June 2026; it is not yet law.
+
+EuroStack is one of the ideas OPM grew from. A [2025 report for the Bertelsmann Stiftung](https://www.bertelsmann-stiftung.de/en/publications/publication/did/eurostack-a-european-alternative-for-digital-sovereignty) states that more than 80% of Europe's digital technologies and infrastructures are imported, and proposes a European stack of its own, from chips through cloud to software and AI. The [EuroStack Initiative's open letter of March 2025](https://euro-stackletter.eu/wp-content/uploads/2025/03/EuroStack_Initiative_Letter_14-March-.pdf) asks for a "pooling and federating" approach: existing, dispersed European offerings combined into scaled alternatives, with open source and interoperability. OPM works on one layer of that picture, a shared, open form in which many providers' services add up to a platform.
 
 A model that keeps applications and platforms independent of any one provider turns switching into an edit. That is the contribution OPM wants to make. It does not make anything sovereign by itself: open source and portability are prerequisites, not the whole answer. Who controls a service, which law it falls under and how far it can be trusted are questions a model can at most describe.
 
@@ -64,12 +66,12 @@ Several projects cover part of this ground. The project knows of none that combi
 
 | Project | What it does | Where OPM differs |
 | --- | --- | --- |
-| [KubeVela](https://kubevela.io/) and the Open Application Model | Components and traits, with definitions written in CUE, run by a control plane in the cluster. | The closest to OPM's application model. OPM renders a module against a platform's catalogs before anything reaches a cluster, and treats the platform itself as data. |
-| [Crossplane](https://www.crossplane.io/) | Lets a platform team define APIs that compose infrastructure and services, with providers for cloud APIs, reconciled by a control plane. | Crossplane reconciles infrastructure. OPM wants a typed model of the platform and the application, in which a Crossplane composition could be one way to supply a capability. |
-| [Kratix](https://www.kratix.io/) | Promises package a platform capability as an API with the workflows that fulfil it, delivered to many clusters. | The closest to the provider idea. OPM describes a capability as a typed contract in a catalog, not as a workflow. |
-| [Sovereign Cloud Stack](https://sovereigncloudstack.org/en/) | Open standards and a reference implementation for sovereign infrastructure on OpenStack and Kubernetes. | It standardises infrastructure, and OPM sits above it. A Sovereign Cloud Stack cloud is the kind of infrastructure an OPM platform would run on. |
-| [IPCEI-CIS](https://www.8ra.com/) (the 8ra initiative) | An EU programme building a multi-provider cloud-edge continuum across European operators. | It works on infrastructure and interoperability, and defines no application model of its own. |
-| [Gaia-X](https://gaia-x.eu/) | A trust framework and self-descriptions for federated data and infrastructure. | It has no deployment model. OPM has no relation to it today. |
+| [KubeVela](https://kubevela.io/) and the Open Application Model | Applications built from components, traits, policies and workflow steps, with definitions written in CUE, run by a control plane in a Kubernetes cluster. The Open Application Model is the specification behind KubeVela. | The closest to OPM's application model. OPM renders a module against a platform's catalogs before anything reaches a cluster, and treats the platform itself as data. |
+| [Crossplane](https://www.crossplane.io/) | Lets a platform team define its own APIs that compose cloud infrastructure, through providers for cloud APIs, and any Kubernetes resource, applications included, reconciled by a control plane. | Crossplane composes resources at run time in a control plane. OPM wants a typed model of the platform and the application that is checked before anything is applied, in which a Crossplane composition could be one way to supply a capability. |
+| [Kratix](https://www.kratix.io/) | Promises package a platform capability as an API with the workflows that fulfil it. Kratix writes their output to destinations: Kubernetes clusters, or other systems through Git. | The closest to the provider idea. OPM describes a capability as a typed contract in a catalog, not as a workflow. |
+| [Sovereign Cloud Stack](https://sovereigncloudstack.org/en/) | Certifiable open standards and a modular reference stack for sovereign infrastructure on OpenStack and Kubernetes, maintained by the Forum SCS-Standards in the Open Source Business Alliance. | It standardises infrastructure, and OPM sits above it. A Sovereign Cloud Stack cloud is the kind of infrastructure an OPM platform would run on. |
+| [IPCEI-CIS](https://www.8ra.com/) (the 8ra initiative) | An Important Project of Common European Interest, funded by member states and approved by the Commission in December 2023, that builds a multi-provider cloud-edge continuum. | It works on federating infrastructure and services across providers. OPM works on the model of the application and the platform above them. |
+| [EuroStack](https://www.bertelsmann-stiftung.de/en/publications/publication/did/eurostack-a-european-alternative-for-digital-sovereignty) | A policy initiative for digital sovereignty across the whole stack, from chips through cloud to software and AI, built on open source, open standards and pooled European providers. | It works on policy, investment and procurement. OPM is software for one layer of the stack it describes. |
 
 ## Open questions
 
@@ -78,7 +80,7 @@ The vision leaves hard questions open. Each one needs an answer before the platf
 - **Where does the platform model end?** A platform could render cloud APIs directly, the way Crossplane does, or run on Kubernetes everywhere and leave the cloud underneath. The two lead to very different models.
 - **How does the circle start?** A provider module needs a platform before it can extend one, and two providers can depend on each other.
 - **Who checks what a provider adds?** A provider's module changes what every module on the platform renders. Enhancement 0023, [Artifact Provenance, Signatures and Platform Trust Policy](/enhancements/0023/), is a draft that designs a platform trust policy for the artifacts a platform fetches.
-- **Who writes the providers, and why?** An ecosystem needs its first providers before it has users. Earlier service marketplaces, such as the Open Service Broker API, stalled at this point.
+- **Who writes the providers, and why?** An ecosystem needs its first providers before it has users.
 - **Who governs the shared parts?** The catalogs that consumers and providers share have to stay open and neutral, so that no single company controls the vocabulary.
 - **What can the model say about trust and jurisdiction?** Data sovereignty is about control, jurisdiction and assurance levels. Whether OPM should describe them, and how, is open.
 
