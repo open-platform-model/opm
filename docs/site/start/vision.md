@@ -11,7 +11,7 @@ Open Platform Model (OPM) is an application model today. This page says where th
 
 OPM aims to model both individual applications and the platforms they run on. Modules would supply what a platform offers, and the platform would offer it to the modules of every team that uses it. An organisation would define its platforms once and instantiate them onto the infrastructure it chooses: a Kubernetes cluster, a public cloud or its own data centre.
 
-Around the model, the project wants an ecosystem in which cloud and infrastructure companies, small and large, offer their services in one open, shared form. The motivation is to make Europe, and anyone else, less dependent on a few large cloud providers. All of it is meant to be open source.
+Around the model, the project wants an ecosystem in which cloud and infrastructure companies, small and large, offer their services in one open, shared form. The motivation is data sovereignty: an organisation should decide where its software and data run, and not depend on a few large cloud providers. All of it is meant to be open source.
 
 ## From an application model to a platform model
 
@@ -48,9 +48,9 @@ The platform model and its parts are meant to grow into an ecosystem of consumer
 
 That gives smaller cloud and infrastructure companies a way in. Today a team that needs a database, object storage, a queue and an identity service tends to buy all of them from one large provider, because each one is wired into its applications differently. In a shared, open form, many smaller providers could together offer what only the largest providers offer alone, and the large providers could take part on the same terms.
 
-## Why: less reliance on a few cloud providers
+## Why: data sovereignty
 
-Much of Europe's software runs on a few large cloud providers based outside it. Moving away is expensive, because applications are written against one provider's services. European policy now pushes the other way. The EU Data Act's cloud-switching rules have applied since 12 September 2025, and from 12 January 2027 a provider may no longer charge for switching. The Commission proposed a Cloud and AI Development Act in June 2026.
+Much of the world's software runs on a few large cloud providers. Moving away is expensive, because applications are written against one provider's services. An organisation that cannot move has little say over where its data lives and which law it falls under. Regulation has started to push the other way, with rules that limit what a provider may charge a customer to switch.
 
 A model that keeps applications and platforms independent of any one provider turns switching into an edit. That is the contribution OPM wants to make. It does not make anything sovereign by itself: open source and portability are prerequisites, not the whole answer. Who controls a service, which law it falls under and how far it can be trusted are questions a model can at most describe.
 
@@ -68,7 +68,7 @@ Several projects cover part of this ground. The project knows of none that combi
 | [Crossplane](https://www.crossplane.io/) | Lets a platform team define APIs that compose infrastructure and services, with providers for cloud APIs, reconciled by a control plane. | Crossplane reconciles infrastructure. OPM wants a typed model of the platform and the application, in which a Crossplane composition could be one way to supply a capability. |
 | [Kratix](https://www.kratix.io/) | Promises package a platform capability as an API with the workflows that fulfil it, delivered to many clusters. | The closest to the provider idea. OPM describes a capability as a typed contract in a catalog, not as a workflow. |
 | [Sovereign Cloud Stack](https://sovereigncloudstack.org/en/) | Open standards and a reference implementation for sovereign infrastructure on OpenStack and Kubernetes. | It standardises infrastructure, and OPM sits above it. A Sovereign Cloud Stack cloud is the kind of infrastructure an OPM platform would run on. |
-| [IPCEI-CIS](https://www.8ra.com/) (the 8ra initiative) | An EU programme building a multi-provider cloud-edge continuum across European operators. | It works on infrastructure and interoperability, and defines no application model of its own. |
+| [IPCEI-CIS](https://www.8ra.com/) (the 8ra initiative) | A multi-country programme building a multi-provider cloud-edge continuum across many operators. | It works on infrastructure and interoperability, and defines no application model of its own. |
 | [Gaia-X](https://gaia-x.eu/) | A trust framework and self-descriptions for federated data and infrastructure. | It has no deployment model. OPM has no relation to it today. |
 
 ## Open questions
@@ -80,7 +80,7 @@ The vision leaves hard questions open. Each one needs an answer before the platf
 - **Who checks what a provider adds?** A provider's module changes what every module on the platform renders. Enhancement 0023, [Artifact Provenance, Signatures and Platform Trust Policy](/enhancements/0023/), is a draft that designs a platform trust policy for the artifacts a platform fetches.
 - **Who writes the providers, and why?** An ecosystem needs its first providers before it has users. Earlier service marketplaces, such as the Open Service Broker API, stalled at this point.
 - **Who governs the shared parts?** The catalogs that consumers and providers share have to stay open and neutral, so that no single company controls the vocabulary.
-- **What can the model say about trust and jurisdiction?** Europe's sovereignty debate is about control, jurisdiction and assurance levels. Whether OPM should describe them, and how, is open.
+- **What can the model say about trust and jurisdiction?** Data sovereignty is about control, jurisdiction and assurance levels. Whether OPM should describe them, and how, is open.
 
 ## What exists today
 
