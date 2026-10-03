@@ -94,5 +94,5 @@ This page defines every Open Platform Model (OPM) term and every CUE term the do
 
 - [OPM for Kubernetes users](/docs/start/opm-for-kubernetes-users/): each term next to the closest Kubernetes idea, and where the comparison stops.
 - [What OPM is](/docs/start/what-is-opm/): how the terms fit together.
-- [Definitions](/docs/reference/definitions/) and [Catalog members](/docs/reference/catalog-members/): the generated field-level reference.
+- [Definitions](/docs/reference/definitions/) and [Catalog members](/catalogs/opm/#catalog-members): the generated field-level reference.
 - [What enforces a rule](/docs/concepts/what-enforces-a-rule/): the four enforcement badges.
