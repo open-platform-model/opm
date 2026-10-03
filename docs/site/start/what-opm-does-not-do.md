@@ -69,7 +69,7 @@ Each note names an enhancement whose design covers some or all of one row above.
 > [!NOTE]
 > **Direction**
 >
-> Enhancement 0027, [Self-Service Kinds from Published Modules](/enhancements/0027/), is a draft, and no work on it has started. It covers one part of this row: the services a platform offers to teams. Its design lets a platform team bind a published module, its major version, an exact release and an update policy in one cluster-wide object, served as a Kubernetes kind that a team creates by supplying values alone. No enhancement designs a description of a cluster's controllers or APIs.
+> Enhancement 0027, [Self-Service Kinds from Published Modules](/enhancements/0027/), is a draft, and no work on it has started. It covers one part of this row: the services a platform offers to teams. Its design lets a platform team bind a published module, its major version, an exact release and an update policy in one cluster-wide object, served as a Kubernetes kind that a team creates by supplying values alone. No enhancement designs a description of a cluster's controllers or APIs. [Where OPM is going](/docs/start/vision/) describes the vision for a platform model.
 
 ## See also
 

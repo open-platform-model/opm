@@ -173,7 +173,7 @@ The same pins let you reproduce a cluster's render on your machine. `opm platfor
 
 ### OPM does not model your whole platform
 
-The name reaches further than OPM does today. OPM models applications. It models a platform only as far as rendering needs: which catalogs the platform uses. For what each of the two models covers, and where the platform model stands, see [The application model and the platform model](/docs/concepts/application-and-platform-models/).
+The name reaches further than OPM does today. OPM models applications. It models a platform only as far as rendering needs: which catalogs the platform uses. For what each of the two models covers, and where the platform model stands, see [The application model and the platform model](/docs/concepts/application-and-platform-models/). For the vision behind the name, see [Where OPM is going](/docs/start/vision/).
 
 ### A module names components, not Kubernetes objects
 
