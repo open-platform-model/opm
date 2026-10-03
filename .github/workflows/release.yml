@@ -1,0 +1,45 @@
+name: Release
+
+# release-please (as the opm-release-please App) keeps a release PR open on
+# main. Merging it tags vX.Y.Z (beta line: v1.0.0-beta.N) and creates the
+# GitHub Release. Release tags are immutable: nothing here moves, deletes or
+# re-creates a tag, and nobody tags by hand.
+#
+# The App token has no GITHUB_TOKEN fallback: only the App may create a tag,
+# release-please swallows a refused tag creation, and a PR opened with
+# GITHUB_TOKEN holds its CI runs for manual approval.
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    # The single package lives at ".", so the action emits its outputs
+    # unprefixed.
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - name: Mint the release App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

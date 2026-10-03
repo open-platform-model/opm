@@ -91,13 +91,13 @@ can reword them.
 
 ## Purpose
 
-Landing project for Open Platform Model — internal docs, specs, benchmarks, Taskfile automation. Source of truth for specifications, glossary, and meta-project tooling. Public docs site lives separately in `opmodel.dev/`.
+Landing project for Open Platform Model: the published site pages under `docs/site/`, legacy pages, design notes and ADRs. Canonical home of the workspace glossary. The public docs site lives separately in `opmodel.dev/`, which assembles `docs/site/` with the other repositories' pages.
 
 ## Repository Rules
 
-- `CONSTITUTION.md` is the principle source; `openspec/config.yaml` is normative. Governance: Constitution supersedes this file on conflict.
+- `CONSTITUTION.md` is the principle source. Governance: Constitution supersedes this file on conflict.
 - Follow [Semantic Versioning v2.0.0](https://semver.org) for all repos.
-- Follow [Conventional Commits v1](https://www.conventionalcommits.org/en/v1.0.0/) for all repos. Format: `type(scope): description` — scopes: `vision`, `architecture`, `resource`, `trait`, `cli`, `module`.
+- Follow [Conventional Commits v1](https://www.conventionalcommits.org/en/v1.0.0/) for all repos. Format: `type(scope): description`. The usual scope here is `site` (pages under `docs/site/`).
 - Tone: extremely concise. No preamble/postamble. Skip explanations unless asked. Only show changed code, not entire files.
 
 ## Entrypoint
@@ -106,98 +106,45 @@ Read these on entry:
 
 - `AGENTS.md` — repo working rules (this file).
 - `CONSTITUTION.md` — full design principles (Type Safety First, Separation of Concerns, Composability, Declarative Intent, Portability by Design, Semantic Versioning, Simplicity & YAGNI).
-- `openspec/config.yaml` — normative source for OpenSpec artifact rules.
 - `docs/STYLE.md` — doc prose style rules (read before writing/editing any docs).
 - `docs/legacy/glossary.md` — **canonical glossary for entire workspace** until the site glossary, `docs/site/reference/glossary.md`, replaces it. All other repos link to it; don't duplicate.
-- `Taskfile.yml` — authoritative build/test entrypoints.
 
 ## Repository Layout
 
 ```text
-├── adr/               # Architecture Decision Records
-├── .specify/          # Spec-driven development configuration
-│   ├── memory/        # Constitution and memory files
-│   ├── scripts/       # Automation scripts
-│   └── templates/     # Templates for specs, plans, tasks, checklists
-├── benchmarks/        # Performance benchmarks
-│   └── rendering/     # Module rendering benchmarks
+├── adr/               # Architecture Decision Records (TEMPLATE.md)
 ├── docs/              # Documentation
 │   ├── site/          # Published pages; opmodel.dev assembles them by section
 │   ├── legacy/        # v0 pages, unpublished; source material until replaced
 │   ├── analysis/      # Research notes
 │   ├── presentations/ # Slide decks
 │   └── STYLE.md       # Prose style for this repo
-├── specs/             # Specifications
-│   ├── application-model/              # Application Model (index only, specs moved to core/)
-│   ├── cli/                            # CLI specifications
-│   │   ├── cli-core-spec/              # CLI configuration, initialization, project structure
-│   │   ├── cli-build-spec/             # Render pipeline and mod build
-│   │   ├── cli-deploy-spec/            # Deployment lifecycle (apply, delete, diff, status)
-│   │   └── cli-validation-spec/        # Module validation with Go CUE SDK
-│   ├── core/                           # Core type specifications
-│   │   ├── core-types-spec/            # Resource, Trait, Blueprint definitions
-│   │   └── module-composition-spec/    # Component, Module, ModuleRelease
-│   ├── deferred/                       # Deferred specifications
-│   │   ├── bundle-spec/                # Bundle definitions (deferred)
-│   │   ├── governance-spec/            # Policy, Scope definitions (deferred)
-│   │   ├── interface-spec/             # Interface definitions (deferred)
-│   │   ├── lifecycle-spec/             # Lifecycle definitions (deferred)
-│   │   └── status-spec/                # Status definitions (deferred)
-│   ├── development/                    # Development tooling specifications
-│   │   └── taskfile-spec/              # Development Taskfile specification
-│   ├── distribution/                   # Distribution specifications
-│   │   ├── distribution-spec/          # OCI-based module distribution
-│   │   └── template-spec/              # Module template distribution
-│   ├── platform/                       # Platform specifications
-│   │   ├── catalog-spec/               # Module catalog and tiered values
-│   │   └── platform-adapter-spec/      # Platform definitions (Provider, Transformer)
-│   └── platform-model/                 # Platform Model (index only, specs moved to platform/)
-├── README.md
-└── Taskfile.yml
+├── .github/workflows/ # release.yml (release-please)
+├── CHANGELOG.md       # Written by release-please
+├── CONSTITUTION.md
+└── README.md
 ```
 
-## Build And Dev Commands
+There is no Taskfile and no build: the repository holds Markdown only.
 
-### Task commands
+## Releases
 
-- Format: `task fmt` or `task module:fmt:all`
-- Validate: `task vet` or `task module:vet MODULE=core`
-- Single module: `task module:vet MODULE=examples`
-- Registry: `task registry:start`, `task registry:stop`
-- Benchmarks: `cd benchmarks/rendering && go test -bench=.`
-
-### Spec creation scripts
-
-`create-new-feature.sh` creates new feature branch + spec directory. `--category` organizes specs:
-
-- `--category application` → `specs/application-model/`
-- `--category platform` → `specs/platform-model/`
-- `--category root` (default) → `specs/` (root level)
-
-Examples:
-
-```bash
-.specify/scripts/bash/create-new-feature.sh "Add bundle definitions" --category application
-.specify/scripts/bash/create-new-feature.sh "Add runtime API" --category platform
-.specify/scripts/bash/create-new-feature.sh "Update taskfile" --category root
-```
+- release-please (`.github/workflows/release.yml`, run as the release App) keeps a release PR open on `main`. Merging it tags `vX.Y.Z` and creates the GitHub Release. The config is `release-please-config.json`; `.release-please-manifest.json` holds the last released version.
+- The repository is on a beta line: `1.0.0-beta.1` first, then each release advances `beta.N`.
+- `feat`, `fix`, `perf`, `revert` and **`docs`** release. `docs` is visible here, unlike the other repositories, because the docs are this repository's product. `chore`, `ci`, `build`, `test`, `style` and `refactor` never release.
+- Release tags are immutable. Never create, move or delete a `v*` tag by hand, and never write a `Release-As:` footer (squash merges drop the body, so it never reaches `main`).
+- The old CUE tags (`core/v1.0.4` and so on) predate this and are left alone.
 
 ## Coding Standards
 
-- **CUE**: `#` for defs, `_` for hidden fields, `!` for required. See `CUE_GUIDE.md`.
-- **Specs**: Markdown in `V1ALPHA1_SPECS/`. Consistent heading structure.
-- **Commits**: `type(scope): description` — scopes: `vision`, `architecture`, `resource`, `trait`, `cli`, `module`.
-
-### Patterns
-
-- Definition structure: `apiVersion`, `kind`, `metadata` (with `name!`, `fqn`), `#spec`.
-- Two-layer module: Module → ModuleRelease.
+- **Pages**: follow `docs/STYLE.md`. Consistent heading structure.
+- **Commits**: `type(scope): description`; `docs(site): ...` for page changes.
 
 ## Working Style for Agents
 
 - Read `docs/STYLE.md` before writing/editing any docs in this repo.
 - New glossary terms: follow format in `docs/legacy/glossary.md` — one-sentence definition, optional CUE snippet, correct table. Don't duplicate terms in other repos; link to the canonical glossary instead.
-- Update the Project Structure tree above when adding new specs/directories.
+- Update the Repository Layout tree above when adding new directories.
 
 ### Glossary — personas (quick reference)
 
