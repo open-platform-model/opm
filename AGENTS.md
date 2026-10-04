@@ -119,13 +119,27 @@ Read these on entry:
 │   ├── analysis/      # Research notes
 │   ├── presentations/ # Slide decks
 │   └── STYLE.md       # Prose style for this repo
-├── .github/workflows/ # release.yml (release-please)
+├── .github/workflows/ # release.yml (release-please, publish-docs), docs.yml (docs bundle)
+├── .tasks/            # opm-docs.sh: install the pinned opm-docs, check the pins
 ├── CHANGELOG.md       # Written by release-please
+├── docs-kit.cue       # The opm docs bundle: docs/site/ (docs-kit)
+├── .opm-docs-version  # The docs-kit release that builds it (with every publish.yml ref)
+├── Taskfile.yml       # Docs bundle tasks
 ├── CONSTITUTION.md
 └── README.md
 ```
 
-There is no Taskfile and no build: the repository holds Markdown only.
+The pages are Markdown; the only build is the docs bundle.
+
+## Commands
+
+| Command | Description |
+| --- | --- |
+| `task docs:bundle` | Build the opm docs bundle of the work tree into `out/opm/` (a local preview of edge) |
+| `task docs:bundle:check` | Check the docs-kit pins agree, then build and lint the bundle without writing `out/` |
+| `task docs:pins:check` | Refuse a docs-kit `publish.yml` ref that names another release than `.opm-docs-version` (offline) |
+| `task tools:opm-docs` | Install or reuse `.bin/opm-docs`, the checksum-verified docs-kit release `.opm-docs-version` names |
+| `task check` | The docs bundle check |
 
 ## Releases
 
@@ -134,6 +148,10 @@ There is no Taskfile and no build: the repository holds Markdown only.
 - `feat`, `fix`, `perf`, `revert` and **`docs`** release. `docs` is visible here, unlike the other repositories, because the docs are this repository's product. `chore`, `ci`, `build`, `test`, `style` and `refactor` never release.
 - Release tags are immutable. Never create, move or delete a `v*` tag by hand, and never write a `Release-As:` footer (squash merges drop the body, so it never reaches `main`).
 - The old CUE tags (`core/v1.0.4` and so on) predate this and are left alone.
+
+## Docs bundles
+
+`docs-kit.cue` declares one docs bundle, `opm`: the pages under `docs/site/`, placed in a site version's `/docs/` tree and published to `ghcr.io/open-platform-model/docs/opm` by docs-kit's `publish.yml`. `docs.yml` checks every pull request (`Docs / check`, plus the offline pin check) and publishes each push to `main` as `edge`; `release.yml`'s `publish-docs` job publishes each release's bundle in the run that merged the release PR. Preview with `task docs:bundle` (pages in `out/opm/content/`) or in a browser with `.bin/opm-docs serve`. "Edit this page" links the file on `main`. A release without a bundle (a skipped `publish-docs`) is published with `gh workflow run docs.yml --ref main -f mode=release -f tag=vX.Y.Z`. A released page is fixed by a docs revision: land a Markdown-only commit on `main`, then `gh workflow run docs.yml --ref main -f mode=revision -f tag=vX.Y.Z -f fix=<40-hex sha>`. Revisions are dispatched by hand (#22). opmodel.dev reads opm's released versions from their bundles, so a page change on `main` reaches a released site version only through a release or a revision. `.opm-docs-version` and every `publish.yml@` ref name the same docs-kit release and move in one PR, after opmodel.dev runs that release (`task docs:pins:check`).
 
 ## Coding Standards
 
