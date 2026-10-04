@@ -1,0 +1,6 @@
+# Changes here need a code owner's review (main ruleset).
+/.github/                       @emil-jacero @orvis98
+/.tasks/                        @emil-jacero @orvis98
+/Taskfile*.yml                  @emil-jacero @orvis98
+/release-please-config.json     @emil-jacero @orvis98
+/.release-please-manifest.json  @emil-jacero @orvis98

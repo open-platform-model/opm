@@ -120,6 +120,7 @@ Read these on entry:
 │   ├── presentations/ # Slide decks
 │   └── STYLE.md       # Prose style for this repo
 ├── .github/workflows/ # release.yml (release-please, publish-docs), docs.yml (docs bundle)
+├── .github/CODEOWNERS # Owner review on CI, task and release config paths
 ├── .tasks/            # opm-docs.sh: install the pinned opm-docs, check the pins
 ├── CHANGELOG.md       # Written by release-please
 ├── docs-kit.cue       # The opm docs bundle: docs/site/ (docs-kit)
