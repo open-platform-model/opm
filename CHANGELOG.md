@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-beta.2](https://github.com/open-platform-model/opm/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2026-10-04)
+
+
+### Documentation
+
+* **start:** link the Operator Reference at /docs/reference/operator/ ([#33](https://github.com/open-platform-model/opm/issues/33)) ([99ffaaf](https://github.com/open-platform-model/opm/commit/99ffaaf523664325dc0d527d936318dd56de7a43))
+
 ## 1.0.0-beta.1 (2026-10-04)
 
 
