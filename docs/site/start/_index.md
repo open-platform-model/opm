@@ -34,7 +34,7 @@ Read more: [Deploy a module with the CLI](/docs/operating/deploy-with-the-cli/) 
 
 {{< opm/three-ways-to-deploy >}}
 
-Read more: [Who owns an instance](/docs/concepts/who-owns-an-instance/) and [Operator resources](/docs/reference/operator-resources/).
+Read more: [Who owns an instance](/docs/concepts/who-owns-an-instance/) and [Operator Reference](/docs/reference/operator/).
 
 ## Release status
 
