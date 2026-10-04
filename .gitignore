@@ -17,3 +17,6 @@ testing
 # Module backup files
 *.backup
 cue.mod/module.cue.backup
+# docs bundle preview (task docs:bundle) and the pinned opm-docs binary
+/out/
+/.bin/

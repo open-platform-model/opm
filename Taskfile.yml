@@ -1,0 +1,48 @@
+version: "3"
+
+# Silent by default — set TASK_VERBOSE=1 or use --verbose to show commands
+silent: true
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  ## Docs bundle
+  #
+  # docs-kit.cue declares one docs bundle, opm: the authored pages under
+  # docs/site/. CI builds, signs and publishes it through docs-kit's
+  # publish.yml (docs.yml, release.yml). These tasks run the same opm-docs
+  # release locally. The release is pinned in .opm-docs-version and in every
+  # publish.yml ref, and docs:pins:check refuses the two disagreeing.
+
+  tools:opm-docs:
+    desc: Install or reuse .bin/opm-docs, the checksum-verified docs-kit release named by .opm-docs-version
+    cmds:
+      - bash .tasks/opm-docs.sh install
+
+  docs:bundle:
+    desc: Build the opm docs bundle of the work tree into out/opm/ (a local preview of edge)
+    deps: [tools:opm-docs]
+    cmds:
+      - .bin/opm-docs build --project opm --out out
+
+  docs:pins:check:
+    desc: Refuse a docs-kit publish.yml ref under .github/workflows/ that names another release than .opm-docs-version (offline)
+    cmds:
+      - bash .tasks/opm-docs.sh pin-check
+
+  docs:bundle:check:
+    desc: Check the docs-kit pins agree, then build and lint the opm docs bundle into a temporary directory
+    deps: [tools:opm-docs]
+    cmds:
+      - task: docs:pins:check
+      - .bin/opm-docs check --project opm
+
+  ## Aggregates
+
+  check:
+    desc: Run every check (the docs bundle check)
+    cmds:
+      - task: docs:bundle:check
