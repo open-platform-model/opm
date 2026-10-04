@@ -10,6 +10,10 @@ updates:
       # C5, C12; task docs:pins:check); a Dependabot bump would move one pin
       # alone.
       - dependency-name: "open-platform-model/docs-kit*"
+      # Nothing here references the org .github repository yet. When something
+      # does, it moves by the .github pin procedure only (.github README
+      # "Pinning and bumps"); a Dependabot bump would move one reference alone.
+      - dependency-name: "open-platform-model/.github*"
     commit-message:
       # ci never releases here (AGENTS.md, "Releases").
       prefix: "ci"
