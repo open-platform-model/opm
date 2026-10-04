@@ -38,6 +38,12 @@ jobs:
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          # The token is this job's only credential: scope it to what
+          # release-please uses (commits, release PRs, labels), never the
+          # installation's full grant.
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
 
       - name: Run release-please
         id: release
