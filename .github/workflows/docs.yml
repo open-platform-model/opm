@@ -1,0 +1,113 @@
+name: Docs
+
+# The opm docs bundle (docs-kit.cue): the authored pages under docs/site/,
+# built, signed and published by docs-kit's reusable publish.yml (docs-kit
+# docs/contracts.md C5). opmodel.dev's site versions pull it into /docs/
+# from ghcr.io/open-platform-model/docs/opm.
+#
+#   pull_request       check: build and lint, publish nothing; pins: the
+#                      offline pin check below
+#   push to main       edge: publish the commit as the edge build
+#   workflow_dispatch  release: the recovery when release.yml's publish-docs
+#                      job did not run for an opm release. The floor is
+#                      v1.0.0-beta.1, the first release.
+#                      revision: a docs revision of a published release. It
+#                      applies fix, a single-parent commit on main that changes
+#                      only Markdown or only comments, to the release tree and
+#                      publishes <version>.<next> (docs-kit README, "Fixing a
+#                      release's docs"; docs/contracts.md, "Docs revisions").
+#                      Revisions are dispatched by hand (opm#22).
+#                      Dispatch either on main; publish.yml refuses any other ref:
+#                      gh workflow run docs.yml --ref main -f mode=release -f tag=vX.Y.Z
+#                      gh workflow run docs.yml --ref main -f mode=revision -f tag=vX.Y.Z -f fix=<40-hex sha>
+#
+# publish.yml is pinned by docs-kit release tag, never a SHA: the signing
+# certificate names it at that ref, and the site trusts only docs-kit's v*
+# tags (C5, C9). It runs the opm-docs release named in .opm-docs-version; the
+# two pins move together in one PR (task docs:pins:check refuses a
+# mismatch). publish.yml declares no permissions, so each job grants exactly
+# what its mode needs.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: release (recover a release with no bundle) or revision (fix a published release's docs)
+        type: choice
+        options: [release, revision]
+        default: release
+        required: true
+      tag:
+        description: The opm release tag (vX.Y.Z), v1.0.0-beta.1 or later
+        type: string
+        required: true
+      # Required by publish.yml in revision mode, which refuses anything but
+      # a full 40-hex hash; release mode ignores it, so it cannot be a
+      # required input of the dispatch.
+      fix:
+        description: "revision only: the full 40-hex commit on main to apply"
+        type: string
+        default: ""
+
+permissions: {}
+
+jobs:
+  # Offline: .opm-docs-version and every docs-kit publish.yml ref name the
+  # same release. Its own job, because check is a reusable-workflow call and
+  # takes no extra step.
+  pins:
+    name: Verify the docs-kit pins agree
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install Task
+        uses: go-task/setup-task@3be4020d41929789a01026e0e427a4321ce0ad44 # v2.0.0
+        with:
+          version: 3.x
+
+      - name: Verify the docs-kit pins agree
+        run: task docs:pins:check
+
+  check:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      packages: read
+    uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.6.0
+    with:
+      project: opm
+      mode: check
+
+  edge:
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.6.0
+    with:
+      project: opm
+      mode: edge
+
+  dispatch:
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.6.0
+    with:
+      project: opm
+      mode: ${{ inputs.mode }}
+      tag: ${{ inputs.tag }}
+      fix: ${{ inputs.fix }}

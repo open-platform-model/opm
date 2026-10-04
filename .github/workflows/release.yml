@@ -43,3 +43,23 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  # The release's docs bundle, in the push to main that merged the release
+  # PR, never on release: published (docs-kit C5). docs.yml's dispatch
+  # recovers a release this job did not publish.
+  publish-docs:
+    name: Publish the opm docs bundle
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    # Pinned by docs-kit release tag, not a SHA: the signing certificate names
+    # publish.yml at this ref, and the site trusts only docs-kit's v* tags
+    # (docs-kit C5, C9). Moves with .opm-docs-version in one PR.
+    uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.6.0
+    with:
+      project: opm
+      mode: release
+      tag: ${{ needs.release-please.outputs.tag_name }}
