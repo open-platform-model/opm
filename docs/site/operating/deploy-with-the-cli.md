@@ -5,9 +5,9 @@ type: tutorial
 weight: 10
 ---
 
-<!-- Open with the end result: a running copy of the published module `opmodel.dev/modules/web_app@v1` (nginx behind a ClusterIP Service) on a local kind cluster, deployed as the instance `hello` in namespace `hello` with `opm instance apply`. The reader ends with a Deployment `hello-web` running two replicas, a Service `hello-web`, and a ModuleInstance `hello` that records both, with `spec.owner: cli`. No operator runs at any point. Name the result in one sentence, then start.
+<!-- Open with the end result: a running copy of the published module `opmodel.dev/modules/web_app@v1` (nginx behind a ClusterIP Service) on a local kind cluster, deployed as the instance `hello` in namespace `hello` with `opm instance apply`. The reader ends with a Deployment `hello-web` running two replicas, a Service `hello-web`, and a ModuleInstance `hello` that records both, with `spec.owner: cli`. No controller runs at any point. Name the result in one sentence, then start.
 
-Source warnings for the author: `cli/QUICKSTART.md` is stale. Its examples `examples/instances/jellyfin`, `garage` and `mc_java_fleet` no longer exist, and its import `opmodel.dev/core/v1alpha1/modulerelease@v1` is the retired v1 shape. The only example left is `cli/examples/instances/podinfo`, which imports a `testing.opmodel.dev` fixture module and is not fit for public docs. `opm-kind-demo/QUICKSTART.md` pins opm-operator v1.0.0-alpha.4 and an older Platform shape (`filter.range`); use it only for the kind cluster step, never for versions. Resource names follow the core default `<instance>-<component>`, so the instance name `hello` and component `web` give `hello-web`.
+Source warnings for the author: `cli/QUICKSTART.md` is stale. Its examples `examples/instances/jellyfin`, `garage` and `mc_java_fleet` no longer exist, and its import `opmodel.dev/core/v1alpha1/modulerelease@v1` is the retired v1 shape. The only example left is `cli/examples/instances/podinfo`, which imports a `testing.opmodel.dev` fixture module and is not fit for public docs. `opm-kind-demo/QUICKSTART.md` pins an alpha release of the controller and an older Platform shape (`filter.range`); use it only for the kind cluster step, never for versions. Resource names follow the core default `<instance>-<component>`, so the instance name `hello` and component `web` give `hello-web`.
 
 Check against: modules/web_app/module.cue, modules/web_app/components.cue, modules/web_app/identity/identity.cue, core/src/component.cue, cli/examples/instances/podinfo/instance.cue -->
 
@@ -38,11 +38,11 @@ Check against: cli/internal/config/templates.go, cli/Taskfile.yml, opm-kind-demo
 
 ## 3. Install the ModuleInstance CRD
 
-<!-- Run `opm operator install --crds-only`. Show the output: "installing opm-operator (CRDs only)", one line per CRD (moduleinstances, modulepackages, platforms and transformerregistrations, all under opmodel.dev), and "opm-operator v1.0.0-beta.1 installed (embedded, 4 resource(s) applied)" (as opm v1.0.0-beta.2 prints it, 2026-09-30). Verify: the count and the per-CRD line wording.
+<!-- Run `opm controller install --crds-only`. Show the output: "installing opm-controller (CRDs only)", one line per CRD (moduleinstances, modulepackages, platforms and transformerregistrations, all under opmodel.dev), and "opm-controller <version> installed (embedded, 4 resource(s) applied)", with the controller version the CLI release embeds. Run it with the first CLI release that has `opm controller`. Verify: the count and the per-CRD line wording.
 
-One line on why: `opm instance apply` records what it deployed in a ModuleInstance, so the CRD must exist first. Without it, apply stops with "ModuleInstance CRD not found — run 'opm operator install --crds-only'". This installs no controller and creates no Platform. Link the concept page "Who owns an instance".
+One line on why: `opm instance apply` records what it deployed in a ModuleInstance, so the CRD must exist first. Without it, apply stops with "ModuleInstance CRD not found — run 'opm controller install --crds-only'". This installs no controller and creates no Platform. Link the concept page "Who owns an instance".
 
-Check against: cli/internal/cmd/operator/install.go, cli/internal/operator/manifest.go, cli/internal/operator/plan.go, cli/internal/inventory/gates.go -->
+Check against: cli/internal/cmd/controller/install.go, cli/internal/controller/install.go, cli/internal/controller/plan_install.go, cli/internal/inventory/gates.go -->
 
 ## 4. Write an instance file
 
@@ -72,13 +72,13 @@ Check against: cli/internal/cmd/instance/build.go, cli/internal/cmd/instance/clu
 
 <!-- Run `opm instance apply ./instance.cue --create-namespace`. Show the output: the same warning and `platform: instance deps (...)` line as step 5, `namespace "hello" created`, one line per resource (`r:Deployment/hello/hello-web` and `r:Service/hello/hello-web`, each "created"), "applied 2 resources successfully (2 created)", and last "Instance applied". Verify: the order of these lines in a real run.
 
-One line on why: the warning is expected, because step 3 created no Platform. Apply writes the ModuleInstance `hello` with `spec.owner: cli` and the two resources in `status.inventory`. It creates no Platform (only `opm operator install` without `--crds-only` or `--skip-platform` seeds one), so every later apply on this cluster warns the same way. Link the concept page "Who owns an instance".
+One line on why: the warning is expected, because step 3 created no Platform. Apply writes the ModuleInstance `hello` with `spec.owner: cli` and the two resources in `status.inventory`. It creates no Platform (only `opm controller install` without `--crds-only` or `--skip-platform` seeds one), so every later apply on this cluster warns the same way. Link the concept page "Who owns an instance".
 
 Check against: cli/internal/cmd/instance/apply.go, cli/internal/workflow/apply/apply.go, cli/internal/workflow/render/env.go, cli/internal/platform/resolve.go, cli/internal/platform/cluster.go, cli/internal/output/styles.go -->
 
-<!-- Note after step 6, as a short `:::note[Clusters without the operator]` admonition:
+<!-- Note after step 6, as a short `:::note[Clusters without the controller]` admonition:
 
-A cluster without the operator runs basic modules only. No provider is ever registered there, so a module with a provider-fulfilled trait, such as the catalog's backup trait, is refused with the hint "a provider-fulfilled contract has no provider on this platform: install one, pass --platform <dir> with a platform that carries one, or pass --skip-unprovided to render the rest". `--skip-unprovided` renders the rest: it skips only contracts nothing on the platform provides and warns on each, for example `component "db": skipped provider-fulfilled trait "<fqn>" (no provider on this platform)`. A skipped resource leaves its whole component unrendered. Apply records the skips on the ModuleInstance in the annotation `module-instance.opmodel.dev/skipped-contracts`, and the next apply that skips nothing clears it. The flag also works on `opm instance build`, `vet` and `diff` and on `opm module build`, `vet` and `apply`, and is refused for an operator-managed instance.
+A cluster without the controller runs basic modules only. No provider is ever registered there, so a module with a provider-fulfilled trait, such as the catalog's backup trait, is refused with the hint "a provider-fulfilled contract has no provider on this platform: install one, pass --platform <dir> with a platform that carries one, or pass --skip-unprovided to render the rest". `--skip-unprovided` renders the rest: it skips only contracts nothing on the platform provides and warns on each, for example `component "db": skipped provider-fulfilled trait "<fqn>" (no provider on this platform)`. A skipped resource leaves its whole component unrendered. Apply records the skips on the ModuleInstance in the annotation `module-instance.opmodel.dev/skipped-contracts`, and the next apply that skips nothing clears it. The flag also works on `opm instance build`, `vet` and `diff` and on `opm module build`, `vet` and `apply`, and is refused for a controller-managed instance.
 
 Check against: cli/internal/cmdutil/flags.go, cli/internal/workflow/render/skipped.go, cli/internal/workflow/render/validation.go, cli/internal/inventory/cr.go, cli/internal/workflow/apply/thineditor.go, core/SPEC.md (section 3.1, #Component) -->
 
@@ -100,10 +100,10 @@ Check against: cli/internal/cmd/instance/delete.go, cli/internal/kubernetes/dele
 
 <!-- Two or three sentences: a published module, rendered on your machine against the catalogs the instance pins and applied by the CLI, with its inventory recorded in a ModuleInstance the CLI owns. Nothing in the cluster reconciled it: it changed only when you ran `opm`, and it would stay as deployed until the next `opm instance apply`.
 
-Check against: cli/README.md, opm-operator/internal/reconcile/moduleinstance.go -->
+Check against: cli/README.md, opm-controller/internal/reconcile/moduleinstance.go -->
 
 ## Next steps
 
-<!-- Three links at most: the concept page "Who owns an instance", the how-to guide "Install the operator", and the reference page "CLI Reference".
+<!-- Three links at most: the concept page "Who owns an instance", the how-to guide "Install the controller", and the reference page "CLI Reference".
 
-Check against: cli/internal/inventory/ownership.go, cli/internal/cmd/operator/install.go, cli/internal/cmd/root.go -->
+Check against: cli/internal/inventory/ownership.go, cli/internal/cmd/controller/install.go, cli/internal/cmd/root.go -->

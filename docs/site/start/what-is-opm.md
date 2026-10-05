@@ -13,13 +13,13 @@ This page assumes you run Kubernetes and have used Helm, but have never used CUE
 
 ## In Kubernetes terms
 
-The `opm` CLI has the role Helm has, and the OPM operator has the role Flux's helm-controller has. A module is the chart. A module instance is the release (one configured copy of the module, in one namespace). `opm instance build` renders an instance and prints the objects without applying them, as `helm template` does. `opm instance apply` renders it and applies the result, as `helm upgrade --install` does. The operator watches ModuleInstance resources and applies the instances it manages, as helm-controller does for a HelmRelease.
+The `opm` CLI has the role Helm has, and the OPM controller has the role Flux's helm-controller has. A module is the chart. A module instance is the release (one configured copy of the module, in one namespace). `opm instance build` renders an instance and prints the objects without applying them, as `helm template` does. `opm instance apply` renders it and applies the result, as `helm upgrade --install` does. The controller watches ModuleInstance resources and applies the instances it manages, as helm-controller does for a HelmRelease.
 
 The comparison stops at templates. A module has no templates. It describes its components. The platform you render against decides which Kubernetes objects each component becomes. The same module can therefore render differently on two platforms.
 
 {{< opm/helm-and-opm >}}
 
-OPM keeps its record of an instance in the cluster, in a ModuleInstance resource. The resource lists the objects OPM applied for the instance. Helm keeps its release record in a Secret instead. The CLI writes this resource too. You have to install its CRD even if you do not run the operator. `opm operator install --crds-only` installs only the CRDs.
+OPM keeps its record of an instance in the cluster, in a ModuleInstance resource. The resource lists the objects OPM applied for the instance. Helm keeps its release record in a Secret instead. The CLI writes this resource too. You have to install its CRD even if you do not run the controller. `opm controller install --crds-only` installs only the CRDs.
 
 OPM also gives modules a shared vocabulary, which Helm charts do not have. The catalogs publish [resources and traits](/docs/concepts/resources-and-traits/) as contracts that modules and platforms both name. A module that needs backups attaches the `backup` trait, with a schedule and a retention for a component's volumes. It names no backup engine. To render it, the platform needs exactly one backup provider: a catalog whose transformer renders the engine's own object. With a k8up provider, the module renders a k8up `Schedule`. On a platform whose provider is Velero, the same module renders a Velero `Schedule` instead. OPM publishes no backup provider yet, so k8up and Velero here are examples. Without a provider, a module that attaches the trait is refused. A Helm chart that wants backups defines its own values and templates one engine's resources.
 
@@ -29,7 +29,7 @@ For how a platform gets its provider, see [Platforms and catalogs](/docs/concept
 
 ## How it works
 
-OPM works in four steps. You choose or write a module. You create a module instance from it, with your values. OPM renders the instance against a platform, whose transformers turn each component into Kubernetes objects. The CLI or the operator then applies the objects and records what it applied.
+OPM works in four steps. You choose or write a module. You create a module instance from it, with your values. OPM renders the instance against a platform, whose transformers turn each component into Kubernetes objects. The CLI or the controller then applies the objects and records what it applied.
 
 {{< opm/module-to-cluster >}}
 
@@ -91,7 +91,7 @@ A platform is a CUE module that imports the catalogs it uses. Its `cue.mod/modul
 
 A render takes the platform directory you pass with `--platform` first. Without one, the `opm instance` commands and `opm module apply` use the cluster's platform. If the cluster has none, or you may not read it, they warn and use a platform `opm` generates from the render's own pins: the catalogs in the instance package's `cue.mod/module.cue`, or the module's for `opm module apply`. `opm instance build` and `opm instance vet` never fail because of the cluster, and `--offline` keeps them off it. `opm module build` and `opm module vet` never read the cluster: they use the module's own pins. Every render prints a `platform:` line that names the platform it used.
 
-On a cluster, the platform is a Platform resource. It is cluster-scoped and must be named `cluster`. It lists the module path and version of each catalog. The operator generates a platform module from it, and so does the CLI when it renders against the cluster.
+On a cluster, the platform is a Platform resource. It is cluster-scoped and must be named `cluster`. It lists the module path and version of each catalog. The controller generates a platform module from it, and so does the CLI when it renders against the cluster.
 
 ### An instance binds a module to values and a namespace
 
@@ -131,15 +131,15 @@ When a render cannot handle everything in an instance, it fails. It fails if a c
 
 For more, see [How matching works](/docs/concepts/how-matching-works/).
 
-### The CLI or the operator applies the result
+### The CLI or the controller applies the result
 
-Rendering applies nothing. The CLI or the operator applies the objects.
+Rendering applies nothing. The CLI or the controller applies the objects.
 
 `opm instance apply` applies them with server-side apply. It records what it applied in the instance's ModuleInstance resource, under `status.inventory`. On the next apply, it deletes the objects the new render no longer produces. Pass `--no-prune` to keep them.
 
-The operator reconciles ModuleInstance resources that name a published module by path and version. It fetches the module from the registry, renders it against the cluster's platform, applies the objects and records the inventory. It cannot use a module that exists only on your disk.
+The controller reconciles ModuleInstance resources that name a published module by path and version. It fetches the module from the registry, renders it against the cluster's platform, applies the objects and records the inventory. It cannot use a module that exists only on your disk.
 
-Each instance has one owner, recorded in `spec.owner` as `cli` or `operator`. Every instance that `opm instance apply` creates is owned by the CLI, and the operator does not apply or prune it. A ModuleInstance resource you write yourself, with no owner, belongs to the operator. If you run `opm instance apply` against an instance the operator owns, the CLI applies nothing itself. It updates the module and values in the resource, and the operator applies them. No command moves an instance from one owner to the other.
+Each instance has one owner, recorded in `spec.owner` as `cli` or `controller`. Every instance that `opm instance apply` creates is owned by the CLI, and the controller does not apply or prune it. A ModuleInstance resource you write yourself, with no owner, belongs to the controller. If you run `opm instance apply` against an instance the controller owns, the CLI applies nothing itself. It updates the module and values in the resource, and the controller applies them. No command moves an instance from one owner to the other.
 
 To remove an instance, use `opm instance delete`, not `kubectl delete`. Deleting the ModuleInstance resource does not always delete the objects it deployed. See [Deletion and pruning](/docs/operating/deletion-and-pruning/) first.
 
@@ -161,7 +161,7 @@ Your values are unified with the schema, not substituted into text. Values you p
 
 ### Instance identity survives upgrades
 
-The operator uses the instance's ID to decide which objects it may delete. Before it prunes an object, it compares the object's ID label with the instance's ID. It skips an object whose label names a different ID. If the ID changed with each module version, every upgrade would leave the old objects running, and the operator would still report success.
+The controller uses the instance's ID to decide which objects it may delete. Before it prunes an object, it compares the object's ID label with the instance's ID. It skips an object whose label names a different ID. If the ID changed with each module version, every upgrade would leave the old objects running, and the controller would still report success.
 
 So the ID leaves out the module's version, and its major version too. Moving an instance from `@v1` to `@v2` of a module keeps its ID. The ID does include the module path, the instance name and the namespace. Two different modules never share an ID, even when they have the same name.
 
@@ -178,8 +178,8 @@ Each rule names what refuses a violation. [What enforces a rule](/docs/concepts/
 - `cue`: A module's name must equal the last segment of its module path. `cue vet` and every command that loads the module refuse a mismatch.
 - `publish`: A module's version must have the major version its path names, such as `1.2.0` for a path ending in `@v1`. `opm module vet` and `opm module publish` refuse a mismatch.
 - `publish`: A published version cannot be published again. `opm module publish` refuses it.
-- `kernel`: Values passed with `-f`, a module's example values and a ModuleInstance resource's `spec.values` must fit the module's configuration schema. The CLI's vet, build and apply commands and the operator refuse a wrong type or an unknown setting.
-- `kernel`: Every component must match at least one transformer. The render fails otherwise, in the CLI and in the operator.
+- `kernel`: Values passed with `-f`, a module's example values and a ModuleInstance resource's `spec.values` must fit the module's configuration schema. The CLI's vet, build and apply commands and the controller refuse a wrong type or an unknown setting.
+- `kernel`: Every component must match at least one transformer. The render fails otherwise, in the CLI and in the controller.
 - `kernel`: Every resource, and every trait that is not optional, must be handled by a transformer that matched its component. The render fails otherwise.
 - `convention`: A module's configuration schema must be expressible as OpenAPI v3. Nothing checks it.
 - `convention`: A trait attaches only to a component that has a resource the trait applies to. Nothing checks it: CUE accepts the trait on any component.

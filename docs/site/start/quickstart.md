@@ -229,7 +229,7 @@ INFO r:CustomResourceDefinition/transformerregistrations.opmodel.dev  + created
 ✔ opm-operator v1.0.0-beta.4 installed (embedded, 4 resource(s) applied)
 ```
 
-`opm` records what it deploys in a ModuleInstance resource, so the cluster needs the OPM resource definitions. No operator runs. See [Who owns an instance](/docs/concepts/who-owns-an-instance/).
+`opm` records what it deploys in a ModuleInstance resource, so the cluster needs the OPM resource definitions. No controller runs. See [Who owns an instance](/docs/concepts/who-owns-an-instance/).
 
 ## 7. Deploy the instance
 
@@ -273,7 +273,7 @@ Service      shop-web   web         Applied   30s
 
 Right after the apply, the Deployment can show `NotReady` for about half a minute, while the image is pulled and its pods start. Run the command again after that.
 
-The cluster has no Platform, so `opm` warned and rendered against the instance's own catalogs, as in step 5. `opm instance apply` does not create a Platform; only `opm operator install` seeds one, and not with `--crds-only` or `--skip-platform`. Until the cluster has one, every apply and diff warns the same way. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
+The cluster has no Platform, so `opm` warned and rendered against the instance's own catalogs, as in step 5. `opm instance apply` does not create a Platform; only `opm controller install` seeds one, and not with `--crds-only` or `--skip-platform`. Until the cluster has one, every apply and diff warns the same way. See [Platforms and catalogs](/docs/concepts/platforms-and-catalogs/).
 
 ## 8. Change the instance
 
