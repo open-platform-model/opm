@@ -91,11 +91,11 @@ Do not introduce more than two new concepts per section.
   - File: `https://github.com/open-platform-model/<repo>/blob/main/<path>`
   - Directory: `https://github.com/open-platform-model/<repo>/tree/main/<path>`
   - Repo root: `https://github.com/open-platform-model/<repo>`
-- **Repo list**: `catalog`, `cli`, `opm-operator`, `modules`, `opm`, `opmodel.dev`, `orca`, `releases`.
+- **Repo list**: `catalog`, `cli`, `opm-controller`, `modules`, `opm`, `opmodel.dev`, `orca`, `releases`.
 
 ## What to Omit
 
 - CUE schema internals (belongs in `catalog/docs/`).
 - CLI flag references (belongs in `cli/docs/`).
-- Controller operation procedures (belongs in `opm-operator/docs/`).
+- Controller operation procedures (belongs in `opm-controller/docs/`).
 - Site engine files such as layouts, components and site configuration (belong in `opmodel.dev/`).

@@ -1057,7 +1057,7 @@ kubectl-style table: **NAME**, **MODULE**, **VERSION**, **STATUS**, **AGE**
   </div>
   <div class="timeline-stop next">
     <div class="timeline-dot">⚙</div>
-    <div class="timeline-label">K8s Operator /<br>Controller</div>
+    <div class="timeline-label">K8s<br>Controller</div>
     <div class="timeline-badge badge-next">next</div>
     <div class="timeline-desc">In-cluster reconciliation. GitOps-native. Declarative apply via CRDs.</div>
   </div>
@@ -1077,7 +1077,7 @@ kubectl-style table: **NAME**, **MODULE**, **VERSION**, **STATUS**, **AGE**
 
 <!--
 Four stops. We're at the first -- Application Model is live.
-Next: K8s operator moves from CLI-driven to in-cluster reconciliation.
+Next: the K8s controller moves from CLI-driven to in-cluster reconciliation.
 Then Platform Model: standardized provider interfaces.
 Then Ecosystem: multi-provider marketplace, no vendor lock-in.
 -->
