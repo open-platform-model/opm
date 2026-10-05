@@ -2,9 +2,9 @@
 # holds a write token or signs. GitHub requests these owners' review on a PR
 # that touches them; the review is required only where the main ruleset
 # turns on code-owner review.
-/.github/                       @emil-jacero @orvis98
-/.tasks/                        @emil-jacero @orvis98
-/Taskfile*.yml                  @emil-jacero @orvis98
-/release-please-config.json     @emil-jacero @orvis98
-/.release-please-manifest.json  @emil-jacero @orvis98
-/.opm-docs-version              @emil-jacero @orvis98
+/.github/                       @emil-jacero
+/.tasks/                        @emil-jacero
+/Taskfile*.yml                  @emil-jacero
+/release-please-config.json     @emil-jacero
+/.release-please-manifest.json  @emil-jacero
+/.opm-docs-version              @emil-jacero
