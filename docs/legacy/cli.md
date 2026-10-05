@@ -1,6 +1,6 @@
 # The OPM CLI
 
-The `opm` CLI is the tool you use today to build, validate, and deploy OPM modules. It is the push-model counterpart to the [operator](operator.md): you run it from your laptop or CI; it evaluates CUE locally and talks to the cluster over the Kubernetes API.
+The `opm` CLI is the tool you use today to build, validate, and deploy OPM modules. It is the push-model counterpart to the [controller](https://github.com/open-platform-model/opm-controller): you run it from your laptop or CI; it evaluates CUE locally and talks to the cluster over the Kubernetes API.
 
 ## What it does under the hood
 
@@ -61,6 +61,6 @@ opm release delete ./blog/release.cue  # tear it down
 - **CLI-specific docs**: [`README.md`](https://github.com/open-platform-model/cli/blob/main/README.md) for the canonical command list and [`docs/roadmap.md`](https://github.com/open-platform-model/cli/blob/main/docs/roadmap.md) for what is next.
 - **Runnable examples**: [`examples/`](https://github.com/open-platform-model/cli/tree/main/examples) has nine example modules and matching release files.
 
-## When to reach for the operator instead
+## When to reach for the controller instead
 
-The CLI is push-model: a human or CI pipeline triggers each deploy. For continuous reconciliation, drift correction, and multi-tenant GitOps setups, see the [operator](operator.md).
+The CLI is push-model: a human or CI pipeline triggers each deploy. For continuous reconciliation, drift correction, and multi-tenant GitOps setups, see the [controller](https://github.com/open-platform-model/opm-controller).

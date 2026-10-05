@@ -22,7 +22,7 @@ Pages under `docs/site/` follow the site page rules in the workspace `STYLE.md` 
 | Documentation index | `docs/index.md` | Persona-based routing into the rest of `docs/` |
 | Getting started | `docs/getting-started.md` | First-touch walkthrough for newcomers |
 | Concepts | `docs/concepts/` | The model, explained in prose + example |
-| Component docs | `docs/cli.md`, `docs/operator.md` | What the CLI and operator are, at newcomer level |
+| Component docs | `docs/cli.md` | What the CLI is, at newcomer level |
 | Module gallery | `docs/modules-gallery.md` | Showcase of real modules |
 | Comparisons | `docs/opm-vs-helm.md` | Framing for evaluators |
 | Glossary | `docs/glossary.md` | **Canonical** — single source of truth for all OPM terms |

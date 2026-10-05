@@ -53,7 +53,7 @@ See [Module and ModuleRelease](docs/legacy/concepts/module-and-release.md) for t
 - **[Getting Started](docs/legacy/getting-started.md)** — scaffold your first module.
 - **[Concepts Overview](docs/legacy/concepts/overview.md)** — the model in one page.
 - **[Module Gallery](docs/legacy/modules-gallery.md)** — real modules shipping today.
-- **[CLI](docs/legacy/cli.md)** / **[Operator](docs/legacy/operator.md)** — the two ways to run OPM.
+- **[CLI](docs/legacy/cli.md)** / **[Controller](https://github.com/open-platform-model/opm-controller)** — the two ways to run OPM.
 
 ## How it compares to Helm
 
@@ -67,7 +67,7 @@ Stabilize core definitions. Native validation (`opm module vet`). Secrets and co
 
 ### Phase 2: Kubernetes Controller (current)
 
-In-cluster [operator](docs/legacy/operator.md) watching `ModuleRelease` CRDs. Continuous reconciliation and drift detection.
+In-cluster [controller](https://github.com/open-platform-model/opm-controller) watching `ModuleRelease` CRDs. Continuous reconciliation and drift detection.
 
 ### Phase 3: Platform Model
 

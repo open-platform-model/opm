@@ -75,7 +75,7 @@ flowchart LR
     M -->|published to| R[(OCI Registry)]
     E[End-user] -->|writes| MR[ModuleRelease]
     MR -->|imports| M
-    MR -->|rendered by| C{CLI or Operator}
+    MR -->|rendered by| C{CLI or Controller}
     C -->|server-side apply| K[Kubernetes Cluster]
     R --> C
 ```
@@ -88,7 +88,7 @@ See [Module and ModuleRelease](module-and-release.md) for the full two-layer wal
 
 OPM is pure CUE — there is no templating, no string interpolation. At build time, a [Provider](../glossary.md#provider) runs a chain of [Transformers](../glossary.md#transformer) that convert OPM definitions into runtime-specific resources. The Kubernetes provider, for example, turns a stateless Component into a Deployment, a stateful one into a StatefulSet, an `#Expose` Trait into a Service, and so on.
 
-The [CLI](../cli.md) runs this locally (push model). The [operator](../operator.md) runs it in-cluster against a ModuleRelease CRD (pull / GitOps model). Either way the rendering logic is the same.
+The [CLI](../cli.md) runs this locally (push model). The [controller](https://github.com/open-platform-model/opm-controller) runs it in-cluster against a ModuleRelease CRD (pull / GitOps model). Either way the rendering logic is the same.
 
 ## Next steps
 

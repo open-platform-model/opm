@@ -69,7 +69,7 @@ opm release delete <release-name> -n <namespace>
 
 ## What just happened
 
-You scaffolded a Module. Inside, one Component composed a Resource (`#Container`) with Traits. `opm module vet` asked CUE to unify your `#config` schema with the defaults and confirm every constraint held. Had you gone on to `opm release apply`, the CLI would have loaded your Module, unified it with the values from a `release.cue`, run the Kubernetes Provider's [Transformers](glossary.md#transformer), and server-side-applied the resulting manifests. Same logic the [operator](operator.md) uses in-cluster.
+You scaffolded a Module. Inside, one Component composed a Resource (`#Container`) with Traits. `opm module vet` asked CUE to unify your `#config` schema with the defaults and confirm every constraint held. Had you gone on to `opm release apply`, the CLI would have loaded your Module, unified it with the values from a `release.cue`, run the Kubernetes Provider's [Transformers](glossary.md#transformer), and server-side-applied the resulting manifests. Same logic the [controller](https://github.com/open-platform-model/opm-controller) uses in-cluster.
 
 ## Next steps
 
@@ -77,4 +77,4 @@ You scaffolded a Module. Inside, one Component composed a Resource (`#Container`
 - **See the two-layer split**: [Module and ModuleRelease](concepts/module-and-release.md)
 - **Do the full end-to-end**: [`cli/QUICKSTART.md`](https://github.com/open-platform-model/cli/blob/main/QUICKSTART.md)
 - **Browse real modules**: [Module Gallery](modules-gallery.md)
-- **Reach for the operator**: [The OPM Operator](operator.md)
+- **Reach for the controller**: [The OPM controller](https://github.com/open-platform-model/opm-controller)
