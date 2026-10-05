@@ -38,7 +38,7 @@ Check against: cli/internal/config/templates.go, cli/Taskfile.yml, opm-kind-demo
 
 ## 3. Install the ModuleInstance CRD
 
-<!-- Run `opm controller install --crds-only`. Show the output: "installing opm-controller (CRDs only)", one line per CRD (moduleinstances, modulepackages, platforms and transformerregistrations, all under opmodel.dev), and "opm-controller <version> installed (embedded, 4 resource(s) applied)", with the controller version the CLI release embeds. Run it with the first CLI release that has `opm controller`. Verify: the count and the per-CRD line wording.
+<!-- Run `opm controller install --crds-only`. Show the output exactly as the first CLI release with `opm controller` prints it: copy it from the quickstart run made for that release, never from memory. Verify: one line per CRD (moduleinstances, modulepackages, platforms and transformerregistrations, all under opmodel.dev) and the count.
 
 One line on why: `opm instance apply` records what it deployed in a ModuleInstance, so the CRD must exist first. Without it, apply stops with "ModuleInstance CRD not found — run 'opm controller install --crds-only'". This installs no controller and creates no Platform. Link the concept page "Who owns an instance".
 
