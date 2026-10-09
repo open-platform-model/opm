@@ -67,7 +67,7 @@ jobs:
     # Pinned by docs-kit release tag, not a SHA: the signing certificate names
     # publish.yml at this ref, and the site trusts only docs-kit's v* tags
     # (docs-kit C5, C9). Moves with .opm-docs-version in one PR.
-    uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.6.0
+    uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.7.0
     with:
       project: opm
       mode: release
