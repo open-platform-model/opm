@@ -90,7 +90,7 @@ Check against: cli/internal/cmd/instance/status.go, cli/internal/kubernetes/stat
 
 ## 8. Delete the instance
 
-<!-- Run `opm instance delete hello -n hello --force`. Show the "deleted" line for each resource and the final "Instance deleted". The ModuleInstance goes last, after both resources. Then run `kubectl delete namespace hello`: a namespace made by `--create-namespace` is not in the inventory, so `opm instance delete` leaves it. End with `kind delete cluster --name opm-tutorial`.
+<!-- Run `opm instance delete hello -n hello --yes` (`--force` is a deprecated alias on this command). Show the "deleted" line for each resource and the final "Instance deleted". The ModuleInstance goes last, after both resources. Then run `kubectl delete namespace hello`: a namespace made by `--create-namespace` is not in the inventory, so `opm instance delete` leaves it. End with `kind delete cluster --name opm-tutorial`.
 
 One line on why: the CLI manages this instance, so the CLI deletes its resources itself. Deleting the ModuleInstance with kubectl instead would leave both resources running. Link the concept page "Deletion and pruning".
 
