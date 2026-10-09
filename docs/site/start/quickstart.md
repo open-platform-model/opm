@@ -349,7 +349,7 @@ INFO m:shop: all resources have been deleted
 ✔ Instance deleted
 ```
 
-`opm instance delete` removes every object the instance recorded, then the ModuleInstance resource itself. `--force` skips the confirmation prompt. See [Deletion and pruning](/docs/operating/deletion-and-pruning/).
+`opm instance delete` removes the objects the instance recorded, then the ModuleInstance resource itself. It keeps PersistentVolumeClaims unless you pass `--delete-data`; this instance has none. `--force` skips the confirmation prompt. See [Deletion and pruning](/docs/operating/deletion-and-pruning/).
 
 ## What you built
 

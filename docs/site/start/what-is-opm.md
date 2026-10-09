@@ -135,7 +135,7 @@ For more, see [How matching works](/docs/concepts/how-matching-works/).
 
 Rendering applies nothing. The CLI or the controller applies the objects.
 
-`opm instance apply` applies them with server-side apply. It records what it applied in the instance's ModuleInstance resource, under `status.inventory`. On the next apply, it deletes the objects the new render no longer produces. Pass `--no-prune` to keep them.
+`opm instance apply` applies them with server-side apply. It records what it applied in the instance's ModuleInstance resource, under `status.inventory`. On the next apply, it deletes the objects the new render no longer produces. Pass `--no-prune` to keep them. It keeps a PersistentVolumeClaim either way, unless you pass `--delete-data`.
 
 The controller reconciles ModuleInstance resources that name a published module by path and version. It fetches the module from the registry, renders it against the cluster's platform, applies the objects and records the inventory. It cannot use a module that exists only on your disk.
 
