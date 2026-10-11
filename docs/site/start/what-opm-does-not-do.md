@@ -25,7 +25,7 @@ This page lists the systems a Kubernetes or Helm user may expect that the Open P
 
 ## Direction
 
-<!-- Direction note rules: one note per row an enhancement's design covers, a NOTE alert titled Direction under an h3 named exactly as the row's System cell (the row links that h3's anchor), the enhancement's number and title, its status in the present tense, whether it covers the row fully or in part, no date, no promise, no decision or question numbers. A design that only touches a row gets no note: 0026 (two providers serving different catalog majors) for Provider classes, 0007 (side manifests do not patch rendered objects) for Patching, 0005 (readiness reporting, no decision) for Waiting. Each note links its entry on the site as /enhancements/NNNN/; the build fails on a link to an entry the section lacks. Check against: enhancements/INDEX.md, enhancements/0009/03-decisions.md, enhancements/0012/03-decisions.md, enhancements/0014/03-decisions.md, enhancements/0014/07-questions.md, enhancements/0023/03-decisions.md, enhancements/0023/07-questions.md, enhancements/0027/03-decisions.md -->
+<!-- Direction note rules: one note per row an enhancement's design covers, a NOTE alert titled Direction under an h3 named exactly as the row's System cell (the row links that h3's anchor), the enhancement's number and title, its status in the present tense, whether it covers the row fully or in part, no date, no promise, no decision or question numbers. A design that only touches a row gets no note: 0026 (two providers serving different catalog majors) for Provider classes, 0007 (side manifests do not patch rendered objects) for Patching, 0005 (readiness reporting, no decision) for Waiting. Each note links its entry on the site as /enhancements/NNNN/; the build fails on a link to an entry the section lacks. Check against: enhancements/INDEX.md and, for each entry a note names, its proposal.md and design.md in enhancements/openspec/changes/<id>-<slug>/ (once the entry is archived, in enhancements/openspec/changes/archive/<date>-<id>-<slug>/) -->
 
 Each note names an enhancement whose design covers some or all of one row above. An enhancement is a design, not a feature: none of what these notes describe exists in OPM today.
 
@@ -62,7 +62,7 @@ Each note names an enhancement whose design covers some or all of one row above.
 > [!NOTE]
 > **Direction**
 >
-> Enhancement 0012, [Kubernetes as a First-Class Kernel Platform](/enhancements/0012/), is a draft, and no work on it has started. It covers part of this row. Its design has neither the CLI nor the operator ever delete a Namespace or a CRD in an instance's inventory, and has both skip a live object that another owner manages. It protects those objects by kind and adds no annotation or field that keeps one chosen object, so a PersistentVolumeClaim is as deletable as it is today.
+> Enhancement 0012, [Kubernetes as a First-Class Library Tier](/enhancements/0012/), is a draft, and no work on it has started. It covers part of this row. Its design has neither the CLI nor the operator ever delete a Namespace or a CRD in an instance's inventory, and has both skip a live object that another owner manages. It protects those objects by kind and adds no annotation or field that keeps one chosen object, so a PersistentVolumeClaim is as deletable as it is today.
 
 ### A model of the platform itself
 
