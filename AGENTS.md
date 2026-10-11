@@ -164,6 +164,7 @@ The pages are Markdown; the only build is the docs bundle.
 - Read `docs/STYLE.md` before writing/editing any docs in this repo.
 - New glossary terms: follow format in `docs/legacy/glossary.md` — one-sentence definition, optional CUE snippet, correct table. Don't duplicate terms in other repos; link to the canonical glossary instead.
 - Update the Repository Layout tree above when adding new directories.
+- Cite an enhancement as `Enhancement NNNN` beside the reason in words: never the id alone, and never a decision or question number. On a site page, link it as `[Title](/enhancements/NNNN/)` with the entry's current title.
 
 ### Glossary — personas (quick reference)
 
