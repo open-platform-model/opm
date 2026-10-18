@@ -6,14 +6,14 @@ and per release, and how a released page is fixed. The commands are in `AGENTS.m
 ## How it works
 
 `docs-kit.cue` declares one bundle, `opm`: the pages under `docs/site/`, placed in a site
-version's `/docs/` tree. The `publish.yml` workflow of docs-kit publishes it to
+version's `/docs/` tree. The publish workflow of docs-kit publishes it to
 `ghcr.io/open-platform-model/docs/opm`.
 
 - The docs workflow checks every pull request (`Docs / check`, plus the offline pin check) and
   publishes each push to `main` as `edge`.
 - The release workflow publishes each release's bundle in the run that merged the release PR.
-- Preview with `task docs:bundle` (pages land in `out/opm/content/`) or in a browser with
-  `.bin/opm-docs serve`. "Edit this page" links the file on `main`.
+- Preview with `task docs:bundle` (pages land in `out/opm/content/`) or in a browser with the
+  `serve` command of the installed docs tool. "Edit this page" links the file on `main`.
 - opmodel.dev reads opm's released versions from their bundles. A page change on `main` reaches a
   released site version only through a release or a revision.
 
@@ -33,11 +33,11 @@ Land a Markdown-only commit on `main`, then dispatch a revision with the 40-hex 
 gh workflow run docs.yml --ref main -f mode=revision -f tag=vX.Y.Z -f fix=<40-hex sha>
 ```
 
-Revisions are dispatched by hand (PR 22).
+Revisions are dispatched by hand (issue 22).
 
 ## Move the docs-kit pin
 
-`.opm-docs-version` and every `publish.yml@` ref in the workflows name the same docs-kit release.
+`.opm-docs-version` and every docs-kit publish workflow ref in the workflows name the same docs-kit release.
 They move in one PR, after opmodel.dev runs that release. `task docs:pins:check` refuses a
 mismatch.
 
