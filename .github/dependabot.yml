@@ -15,5 +15,5 @@ updates:
       # "Pinning and bumps"); a Dependabot bump would move one reference alone.
       - dependency-name: "open-platform-model/.github*"
     commit-message:
-      # ci never releases here (AGENTS.md, "Releases").
+      # ci never releases here (AGENTS.md).
       prefix: "ci"
