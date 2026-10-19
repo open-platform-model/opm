@@ -5,7 +5,7 @@ OPM splits an application into two objects. The split keeps the author's intent 
 ## The split
 
 - A [Module](../glossary.md#module) is the **portable intent**. It declares Components, a `#config` schema listing which values are tunable (with defaults), and `debugValues` for local validation. Authored once, deployed many times.
-- A [ModuleRelease](../glossary.md#modulerelease) is the **concrete deployment**. It imports a Module, supplies final values for this environment, and targets a specific namespace.
+- A [ModuleInstance](../glossary.md#moduleinstance) is the **concrete deployment**. It imports a Module, supplies final values for this environment, and targets a specific namespace.
 
 A [Module Author](../glossary.md#module-author) writes Modules. An [End-user](../glossary.md#end-user) writes ModuleReleases.
 
