@@ -2,7 +2,7 @@
 
 ## What you'll build
 
-Your first OPM module: a tiny scaffold that you will inspect, validate, and (optionally) deploy to a local Kubernetes cluster. By the end you will have seen every piece of the model — [Resource](glossary.md#resource), [Trait](glossary.md#trait), [Component](glossary.md#component), [Module](glossary.md#module), [ModuleRelease](glossary.md#modulerelease) — in a concrete file you wrote.
+Your first OPM module: a tiny scaffold that you will inspect, validate, and (optionally) deploy to a local Kubernetes cluster. By the end you will have seen every piece of the model — [Resource](glossary.md#resource), [Trait](glossary.md#trait), [Component](glossary.md#component), [Module](glossary.md#module), [ModuleInstance](glossary.md#moduleinstance) — in a concrete file you wrote.
 
 ## Prerequisites
 

@@ -67,7 +67,7 @@ Policy exists as a core type in the catalog today, but no concrete Policy defini
 
 Components live inside a [Module](../glossary.md#module). A Module is the portable, reusable definition of an application — it declares its Components, a `#config` schema listing which values are tunable, and concrete `debugValues` used for local validation. Module authors publish Modules to an OCI registry.
 
-A [ModuleInstance](../glossary.md#moduleinstance) is the concrete deployment. It imports the Module, supplies the final values for this environment, and targets a specific namespace. Consumers write ModuleInstances — they do not need to understand the Module's internals, only the `#config` schema it exposes.
+A [ModuleInstance](../glossary.md#moduleinstance) is the concrete deployment. It imports the Module, supplies the final values for this environment, and targets a specific namespace. Consumers write ModuleInstances; they do not need to understand the Module's internals, only the `#config` schema it exposes.
 
 ```mermaid
 flowchart LR

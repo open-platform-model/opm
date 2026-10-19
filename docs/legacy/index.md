@@ -1,6 +1,6 @@
 # OPM Documentation
 
-Open Platform Model (OPM) is a portable, composable way to describe applications and the platform capabilities they rely on. You write your application once, in CUE, as a typed [Module](glossary.md#module). You deploy it with a [ModuleRelease](glossary.md#modulerelease) that supplies environment-specific values. The CLI or the operator renders the result to Kubernetes.
+Open Platform Model (OPM) is a portable, composable way to describe applications and the platform capabilities they rely on. You write your application once, in CUE, as a typed [Module](glossary.md#module). You deploy it with a [ModuleInstance](glossary.md#moduleinstance) that supplies environment-specific values. The CLI or the operator renders the result to Kubernetes.
 
 ## Where to go next
 

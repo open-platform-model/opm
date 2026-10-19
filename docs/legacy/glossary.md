@@ -19,8 +19,8 @@ import core "opmodel.dev/core@v2"
 core.#Module
 
 metadata: {
-    modulePath: "example.com/modules"
-    name:       "my-service"
+    modulePath: "example.com/modules/my_service@v1"
+    name:       "my_service"
     version:    "0.1.0"
 }
 
@@ -40,7 +40,7 @@ Person who consumes modules via ModuleInstance. Responsible for providing concre
 ```cue
 import (
     core "opmodel.dev/core@v2"
-    svc "example.com/modules/my-service@v1"
+    svc "example.com/modules/my_service@v1"
 )
 
 // End-users reference a module and supply concrete values
