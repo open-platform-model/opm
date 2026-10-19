@@ -13,14 +13,14 @@ Person or team operating the underlying infrastructure (Kubernetes clusters, clo
 Developer who creates and maintains OPM modules. Responsible for defining the Module, setting sane default values, and publishing updates. Module authors design for reusability and configurability.
 
 ```cue
-import m "opmodel.dev/core/v1alpha1/module@v1"
+import core "opmodel.dev/core@v2"
 
 // Module authors define the structure and defaults
-m.#Module
+core.#Module
 
 metadata: {
-    modulePath: "example.com/modules"
-    name:       "my-service"
+    modulePath: "example.com/modules/my_service@v1"
+    name:       "my_service"
     version:    "0.1.0"
 }
 
@@ -35,16 +35,16 @@ Person or team operating a platform and its catalog of Modules and Bundles. Cons
 
 ### End-user
 
-Person who consumes modules via ModuleRelease. Responsible for providing concrete configuration values for deployment. Interacts primarily with the `#config` schema exposed by modules.
+Person who consumes modules via ModuleInstance. Responsible for providing concrete configuration values for deployment. Interacts primarily with the `#config` schema exposed by modules.
 
 ```cue
 import (
-    mr "opmodel.dev/core/v1alpha1/modulerelease@v1"
-    svc "example.com/modules/my-service@v1"
+    core "opmodel.dev/core@v2"
+    svc "example.com/modules/my_service@v1"
 )
 
 // End-users reference a module and supply concrete values
-mr.#ModuleRelease
+core.#ModuleInstance
 
 metadata: {
     name:      "my-service-prod"
@@ -120,11 +120,11 @@ A CUE function that converts an OPM definition into a provider-specific resource
 
 ### Module
 
-The portable, reusable definition of an application. A Module contains Components, a `#config` schema declaring which values are tunable, and sane defaults. Authored once and deployed many times. See [Module and ModuleRelease](concepts/module-and-release.md).
+The portable, reusable definition of an application. A Module contains Components, a `#config` schema declaring which values are tunable, and sane defaults. Authored once and deployed many times. See [Module and ModuleInstance](concepts/module-and-release.md).
 
-### ModuleRelease
+### ModuleInstance
 
-The concrete deployment of a Module. Supplies final values for a specific environment and targets a namespace. Consumers write ModuleReleases; they do not need to understand the Module's internals.
+The concrete deployment of a Module (named ModuleRelease before enhancement 0002). Supplies final values for a specific environment and targets a namespace. Consumers write ModuleInstances; they do not need to understand the Module's internals.
 
 ## Terms and Definitions
 
