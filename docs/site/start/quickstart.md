@@ -15,7 +15,7 @@ The quickstart has three parts:
 
 ## Before you begin
 
-- The `opm` CLI, [v1.0.0-beta.5](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-beta.5). See [Install the CLI](/docs/start/install-the-cli/).
+- The `opm` CLI, [v1.0.0-beta.12](https://github.com/open-platform-model/cli/releases/tag/v1.0.0-beta.12). See [Install the CLI](/docs/start/install-the-cli/).
 - Network access to `ghcr.io`, where the OPM templates, catalogs and modules are published.
 - For steps 6 to 9: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) v0.32.0, [Docker](https://docs.docker.com/get-started/get-docker/) or [Podman](https://podman.io/docs/installation) to run it, and [kubectl](https://kubernetes.io/docs/tasks/tools/).
 
@@ -48,7 +48,7 @@ cd hello
 The output of the first command should look similar to this:
 
 ```text
-Scaffolded example.com/modules/hello@v0 from opmodel.dev/templates/standard@v1 v1.0.3
+Scaffolded example.com/modules/hello@v0 from opmodel.dev/templates/standard@v1 v1.0.4
 
 hello/                        Module directory
   components.cue
@@ -98,10 +98,10 @@ INFO m:hello: ✔ Version matches path major        0.1.0
 INFO m:hello: ✔ Values satisfy #config            debugValues
 INFO m:hello: ✔ Module config valid
 INFO Building synthetic instance "hello-debug" for module "hello"
-INFO platform: module deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/ad084691…)
-INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.4.4
-INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.4.4
-INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.4.4
+INFO platform: module deps (opmodel.dev/catalogs/opm@v4 v4.6.0; generated module /home/you/.opm/cache/platforms/57a93178…)
+INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.6.0
+INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.6.0
+INFO m:hello-debug: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.6.0
 INFO m:hello: r:Deployment/default/hello-debug-web              ✓ valid
 INFO m:hello: r:Service/default/hello-debug-web                 ✓ valid
 INFO m:hello: ✔ Module valid (2 resources)
@@ -119,7 +119,7 @@ The output should look similar to this, shortened:
 
 ```text
 INFO Building synthetic instance "hello-debug" for module "hello"
-INFO platform: module deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/ad084691…)
+INFO platform: module deps (opmodel.dev/catalogs/opm@v4 v4.6.0; generated module /home/you/.opm/cache/platforms/57a93178…)
 ...
 apiVersion: v1
 kind: Service
@@ -195,7 +195,7 @@ opm instance vet shop/instance.cue
 The output should look similar to this:
 
 ```text
-INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/ad084691…)
+INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/0a7c1dd9…)
 INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/deployment-transformer@4.4.4
 INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/hpa-transformer@4.4.4
 INFO m:shop: ▸ web ← opmodel.dev/catalogs/opm/transformers/service-transformer@4.4.4
@@ -215,18 +215,17 @@ An instance renders against a platform. There is no cluster yet, and no kube con
 
 ```sh
 kind create cluster --name opm-quickstart
-opm operator install --crds-only
+opm controller install --crds-only
 ```
 
 The output of the second command should look similar to this:
 
 ```text
-INFO installing opm-operator (CRDs only)
 INFO r:CustomResourceDefinition/moduleinstances.opmodel.dev  + created
 INFO r:CustomResourceDefinition/modulepackages.opmodel.dev  + created
 INFO r:CustomResourceDefinition/platforms.opmodel.dev  + created
 INFO r:CustomResourceDefinition/transformerregistrations.opmodel.dev  + created
-✔ opm-operator v1.0.0-beta.4 installed (embedded, 4 resource(s) applied)
+✔ opm-controller CRDs (v1.0.0-beta.9) installed from module 0.1.0, carried in this CLI
 ```
 
 `opm` records what it deploys in a ModuleInstance resource, so the cluster needs the OPM resource definitions. No controller runs. See [Who owns an instance](/docs/concepts/who-owns-an-instance/).
@@ -241,11 +240,11 @@ The output should look similar to this, shortened:
 
 ```text
 WARN cluster Platform not used (no Platform CR in the cluster) — rendering against the instance's own deps
-INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/ad084691…)
+INFO platform: instance deps (opmodel.dev/catalogs/opm@v4 v4.4.4; generated module /home/you/.opm/cache/platforms/0a7c1dd9…)
 ...
 INFO m:shop: applying 2 resources
-INFO m:shop: r:Deployment/default/shop-web                     + created
 INFO m:shop: r:Service/default/shop-web                        + created
+INFO m:shop: r:Deployment/default/shop-web                     + created
 INFO m:shop: applied 2 resources successfully (2 created)
 ✔ Instance applied
 ```
@@ -266,7 +265,7 @@ Namespace:  default
 Status:     Ready
 Resources:  2 total (2 ready)
 
-KIND         NAME       COMPONENT   STATUS   AGE
+KIND         NAME       COMPONENT   STATUS    AGE
 Deployment   shop-web   web         Ready     30s
 Service      shop-web   web         Applied   30s
 ```
@@ -324,8 +323,8 @@ opm instance apply shop/instance.cue
 The output should look similar to this, shortened:
 
 ```text
-INFO m:shop: r:Deployment/default/shop-web                     ~ configured
 INFO m:shop: r:Service/default/shop-web                        = unchanged
+INFO m:shop: r:Deployment/default/shop-web                     ~ configured
 INFO m:shop: applied 2 resources successfully (1 configured, 1 unchanged)
 ✔ Instance applied
 ```
@@ -335,7 +334,7 @@ Only the Deployment changed, and the Service stayed as it was.
 ## 9. Clean up
 
 ```sh
-opm instance delete shop -n default --force
+opm instance delete shop -n default --yes
 kind delete cluster --name opm-quickstart
 ```
 
@@ -349,7 +348,7 @@ INFO m:shop: all resources have been deleted
 ✔ Instance deleted
 ```
 
-`opm instance delete` removes the objects the instance recorded, then the ModuleInstance resource itself. It keeps PersistentVolumeClaims unless you pass `--delete-data`; this instance has none. `--force` skips the confirmation prompt. See [Deletion and pruning](/docs/operating/deletion-and-pruning/).
+`opm instance delete` removes the objects the instance recorded, then the ModuleInstance resource itself. It keeps PersistentVolumeClaims unless you pass `--delete-data`; this instance has none. `--yes` skips the confirmation prompt; without it, `opm` asks before it deletes. See [Deletion and pruning](/docs/operating/deletion-and-pruning/).
 
 ## What you built
 
@@ -361,4 +360,4 @@ We created a module from the standard template, checked it and rendered it on ou
 - [Your first module](/docs/authoring/your-first-module/)
 - [Publish a module](/docs/authoring/publish-a-module/)
 
-<!-- Tested end to end on 2026-10-03 with the released opm v1.0.0-beta.5 (linux-amd64 archive from the GitHub release, checksum verified against checksums.txt; it embeds opm-operator v1.0.0-beta.4), the templates at 1.0.3, web_app 1.0.5 (on core v2.0.0-beta.1 and catalogs/opm v4.4.4) from GHCR, kind v0.32.0 with its default node image (kindest/node v1.36.1) and kubectl v1.36.3, in a fresh home directory with an empty CUE cache and no registry overrides. Every output on this page is from that run, with timestamps removed; the generated-module hashes in steps 3, 4, 5 and 7 are shortened, and steps 3 to 7 print the same hash because the module and the instance pin the same catalog. The first `opm instance status` right after the apply showed the Deployment NotReady; the one shown ran about 30 seconds later. web_app declares no initValues, so init prints the debugValues line in step 5; if web_app gains initValues, update that line and the values.cue listing. Re-run every step and update the outputs when the named release changes. -->
+<!-- Tested end to end on 2026-10-21 with the released opm v1.0.0-beta.12 (linux-amd64 archive from the GitHub release, checksum verified; it embeds opm-controller v1.0.0-beta.9 from module 0.1.0), the templates at 1.0.4, web_app 1.0.5 (catalogs/opm v4.4.4 for the instance; the module scaffold resolves catalogs/opm v4.6.0) from GHCR, kind v0.32.0 with its default node image (kindest/node v1.36.1) and kubectl v1.36.3, in a fresh home directory and no registry overrides. Step 9 ran with `--yes`. Every output on this page is from that run, with timestamps removed; the generated-module hashes in steps 3, 4, 5 and 7 are shortened. Steps 3 and 4 print one hash (catalogs/opm v4.6.0) and steps 5 and 7 print another (v4.4.4), because the module scaffold and web_app pin different catalog versions. The `opm instance status` shown ran about 30 seconds after the apply and showed Ready; right after an apply it can show the Deployment NotReady. web_app declares no initValues, so init prints the debugValues line in step 5; if web_app gains initValues, update that line and the values.cue listing. Re-run every step and update the outputs when the named release changes. -->
