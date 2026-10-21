@@ -22,7 +22,7 @@ Pages under `docs/site/` follow the site page rules in the workspace `STYLE.md` 
 | Documentation index | `docs/index.md` | Persona-based routing into the rest of `docs/` |
 | Getting started | `docs/getting-started.md` | First-touch walkthrough for newcomers |
 | Concepts | `docs/concepts/` | The model, explained in prose + example |
-| Component docs | `docs/cli.md`, `docs/operator.md` | What the CLI and operator are, at newcomer level |
+| Component docs | `docs/cli.md` | What the CLI is, at newcomer level |
 | Module gallery | `docs/modules-gallery.md` | Showcase of real modules |
 | Comparisons | `docs/opm-vs-helm.md` | Framing for evaluators |
 | Glossary | `docs/glossary.md` | **Canonical** — single source of truth for all OPM terms |
@@ -91,11 +91,11 @@ Do not introduce more than two new concepts per section.
   - File: `https://github.com/open-platform-model/<repo>/blob/main/<path>`
   - Directory: `https://github.com/open-platform-model/<repo>/tree/main/<path>`
   - Repo root: `https://github.com/open-platform-model/<repo>`
-- **Repo list**: `catalog`, `cli`, `opm-operator`, `modules`, `opm`, `opmodel.dev`, `orca`, `releases`.
+- **Repo list**: `catalog`, `cli`, `opm-controller`, `modules`, `opm`, `opmodel.dev`, `orca`, `releases`.
 
 ## What to Omit
 
 - CUE schema internals (belongs in `catalog/docs/`).
 - CLI flag references (belongs in `cli/docs/`).
-- Controller operation procedures (belongs in `opm-operator/docs/`).
+- Controller operation procedures (belongs in `opm-controller/docs/`).
 - Site engine files such as layouts, components and site configuration (belong in `opmodel.dev/`).

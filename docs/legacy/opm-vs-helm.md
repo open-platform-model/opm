@@ -221,7 +221,7 @@ Ten lines of deploy-time configuration. Everything else is the Module's concern.
 - **Phase 1** — wrap existing Helm releases in OPM modules using `#Container` plus raw traits; keep the Helm-rendered chart as the outer source where needed.
 - **Phase 2** — move platform defaults and tightening into a CUE overlay instead of a fork.
 - **Phase 3** — refactor to native OPM Components with `#StatelessWorkload` or a custom Blueprint where it reduces repetition.
-- **Phase 4** — adopt Policy definitions as they ship, and lean on the ModuleRelease GitOps loop via the [operator](operator.md).
+- **Phase 4** — adopt Policy definitions as they ship, and lean on the ModuleRelease GitOps loop via the [controller](https://github.com/open-platform-model/opm-controller).
 
 ## Conclusion
 

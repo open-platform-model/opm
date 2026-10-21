@@ -28,7 +28,7 @@ The two models are meant to depend on each other.
 1. A team's module names the capability in catalog terms and does not care who provides it.
 1. A team's module can itself become a provider: one team's database service becomes a capability the next team uses.
 
-The first two steps work today in a narrow form. A provider module can render a `TransformerRegistration` that claims its catalog. Once the operator accepts the claim and the provider's instance reports `Ready`, the catalog joins the platform, and every module on that platform can use the contracts the catalog implements. No published module uses this mechanism today. The rest of the circle is the goal.
+The first two steps work today in a narrow form. A provider module can render a `TransformerRegistration` that claims its catalog. Once the controller accepts the claim and the provider's instance reports `Ready`, the catalog joins the platform, and every module on that platform can use the contracts the catalog implements. No published module uses this mechanism today. The rest of the circle is the goal.
 
 The circle has a hard edge. A provider module needs a platform to render on before it can extend one, so something has to come first.
 
@@ -58,7 +58,7 @@ A model that keeps applications and platforms independent of any one provider tu
 
 ## Open source, all the way down
 
-OPM's model, its CLI, its operator, its kernel and its catalogs are open source under the Apache 2.0 license, and the platform model and its parts must stay open source too. Providers in the ecosystem should publish what platforms consume, their modules and their catalogs, as open source as well. A platform should never depend on a part its owner cannot read, fork or run.
+OPM's model, its CLI, its controller, its kernel and its catalogs are open source under the Apache 2.0 license, and the platform model and its parts must stay open source too. Providers in the ecosystem should publish what platforms consume, their modules and their catalogs, as open source as well. A platform should never depend on a part its owner cannot read, fork or run.
 
 ## How OPM relates to other projects
 

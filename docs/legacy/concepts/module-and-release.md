@@ -183,15 +183,15 @@ The split makes three things cleaner than a single-file tool like Helm:
 Once a ModuleRelease exists, something has to render it to Kubernetes manifests and apply them. Two paths:
 
 - **[CLI](../cli.md)** — you run `opm release build` and `opm release apply` locally. Push model. Good for dev loops, CI, and one-shot deployments.
-- **[Operator](../operator.md)** — a controller in the cluster watches `ModuleRelease` CRDs and reconciles them continuously. Pull / GitOps model. Good for drift correction and multi-tenant platforms.
+- **[Controller](https://github.com/open-platform-model/opm-controller)** — a controller in the cluster watches `ModuleRelease` CRDs and reconciles them continuously. Pull / GitOps model. Good for drift correction and multi-tenant platforms.
 
 Both use the same rendering logic. The ModuleRelease object is the same either way.
 
-See [catalog/docs/core/constructs.md](https://github.com/open-platform-model/catalog/blob/main/docs/core/constructs.md) for the formal Module and ModuleRelease specifications and [opm-operator/docs/design/](https://github.com/open-platform-model/opm-operator/tree/main/docs/design) for reconciliation internals.
+See [catalog/docs/core/constructs.md](https://github.com/open-platform-model/catalog/blob/main/docs/core/constructs.md) for the formal Module and ModuleRelease specifications and [opm-controller/docs/design/](https://github.com/open-platform-model/opm-controller/tree/main/docs/design) for reconciliation internals.
 
 ## Next steps
 
 - [Resources, Traits, and Blueprints](resources-traits-blueprints.md) — the composition primitives used inside Components
 - [Module Gallery](../modules-gallery.md) — real Modules
 - [CLI](../cli.md) — how to build and apply a ModuleRelease locally
-- [Operator](../operator.md) — how to run ModuleReleases continuously in-cluster
+- [Controller](https://github.com/open-platform-model/opm-controller) — how to run ModuleReleases continuously in-cluster
