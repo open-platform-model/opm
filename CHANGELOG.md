@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0-beta.3](https://github.com/open-platform-model/opm/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2026-10-21)
+
+
+### Documentation
+
+* **adr:** record Kubernetes as the target ([#46](https://github.com/open-platform-model/opm/issues/46)) ([8381580](https://github.com/open-platform-model/opm/commit/8381580e45c048352ecf804a80bafc3481966ec9))
+* **glossary:** rename ModuleRelease to ModuleInstance ([#45](https://github.com/open-platform-model/opm/issues/45)) ([5a4c96c](https://github.com/open-platform-model/opm/commit/5a4c96c996c1d8bcc55016250d8f66e3898483c7))
+* **site:** name the new entry files in the direction note rules ([#41](https://github.com/open-platform-model/opm/issues/41)) ([fc4417b](https://github.com/open-platform-model/opm/commit/fc4417b34f285d8588e8e553e571d26ee95c76a7))
+* **site:** rename the operator to the controller ([#47](https://github.com/open-platform-model/opm/issues/47)) ([bf65149](https://github.com/open-platform-model/opm/commit/bf651490ccb1b9d9fd5005131f8b21382a145185))
+* split AGENTS.md into facts, a router and reference files ([#44](https://github.com/open-platform-model/opm/issues/44)) ([db87287](https://github.com/open-platform-model/opm/commit/db872876cb4eab565ccf54ba3853ab4289cbfb21))
+
 ## [1.0.0-beta.2](https://github.com/open-platform-model/opm/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2026-10-04)
 
 
