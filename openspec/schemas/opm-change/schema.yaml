@@ -1,0 +1,84 @@
+name: opm-change
+version: 1
+description: opm change workflow - proposal -> design -> tasks (no specs artifact)
+# Why a project-local schema: opm holds pages, design notes and ADRs. The page or the
+# ADR is the record, so a spec would be a second copy that no gate keeps honest.
+# This schema therefore has NO specs artifact. `openspec validate` still asks for spec
+# deltas regardless of schema, so every change's .openspec.yaml sets `skip_specs: true`.
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Why the change is needed, what it changes and which pages or records it touches
+    template: proposal.md
+    instruction: |
+      Create the proposal that establishes WHY this change is needed.
+
+      Sections:
+      - **Why**: 1-2 sentences on the problem. Why now?
+      - **What Changes**: Bullet list of the pages, ADRs, folders or automation that change.
+        Name each path.
+      - **Impact**: Who reads the result (site readers, other repos that link here, the
+        docs bundle), and the commit type of the change. Only feat, fix, perf, revert and
+        docs release; chore, ci, build, test, style and refactor do not.
+      - **Enhancement**: If the change delivers a line of an enhancement's `tasks.md`, one
+        line `Delivers NNNN, task X.Y.` per task; otherwise `None.`. Cite by id beside a
+        reason in words, never a decision number.
+
+      This schema has no specs artifact. Do not add a Capabilities section and do not create
+      a `specs/` directory. The change's `.openspec.yaml` carries `skip_specs: true`; if it
+      is missing, add it before continuing.
+
+      Keep it concise (1-2 pages). Implementation detail belongs in design.md.
+    requires: []
+
+  - id: design
+    generates: design.md
+    description: Structure of the pages or records and the decisions behind it
+    template: design.md
+    instruction: |
+      Create the design that explains HOW the change is done.
+
+      Sections:
+      - **Context**: Only the current state and constraints needed to explain the approach.
+      - **Goals / Non-Goals**: What the design achieves and excludes.
+      - **Decisions**: Key choices with rationale and the alternatives considered (page
+        structure, section order, where a term lives, which ADR it supersedes).
+      - **Risks / Trade-offs**: [Risk] -> Mitigation.
+      - **Durable decisions**: Every decision a future author needs, and where it lands:
+        an ADR under `adr/`, `docs/STYLE.md`, or "stays with the change". Write "None."
+        when nothing is durable; do not omit the section.
+      - **Open Questions**: Omit if none. A question that changes the approach is not open.
+
+      Follow docs/STYLE.md and the workspace STYLE.md for the pages themselves.
+    requires:
+      - proposal
+
+  - id: tasks
+    generates: tasks.md
+    description: Implementation checklist with trackable tasks
+    template: tasks.md
+    instruction: |
+      Create the task list.
+
+      **IMPORTANT: Follow the template exactly.** The apply phase parses checkbox format to
+      track progress. Tasks not using `- [ ]` are not tracked.
+
+      Guidelines:
+      - Group tasks under `## N.` headings, one heading per mergeable section
+      - Each task is a checkbox: `- [ ] X.Y Task description`
+      - Order tasks by dependency
+      - Each section ends green (`task check`) and closes with a commit task that names the
+        Conventional Commit, for example `docs(site): add the install page`
+      - Include a task that lands each durable decision from design.md
+
+      Each task is verifiable: you know when it is done.
+    requires:
+      - design
+
+apply:
+  requires: [tasks]
+  tracks: tasks.md
+  instruction: |
+    Read the context files, work through the pending tasks section by section and mark each
+    complete as you go. Each section closes with its commit task; pause only at a section
+    boundary or on a blocker, and report uncommitted work when you do.

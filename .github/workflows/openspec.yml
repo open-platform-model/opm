@@ -1,0 +1,42 @@
+name: OpenSpec
+
+# Every active change, in strict mode, with the CLI pinned in Taskfile.yml
+# (OPENSPEC_VERSION). The CLI is npm code that no lockfile pins: it installs
+# without scripts, the token only reads, and the checkout keeps no credentials.
+# The job has no secret and holds no write scope.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+jobs:
+  openspec:
+    name: OpenSpec
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # why: clone the code
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Task
+        uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
+        with:
+          version: 3.54.0 # exact, never a floating 3.x
+
+      - name: Setup Node for the OpenSpec CLI
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Install the pinned OpenSpec CLI
+        run: task openspec:install
+
+      - name: Validate every change in strict mode
+        run: task openspec:check

@@ -1,0 +1,60 @@
+schema: opm-change
+
+# The enhancement store: the design record of OPM. Read one entry with
+# `openspec show <id>-<slug> --store opm-enhancements`. If OpenSpec warns that the store
+# `opm-enhancements` is not registered, report the warning and go on; the human runs
+# `task enhancements:register` at the workspace root.
+references:
+  - id: opm-enhancements
+    remote: https://github.com/open-platform-model/enhancements.git
+
+context: |
+  # opm: OpenSpec context
+
+  opm is the landing project of Open Platform Model: published site pages (`docs/site/`), v0
+  pages kept as source (`docs/legacy/`), research notes, ADRs (`adr/`) and the canonical
+  glossary. The pages are Markdown; the only build is the docs bundle (`task docs:bundle:check`).
+  `CONSTITUTION.md` is the principle source and wins over this file. `AGENTS.md` holds the
+  mechanics.
+
+  ## Rules that shape a change
+  - The page is the record. This workspace has no specs artifact, no `openspec/specs/` and no
+    `specs/` inside a change. Every change's `.openspec.yaml` carries `skip_specs: true`.
+  - Pages follow `docs/STYLE.md` and the workspace `STYLE.md`. Examples come first, and a CUE
+    snippet compiles against real OPM imports or is marked as an excerpt.
+  - Small batches (Constitution VIII). A change is a few mergeable sections; each ends green
+    under `task check` and closes with its own commit. If it does not cut that way, split it.
+  - Commit types: `feat`, `fix`, `perf`, `revert` and `docs` release; `chore`, `ci`, `build`,
+    `test`, `style` and `refactor` never release. A change that only moves automation is
+    `chore` or `ci`.
+  - A decision of ADR size lands in `adr/` (use `adr/TEMPLATE.md`) before the change is archived.
+  - Cite an enhancement as `Enhancement NNNN` beside a reason in words; never an id alone and
+    never a decision or question number.
+  - Delivery is by PR; the archive commit rides the implementing PR. Never push to `main`.
+
+rules:
+  proposal:
+    - "Focus: WHY the change is needed and WHICH pages, ADRs or automation it touches."
+    - Name each path the change adds, moves or removes.
+    - State the commit type of the PR title and whether it releases.
+    - "Never add a Capabilities section and never create a `specs/` directory; the change's `.openspec.yaml` MUST carry `skip_specs: true`."
+    - "If the change delivers a line of an enhancement's `tasks.md`, add `## Enhancement` with one line `Delivers NNNN, task X.Y.` per task; otherwise `None.`."
+  design:
+    - "Focus: HOW the pages or records are structured, and why."
+    - Use RFC 2119 keywords (MUST, SHOULD, MAY) for constraints.
+    - MUST include a "Durable decisions" section; write "None." when empty.
+    - Name every page, folder and ADR the change touches.
+  tasks:
+    - "Group tasks into `## N.` sections. Each section ends green under `task check` and closes with a commit task that names the Conventional Commit."
+    - Include a task that lands each durable decision from design.md in an ADR or in `docs/STYLE.md`.
+    - "The section-closing commit is the only delivery operation in tasks.md: no push, no PR, no tag, no release."
+
+operations:
+  apply:
+    guidance:
+      - "Work section by section. Before checking a commit task, run `task check` on the whole tree and make exactly the named Conventional Commit (optional plain Co-Authored-By: Claude <noreply@anthropic.com> trailer only; never a session link, never a bare @name)."
+      - "Commit on the working branch. If the run started on main, create a branch first; never commit to main."
+  archive:
+    guidance:
+      - "Archive with `--skip-specs`: this workspace has no specs and the change declares skip_specs. Never let archive create an openspec/specs/ directory."
+      - "Before archiving, read design.md's Durable decisions section. Every entry marked for promotion MUST already be landed in `adr/` or `docs/STYLE.md`."
