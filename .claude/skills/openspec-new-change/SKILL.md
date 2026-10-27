@@ -42,8 +42,7 @@ In both branches, never create the root as a side effect: do not run `openspec i
 
    This repo's default is the project-local `opm-change` schema (`openspec/config.yaml`),
    which has NO specs artifact: proposal → design → tasks. Always omit `--schema`. Never select
-   `spec-driven` here, even if asked for "the default workflow"; explain that this repo's
-   definitions and doc comments are the spec (see `openspec/config.yaml` Principle II).
+   `spec-driven` here, even if asked for "the default workflow"; explain that in this repo the page or the ADR is the record (see `openspec/config.yaml`).
 
 3. **Create the change directory**
    ```bash
