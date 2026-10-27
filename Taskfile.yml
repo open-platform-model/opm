@@ -3,6 +3,11 @@ version: "3"
 # Silent by default — set TASK_VERBOSE=1 or use --verbose to show commands
 silent: true
 
+vars:
+  # The OpenSpec CLI that validates the changes. The one pin: task openspec:install
+  # and the CI step both read it from here.
+  OPENSPEC_VERSION: 1.14.1
+
 tasks:
   default:
     desc: Show available tasks
@@ -39,6 +44,25 @@ tasks:
     cmds:
       - task: docs:pins:check
       - .bin/opm-docs check --project opm
+
+  ## OpenSpec
+
+  openspec:install:
+    desc: Install the openspec CLI at OPENSPEC_VERSION (needs npm; install scripts do not run)
+    cmds:
+      - npm install -g --ignore-scripts @fission-ai/openspec@{{.OPENSPEC_VERSION}}
+
+  openspec:check:
+    desc: Validate every active change with the pinned openspec in strict mode
+    env:
+      OPENSPEC_TELEMETRY: "0"
+    preconditions:
+      - sh: command -v openspec >/dev/null
+        msg: "openspec not found: run `task openspec:install` (needs npm)"
+      - sh: test "$(openspec --version)" = "{{.OPENSPEC_VERSION}}"
+        msg: "openspec is not {{.OPENSPEC_VERSION}}: run `task openspec:install`"
+    cmds:
+      - openspec validate --all --strict --no-interactive
 
   ## Aggregates
 

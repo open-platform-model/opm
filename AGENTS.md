@@ -21,6 +21,15 @@ Markdown; the only build is the docs bundle.
 - Cite an enhancement as `Enhancement NNNN` beside the reason in words: never the id alone, and
   never a decision or question number. On a site page, link it as `[Title](/enhancements/NNNN/)`
   with the entry's current title.
+- A change that adds a page under `docs/site/`, changes the structure of the pages (sections, order,
+  moves), or records an ADR-sized decision goes through OpenSpec: proposal, design and tasks. A
+  typo fix, a wording fix or a link fix does not. The schema `opm-change` has no specs artifact:
+  there is no `openspec/specs/` and no `specs/` inside a change, and each change's
+  `.openspec.yaml` carries `skip_specs: true`. The page is the record.
+- A decision a future author needs lands in an ADR or in `docs/STYLE.md` before the change is
+  archived.
+- `openspec-sync-specs` is deleted because there are no specs to sync. Delete it again after
+  `openspec init` or `openspec update`.
 - Update the layout below when you add a folder.
 
 ## Releases
@@ -42,11 +51,13 @@ docs/site/          Published pages; opmodel.dev assembles them by section
 docs/legacy/        v0 pages, unpublished; source material until replaced
 docs/analysis/      Research notes
 docs/presentations/ Slide decks
-.github/workflows/  Release (release-please, docs publish) and docs bundle check
+.github/workflows/  Release (release-please, docs publish), docs bundle check and OpenSpec check
 .github/CODEOWNERS  Owner review on CI, task and release config paths
 .tasks/             Install the pinned opm-docs, check the pins
+openspec/           OpenSpec workspace: config.yaml, schemas/opm-change/, changes/
+.claude/skills/     The generated openspec-* skills (no sync-specs)
 docs-kit.cue        Declares the opm docs bundle
-Taskfile.yml        Docs bundle tasks
+Taskfile.yml        Docs bundle and OpenSpec tasks, and the OPENSPEC_VERSION pin
 ```
 
 ## Commands
@@ -57,6 +68,8 @@ Taskfile.yml        Docs bundle tasks
 | `task docs:bundle:check` | Check the docs-kit pins agree, then build and lint the bundle without writing `out/` |
 | `task docs:pins:check` | Refuse a docs-kit `publish.yml` ref that names another release than `.opm-docs-version` (offline) |
 | `task tools:opm-docs` | Install or reuse `.bin/opm-docs`, the checksum-verified docs-kit release `.opm-docs-version` names |
+| `task openspec:install` | Install the openspec CLI at `OPENSPEC_VERSION` (needs npm; install scripts do not run) |
+| `task openspec:check` | Validate every active change in strict mode with the pinned CLI |
 | `task check` | The docs bundle check |
 
 @CONTEXT.md
