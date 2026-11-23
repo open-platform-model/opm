@@ -7,7 +7,6 @@ compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
-  generatedBy: "1.14.1"
 ---
 
 Start a new change using the experimental artifact-driven approach.
@@ -20,8 +19,8 @@ One `"root": null` is not about setup: when a `status` error message starts with
 
 Otherwise, with no root, what happens next depends on how this workflow was reached:
 
-- **Auto-selected**: you chose this workflow yourself, without the user naming OpenSpec, naming this skill, or running its slash command. Stop using OpenSpec and answer the request normally, as you would with no OpenSpec installed. Do not ask them to set anything up and do not mention OpenSpec setup.
-- **Explicit OpenSpec request**: the user named OpenSpec, named this skill, or ran its slash command. Stop before writing and ask how to proceed: set this project up (`openspec init`), target a store they already have (`--store <id>`), or continue without OpenSpec for this request. Wait for their answer.
+- **Auto-selected**: you chose this workflow yourself, without the user naming OpenSpec, naming this skill, or invoking this skill by name. Stop using OpenSpec and answer the request normally, as you would with no OpenSpec installed. Do not ask them to set anything up and do not mention OpenSpec setup.
+- **Explicit OpenSpec request**: the user named OpenSpec, named this skill, or invoked this skill by name. Stop before writing and ask how to proceed: set this project up (`openspec init`), target a store they already have (`--store <id>`), or continue without OpenSpec for this request. Wait for their answer.
 
 In both branches, never create the root as a side effect: do not run `openspec init` until the user asks for it, do not hand-create `openspec/` files, and do not let a command create it.
 
@@ -40,14 +39,19 @@ In both branches, never create the root as a side effect: do not run `openspec i
 
 2. **Determine the workflow schema**
 
-   This repo's default is the project-local `opm-change` schema (`openspec/config.yaml`),
-   which has NO specs artifact: proposal → design → tasks. Always omit `--schema`. Never select
-   `spec-driven` here, even if asked for "the default workflow"; explain that in this repo the page or the ADR is the record (see `openspec/config.yaml`).
+   Use the default schema (omit `--schema`) unless the user explicitly requests a different workflow.
+
+   **Use a different schema only if the user mentions:**
+   - A specific schema name → use `--schema <name>`
+   - "show workflows" or "what workflows" → run `openspec schemas --json` and let them choose
+
+   **Otherwise**: Omit `--schema` to use the default.
 
 3. **Create the change directory**
    ```bash
    openspec new change "<name>"
    ```
+   Add `--schema <name>` only if the user requested a specific workflow.
    This creates a scaffolded change in the planning home resolved by the CLI.
 
 4. **Show the artifact status**

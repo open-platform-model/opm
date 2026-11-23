@@ -9,6 +9,9 @@ references:
     remote: https://github.com/open-platform-model/enhancements.git
 
 context: |
+  Verify: when you verify a change, also apply every rule in `openspec/verify.md`, in the same run
+  and the same report. OpenSpec never writes that file.
+
   # opm: OpenSpec context
 
   opm is the landing project of Open Platform Model: published site pages (`docs/site/`), v0
@@ -58,3 +61,6 @@ operations:
     guidance:
       - "Archive with `--skip-specs`: this workspace has no specs and the change declares skip_specs. Never let archive create an openspec/specs/ directory."
       - "Before archiving, read design.md's Durable decisions section. Every entry marked for promotion MUST already be landed in `adr/` or `docs/STYLE.md`."
+
+# Keep the generated skills in this repo; stops openspec update from asking.
+skillsScope: project

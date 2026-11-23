@@ -6,7 +6,8 @@ Router only. Facts and rules are in `AGENTS.md`.
 | --- | --- | --- |
 | Write or edit a site page | `docs/STYLE.md` | `docs/site/` |
 | Add or change a glossary term | `docs/STYLE.md` | `docs/legacy/` |
-| Start a change (new page, page structure, ADR-sized decision) | `AGENTS.md` | `openspec/config.yaml`, then `.claude/skills/openspec-propose/` |
+| Start a change (new page, page structure, ADR-sized decision) | `AGENTS.md` | `openspec/config.yaml`, then `.agents/skills/openspec-propose/` |
+| Verify a change before archive | `openspec/verify.md` | `.agents/skills/` |
 | Record an architecture decision | `adr/` | `CONSTITUTION.md` |
 | Weigh a change against the design principles | `CONSTITUTION.md` | |
 | Change the docs bundle, its pins, the publish jobs of either workflow, or the revision flow | `references/docs-bundle.md` | `.github/workflows/`, `.tasks/` |
