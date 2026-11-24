@@ -27,6 +27,8 @@ Markdown; the only build is the docs bundle.
   there is no `openspec/specs/` and no `specs/` inside a change, and each change's
   `.openspec.yaml` carries `skip_specs: true`. The page is the record.
 - Every change uses `opm-change`: omit `--schema`, never `--schema spec-driven`, even when asked.
+- A verify run on an OpenSpec change also applies `openspec/verify.md`, because the generated verify
+  skill does not name that file.
 - A decision a future author needs lands in an ADR or in `docs/STYLE.md` before the change is
   archived.
 - `openspec-sync-specs` comes back with every `openspec update`: leave it, it finds no specs to
