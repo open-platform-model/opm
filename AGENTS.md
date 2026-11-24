@@ -26,10 +26,11 @@ Markdown; the only build is the docs bundle.
   typo fix, a wording fix or a link fix does not. The schema `opm-change` has no specs artifact:
   there is no `openspec/specs/` and no `specs/` inside a change, and each change's
   `.openspec.yaml` carries `skip_specs: true`. The page is the record.
+- Every change uses `opm-change`: omit `--schema`, never `--schema spec-driven`, even when asked.
 - A decision a future author needs lands in an ADR or in `docs/STYLE.md` before the change is
   archived.
-- `openspec-sync-specs` is deleted because there are no specs to sync. Delete it again after
-  `openspec init` or `openspec update`.
+- `openspec-sync-specs` comes back with every `openspec update`: leave it, it finds no specs to
+  sync here. Never run `openspec init` here: it adds an `openspec/specs/` folder.
 - Update the layout below when you add a folder.
 
 ## Releases
@@ -55,7 +56,8 @@ docs/presentations/ Slide decks
 .github/CODEOWNERS  Owner review on CI, task and release config paths
 .tasks/             Install the pinned opm-docs, check the pins
 openspec/           OpenSpec workspace: config.yaml, schemas/opm-change/, changes/
-.claude/skills/     The generated openspec-* skills (no sync-specs)
+.agents/skills/     The generated openspec-* skills, never edited because every update rewrites them
+.claude/skills/     Links to the skills in .agents/skills/
 docs-kit.cue        Declares the opm docs bundle
 Taskfile.yml        Docs bundle and OpenSpec tasks, and the OPENSPEC_VERSION pin
 ```

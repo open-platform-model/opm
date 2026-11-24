@@ -7,7 +7,6 @@ compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
-  generatedBy: "1.14.1"
 ---
 
 Propose a new change - create the change and generate all artifacts in one step.
@@ -34,8 +33,8 @@ One `"root": null` is not about setup: when a `status` error message starts with
 
 Otherwise, with no root, what happens next depends on how this workflow was reached:
 
-- **Auto-selected**: you chose this workflow yourself, without the user naming OpenSpec, naming this skill, or running its slash command. Stop using OpenSpec and answer the request normally, as you would with no OpenSpec installed. Do not ask them to set anything up and do not mention OpenSpec setup.
-- **Explicit OpenSpec request**: the user named OpenSpec, named this skill, or ran its slash command. Stop before writing and ask how to proceed: set this project up (`openspec init`), target a store they already have (`--store <id>`), or continue without OpenSpec for this request. Wait for their answer.
+- **Auto-selected**: you chose this workflow yourself, without the user naming OpenSpec, naming this skill, or invoking this skill by name. Stop using OpenSpec and answer the request normally, as you would with no OpenSpec installed. Do not ask them to set anything up and do not mention OpenSpec setup.
+- **Explicit OpenSpec request**: the user named OpenSpec, named this skill, or invoked this skill by name. Stop before writing and ask how to proceed: set this project up (`openspec init`), target a store they already have (`--store <id>`), or continue without OpenSpec for this request. Wait for their answer.
 
 In both branches, never create the root as a side effect: do not run `openspec init` until the user asks for it, do not hand-create `openspec/` files, and do not let a command create it.
 
@@ -66,21 +65,28 @@ In both branches, never create the root as a side effect: do not run `openspec i
 
 3. **Determine the workflow schema**
 
-   This repo's default is the project-local `opm-change` schema (`openspec/config.yaml`),
-   which has NO specs artifact: proposal → design → tasks. Always omit `--schema`. Never select
-   `spec-driven` here, even if asked for "the default workflow"; explain that in this repo the page or the ADR is the record (see `openspec/config.yaml`).
+   Use the configured default schema unless the user explicitly requests a different workflow.
+
+   **Use a different schema only if the user:**
+   - Explicitly requests a specific schema by name → use `--schema <schema-name>`
+   - Asks to "show workflows" or asks "what workflows" exist → resolve the authoritative root by running `openspec context --json` from the current working directory. If the user explicitly selected a registered store, use `openspec context --json --store "<store-id>"`. Then run `openspec schemas --json` with its working directory set to the returned `root.path` and let them choose. This preserves roots selected by a local `store:` pointer or the global `defaultStore`; when a registered store was explicitly selected, append `--store "<store-id>"` to `openspec schemas --json` as well. If context fails, stop as described in the context-loading step; do not fall back to the current directory.
+
+   Otherwise, omit `--schema` to preserve the configured default.
 
 4. **Create the change directory**
 
-   If a registered store is selected, append `--store "<store-id>"` to this command and each
-   later OpenSpec command shown below that accepts `--store`.
+   Choose one schema form below. If a registered store is selected, append `--store "<store-id>"` to that command and each later OpenSpec command shown below that accepts `--store`.
 
+   Using the configured default:
    ```bash
    openspec new change "<name>"
    ```
-   This creates a scaffolded change in the planning home resolved by the CLI, using this
-   repo's project-local `opm-change` schema (proposal → design → tasks, NO specs artifact).
-   Never pass `--schema spec-driven`.
+
+   Using an explicitly requested schema:
+   ```bash
+   openspec new change "<name>" --schema "<schema-name>"
+   ```
+   This creates a scaffolded change in the planning home resolved by the CLI with `.openspec.yaml`.
 
 5. **Get the artifact build order**
    ```bash
@@ -115,8 +121,9 @@ In both branches, never create the root as a side effect: do not run `openspec i
         - Identify the target project from the request and project context; the planning home may be separate from the code. If the target is unclear, ask. For greenfield or non-code changes, inspect the available structure and relevant documents. If source is unavailable, state the limitation and ask when it materially affects the plan.
         - Ground scope, approach, and tasks in what you find. Distinguish observed behavior from assumptions and proposed additions; surface conflicts with existing specs instead of silently deciding which is correct.
         - Do this discovery now, rather than leaving generic "explore the codebase" or "make a plan" tasks for implementation. Keep any necessary follow-up investigation specific to an unresolved question.
-      - If the `instruction` field delegates creation to a specific skill or command, invoke it to produce the artifact instead of writing the file yourself, then verify the artifact file exists at `resolvedOutputPath`
-      - Otherwise create the artifact file using `template` as the structure and write it to `resolvedOutputPath`. If `resolvedOutputPath` is a glob, follow `instruction` to choose the concrete file path
+      - Choose the output path before creating anything. If `resolvedOutputPath` is a glob, follow `instruction` to choose a concrete path inside `changeRoot` that matches the glob, and verify it remains inside `changeRoot` after resolving symlinks, both in its parent directories and in the file itself if it already exists; if it does not, stop and tell the user. Otherwise the output path is `resolvedOutputPath`
+      - If the `instruction` field delegates creation to a specific skill or command, invoke it only if it can write the artifact to that output path; otherwise stop and tell the user. Then verify the artifact file exists at that output path
+      - Otherwise create the artifact file using `template` as the structure and write it to that output path
       - Apply `context` and `rules` as constraints - but do NOT copy them into the file
       - Show brief progress: "Created <artifact-id>"
 
@@ -145,12 +152,12 @@ After completing all artifacts, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions, plus any conditional artifact you skipped and why
 - What's ready: "All artifacts needed for implementation are ready."
-- Prompt: "The artifacts are ready for review. When you are ready, run `/openspec-apply-change` or ask me to apply this change."
+- Prompt: "The plan is ready for review. When you’re ready, ask me to apply it."
 
 **Artifact Creation Guidelines**
 
 - Follow the `instruction` field from `openspec instructions` for each artifact type - it is the authoritative guidance, even for familiar artifact names
-- If the `instruction` field directs you to use a specific skill or command to create the artifact, invoke it instead of writing the artifact directly
+- If the `instruction` field directs you to use a specific skill or command to create the artifact, invoke it instead of writing the artifact directly - but only once you have chosen and checked the output path, and only if it can write there
 - The schema defines what each artifact should contain - follow it
 - Read dependency artifacts for context before creating new ones
 - Use `template` as the structure for your output file - fill in its sections
