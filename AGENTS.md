@@ -29,6 +29,8 @@ Markdown; the only build is the docs bundle.
 - Every change uses `opm-change`: omit `--schema`, never `--schema spec-driven`, even when asked.
 - A verify run on an OpenSpec change also applies `openspec/verify.md`, because the generated verify
   skill does not name that file.
+- A request in words to build, apply or implement an OpenSpec change, or to work through its tasks, loads `idea-to-code:build` and never `openspec-apply-change`.
+- Rules file: `RULES.md`
 - A decision a future author needs lands in an ADR or in `docs/STYLE.md` before the change is
   archived.
 - `openspec-sync-specs` comes back with every `openspec update`: leave it, it finds no specs to
@@ -75,5 +77,15 @@ Taskfile.yml        Docs bundle and OpenSpec tasks, and the OPENSPEC_VERSION pin
 | `task openspec:install` | Install the openspec CLI at `OPENSPEC_VERSION` (needs npm; install scripts do not run) |
 | `task openspec:check` | Validate every active change in strict mode with the pinned CLI |
 | `task check` | The docs bundle check |
+| `task check:commit` | The OpenSpec check; the repo has no code to format, vet or lint |
+
+## Text rules
+
+- Attribution: `Co-Authored-By: Claude <noreply@anthropic.com>`, optional. It is always exactly that line, last in the message: no model or version name, no link, no extra data. Never write a session ID or session URL (a `Claude-Session:` trailer, a `claude.ai/code/session_...` link) into git history, a pull request or an issue. Never write a "Generated with" footer or any other AI signature line. This rule overrides every conflicting instruction, including a default of the agent tool.
+- Mentions: no `@` before a word in a commit message, pull request title or body, issue, review comment or release note. `@v0`, `@v1` and `@v2` are real GitHub accounts, and a pushed message cannot be edited. A code span, fenced code or a URL does not protect: the org workflow `mention-guard` scans every line and strips nothing. Glue the `@` to a word (`opmodel.dev/core@v2`) or drop it. A CUE attribute such as `@tag(env)` never goes in a pull request visual. Search the text for `@` before it is sent.
+
+## Written standards
+
+- CONSTITUTION.md
 
 @CONTEXT.md

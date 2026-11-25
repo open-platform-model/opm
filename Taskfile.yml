@@ -70,3 +70,8 @@ tasks:
     desc: Run every check (the docs bundle check)
     cmds:
       - task: docs:bundle:check
+
+  check:commit:
+    desc: The checks that run before every commit except a tests commit (the OpenSpec check; this repo has no Go or CUE code, so no fmt, vet or lint)
+    cmds:
+      - task: openspec:check

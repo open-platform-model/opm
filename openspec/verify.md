@@ -4,11 +4,15 @@ OpenSpec never writes this file; `openspec update` leaves it alone. The rules ad
 generated `openspec-verify-change` skill. Apply them in the same verify run and put their
 findings in the same report.
 
+## Checks
+
+1. **The code review.** Load the `idea-to-code:code-review` skill once in each verify run. It reviews the diff against the repo's written standards and a smell baseline. A breach of a written standard is a finding. A smell that cites no written rule is a lead.
+2. **The check for unasked work.** Read the diff that the code review read. A requirement, a scenario, a task or a Done when line must ask for each behaviour that the diff adds. Each miss is a finding.
+
 ## Task Hygiene (part of Completeness)
 
-- Flag any task that is a delivery operation other than a section-closing commit: pushing, branching, opening/merging PRs, tagging, cutting releases, commit-message or PR-body hygiene checks.
-- Add WARNING: "Delivery-operation task: <description>: remove it rather than checking it off; delivery past the section commit happens under the repo's normal git workflow".
-- A section-closing commit task (the last checkbox of a `## N.` section, naming a Conventional Commit) is satisfied when that commit exists in `git log`; add WARNING "Section without a commit task: <heading>" for any `## N.` section that lacks one.
+- Flag any task that is a delivery operation: committing, pushing, branching, opening/merging PRs, tagging, cutting releases, commit-message or PR-body hygiene checks.
+- Add WARNING: "Delivery-operation task: <description>: remove it rather than checking it off; delivery happens under the repo's normal git workflow".
 - Exception: skip this check when the change's stated deliverable is itself a release or publishing operation; there those steps are the implementation.
 
 ## Issue ids
