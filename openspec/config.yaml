@@ -12,6 +12,9 @@ context: |
   Verify: when you verify a change, also apply every rule in `openspec/verify.md`, in the same run
   and the same report. OpenSpec never writes that file.
 
+  Owner gates: apply them with the `idea-to-code:owner-gate` skill.
+  Checks before a commit: `task check:commit`. It runs before every commit except a tests commit.
+
   # opm: OpenSpec context
 
   opm is the landing project of Open Platform Model: published site pages (`docs/site/`), v0
@@ -26,7 +29,7 @@ context: |
   - Pages follow `docs/STYLE.md` and the workspace `STYLE.md`. Examples come first, and a CUE
     snippet compiles against real OPM imports or is marked as an excerpt.
   - Small batches (Constitution VIII). A change is a few mergeable sections; each ends green
-    under `task check` and closes with its own commit. If it does not cut that way, split it.
+    under `task check`. If it does not cut that way, split it.
   - Commit types: `feat`, `fix`, `perf`, `revert` and `docs` release; `chore`, `ci`, `build`,
     `test`, `style` and `refactor` never release. A change that only moves automation is
     `chore` or `ci`.
@@ -48,15 +51,15 @@ rules:
     - MUST include a "Durable decisions" section; write "None." when empty.
     - Name every page, folder and ADR the change touches.
   tasks:
-    - "Group tasks into `## N.` sections. Each section ends green under `task check` and closes with a commit task that names the Conventional Commit."
+    - "Group tasks into `## N.` sections. Each section ends green under `task check`. Write no task for a commit: the build commits each slice itself."
     - Include a task that lands each durable decision from design.md in an ADR or in `docs/STYLE.md`.
-    - "The section-closing commit is the only delivery operation in tasks.md: no push, no PR, no tag, no release."
+    - "No delivery operation belongs in tasks.md: no commit, no push, no PR, no tag, no release."
 
 operations:
   apply:
     guidance:
-      - "Work section by section. Before checking a commit task, run `task check` on the whole tree and make exactly the named Conventional Commit (optional plain Co-Authored-By: Claude <noreply@anthropic.com> trailer only; never a session link, never a bare @name)."
-      - "Commit on the working branch. If the run started on main, create a branch first; never commit to main."
+      - "Work section by section. Before you check the last box of a section, run `task check` on the whole tree."
+      - "Work on the working branch. If the run started on main, create a branch first; never commit to main."
   archive:
     guidance:
       - "Archive with `--skip-specs`: this workspace has no specs and the change declares skip_specs. Never let archive create an openspec/specs/ directory."

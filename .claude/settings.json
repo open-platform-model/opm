@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "idea-to-code": {
+      "source": { "source": "github", "repo": "emil-jacero/idea-to-code" }
+    }
+  },
+  "enabledPlugins": {
+    "idea-to-code@idea-to-code": true
+  }
+}
